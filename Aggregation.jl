@@ -5,9 +5,16 @@ function aggregates(E::Real, distr::Matrix, res::ResultsFP, pr::FirmProblem, p::
   labor=0.0;
   gdp=0.0;
   corptax=0.0;
-  netdistributions=0.0;
+  payout=0.0;
   liquidations=0.0;
   liquidationcosts=0.0;
+  #Moments
+  mean_inv_rate=0.0;
+  var_inv_rate=0.0;
+  mean_leverage=0.0;
+  var_leverage=0.0;
+  mean_payout2k=0.0;
+  var_payout2k=0.0;
 
 
   for i_z in 1:pr.Nz
@@ -19,12 +26,13 @@ function aggregates(E::Real, distr::Matrix, res::ResultsFP, pr::FirmProblem, p::
     lprime = (zprime*fp.alphal*kprime^fp.alphak / p.w)^(1/(1-fp.alphal));
 
     capital += kprime*E*fp.invariant_distr[i_z];
+    # inv_rate, leverage, payout_rate are undefined for entrantrants.
     debt += qprime*E*fp.invariant_distr[i_z];
     labor += labor*E*fp.invariant_distr[i_z];
     gdp += (zprime*kprime^fp.alphak*lprime^fp.alphal -fp.f)*E*fp.invariant_distr[i_z];
     corptax += tau.c*(zprime*kprime^fp.alphak*lprime^fp.alphal - p.w*lprime - fp.delta*kprime - p.r*qprime )*E*fp.invariant_distr[i_z];
 =#
-    netdistributions+=res.distributions[1,i_z]*E*fp.invariant_distr[i_z]
+    payout+=res.distributions[1,i_z]*E*fp.invariant_distr[i_z]
 
     for i_omega in 1:pr.Nomega
       kprime=res.kprime[i_omega,i_z];
@@ -56,7 +64,19 @@ function aggregates(E::Real, distr::Matrix, res::ResultsFP, pr::FirmProblem, p::
               error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
             end
           end
-          netdistributions+=res.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          
+          inv_rate = ((res.kprime[i_omegaprime,i_zprime] - kprime)/kprime);
+          mean_inv_rate += inv_rate*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          var_inv_rate += inv_rate^2*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          
+          leverage = qprime/kprime;
+          mean_leverage += leverage*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          var_leverage += leverage*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z]; 
+          
+          payout+=res.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          payout2k=payout/kprime;
+          mean_payout2k=payout2k*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          var_payout2k=payout2k^2*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
         #Exiting incumbents
         else
@@ -72,7 +92,7 @@ function aggregates(E::Real, distr::Matrix, res::ResultsFP, pr::FirmProblem, p::
   end
 
   inctax = tau.i*p.r*debt;
-  netdistributionscheck = sum(distr.*res.distributions);
+  payoutcheck = sum(distr.*res.distributions);
   debtcheck = sum(distr.*res.qprime)
   capitalcheck= sum(distr.*res.kprime)
 
@@ -81,6 +101,10 @@ function aggregates(E::Real, distr::Matrix, res::ResultsFP, pr::FirmProblem, p::
       netdistributions - netdistributionscheck >10.0^-4.0
     error("Consistency problem")
   end
+  
+  var_inv_rate = var_inv_rate - mean_inv_rate^2;
+  var_leverage = var_leverage - mean_leverage^2;
+  var_payout2k = var_payout2k - mean_payout2k^2;
 
   return capital, debt, labor, gdp, corptax, inctax, netdistributions, liquidations, liquidationcosts
 end
