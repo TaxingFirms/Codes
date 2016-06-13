@@ -164,3 +164,21 @@ function grossdistributions(omega::Real,kprime::Real,qprime::Real,fp::FirmParam)
   omega - kprime + qprime -fp.f
 end
 
+#Predict future state
+function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
+  kprime = pr.kpolicygrid;
+  qprime = pr.qpolicygrid;
+  omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
+  i_omegaprime = closestindex(omegaprime, pr.omega.step);
+  #The block below checks that the index is within reasonable bounds
+  if i_omegaprime<1 || i_omegaprime>pr.Nomega
+    if i_omega==pr.Nomega || i_omegaprime < (pr.Nomega + 3)
+      i_omegaprime =pr.Nomega
+    elseif i_omega==1 || i_omegaprime > -3
+      i_omegaprime =1;
+    else
+      error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
+    end
+  end
+  return omegaprime, i_omegaprime
+end
