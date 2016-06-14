@@ -99,6 +99,24 @@ type ResultsFP
   positivedistributions :: Array{Bool,2}
 end
 
+type Moments
+  mean_inv_rate::Float64
+  var_inv_rate::Float64
+  mean_leverage::Float64
+  var_leverage::Float64
+
+  mean_dividends2k::Float64
+  var_dividends2k::Float64
+  mean_profits2k::Float64
+
+  var_profits2k::Float64
+  mean_eqis2k::Float64
+  freq_equis2k::Float64
+  mean_tobinsq::Float64
+
+  cov_nw::Float64
+end
+
 
 ###########################################################################
 # 0.PARAMETER DEFINITION
@@ -166,8 +184,8 @@ end
 
 #Predict future state
 function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
-  kprime = pr.kpolicygrid;
-  qprime = pr.qpolicygrid;
+  kprime = pr.kpolicygrid[i_omega,i_z];
+  qprime = pr.qpolicygrid[i_omega,i_z];
   omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
   i_omegaprime = closestindex(omegaprime, pr.omega.step);
   #The block below checks that the index is within reasonable bounds

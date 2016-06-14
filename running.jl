@@ -26,21 +26,23 @@ pr  = init_firmproblem(p,tau,fp,hp);
 
 
 #Compute the model on first time
-# @time firmVFIParallel!(pr,p,tau,fp); #pr is updated, computes Value Function
 @time firmVFIParallelOmega!(pr,p,tau,fp); #pr is updated, computes Value Function
+#597.841274 seconds on tesla, tol = 10^-3.
+
 #Compute wage such that free entry condition holds
-@time w=free_entry!(pr, p, tau, fp,hp,tol=.001) #0.6895019531249997
+@time w=free_entry!(pr, p, tau, fp,hp,tol=.001)
+#1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
 
 #Extract policies and other idiosyncratic results of interest
 res=copy_opt_policies(pr);
 getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
 
 #Compute invariant distribution for E and compute aggregate results of interest
-equilibrium_aggregates!( res, pr, p, tau, fp);
+m = equilibrium_aggregates!(res, pr, p, tau, fp)
 
 using JLD
 #save("/home/gcam/firms/Codes/FreeEntryResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res,"p",p);
-save("/home/dwills/firms/ModelResultsTxExit.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
+save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
 
 
@@ -78,4 +80,3 @@ f
 g = lineplot(collect(pr.omega.grid),res.distributions[:,1],title="Net Distributions", name = "z=1");
 map(x->lineplot!(g,collect(pr.omega.grid),dist[:,x],name=string("z=",x)),2:pr.Nz);
 g
-
