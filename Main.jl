@@ -56,13 +56,8 @@ type Equilibrium
   #Results
   distr::Array{Float64,2}
   E::Float64
-  netdistributions::Float64
-  agginterests::Float64
-  consumption::Float64
-  output::Float64
-  laborsupply::Float64
-  welfare::Float64
-  collections::Taxes
+  a::Aggregates
+  m::Moments
 end
 
 type FirmProblem
@@ -116,6 +111,23 @@ type Moments
 
   cov_nw::Float64
 end
+
+type Aggregates
+  netdistributions::Float64
+  agginterests::Float64
+  consumption::Float64
+  output::Float64
+  laborsupply::Float64
+  welfare::Float64
+  collections::Taxes
+  bonds::Float64
+  capital::Float64
+  investment::Float64
+  grossdividends::Float64
+  financialcosts::Float64
+  G::Float64
+end
+
 
 
 ###########################################################################

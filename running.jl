@@ -37,7 +37,11 @@ pr  = init_firmproblem(p,tau,fp,hp);
 res=copy_opt_policies(pr);
 getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
 
-#Compute invariant distribution for E and compute aggregate results of interest
+#Compute mass of entrants and stationary distribution 
+# both are updated in p.
+mass_of_entrants!( res, pr, p, tau, fp)
+
+# Compute aggregate results of interest and moments
 m = equilibrium_aggregates!(res, pr, p, tau, fp)
 
 using JLD
