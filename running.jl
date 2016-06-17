@@ -22,7 +22,7 @@ fp  = init_firmparameters(hp);
 tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
 
 
-p,res,pr= SolveModel!(tau,fp,hp, wguess=0.719)
+p,res,pr= SolveModel!(tau,fp,hp)
 
 p.E/sum(p.distr)
 p.moments
@@ -32,6 +32,9 @@ using JLD
 save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
 
+fp  = init_firmparameters(hp; e=0.05);
+p,res,pr= SolveModel!(tau,fp,hp)
+save("/home/dwills/firms/E=005.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
 #####################
 # PLOTS

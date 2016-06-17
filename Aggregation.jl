@@ -106,7 +106,8 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
 
   var_profits2k=0.0;
   mean_eqis2k=0.0;
-  freq_eqis2k=0.0;
+  mean_eqis=0.0;
+  freq_eqis=0.0;
   mean_tobinsq=0.0;
 
   cov_nw=0.0;
@@ -145,6 +146,8 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
   for i_z in 1:pr.Nz
     #### First we consider entrants ###
     netdistributions+=res.distributions[1,i_z]*p.E*fp.invariant_distr[i_z];
+    freq_eqis+=(1-res.positivedistributions[1,i_z])*p.E*fp.invariant_distr[i_z];
+    mean_eqis+=res.grossequityis*p.E*fp.invariant_distr[i_z];
     #investment rate, leverage, etc are undefinied for entrants
 
     #### Next we consider incumbents ###
@@ -169,6 +172,8 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, p, pr, tau, fp);
           netdistributions+=res.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          freq_eqis+=(1-res.positivedistributions[i_omegaprime,i_zprime])*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
+          mean_eqis+=res.grossequityis[i_omegaprime,i_zprime]*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
           if kprime>0
             inv_rate = ((res.kprime[i_omegaprime,i_zprime] - (1-fp.delta)*kprime)/kprime);
@@ -271,7 +276,7 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
   mean_profits2k=mean_profits2k/ mass_incumbents;
   var_profits2k=(var_profits2k - mean_profits2k_shifted^2/mass_incumbents )/ mass_incumbents;
 
-  mean_eqis2k= mean_eqis2k/ mass_incumbents;
+  mean_eqis2k= mean_eqis2k/ capital;
 
   freq_eqis2k=freq_eqis2k/ mass_incumbents;
   mean_tobinsq=mean_tobinsq/ mass_incumbents;
