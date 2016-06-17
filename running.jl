@@ -15,6 +15,7 @@
 @everywhere include("FreeEntry.jl")
 @everywhere include("Aggregation.jl")
 @everywhere include("TaxReforms.jl")
+@everywhere include("Temp.jl")
 
 hp = init_hhparameters();
 fp  = init_firmparameters(hp);
@@ -43,7 +44,7 @@ mass_of_entrants!( res, pr, p, tau, fp);
 
 # Compute aggregate results of interest and moments
 aggregates!(res, pr, p, tau, hp, fp);
-
+p.E/sum(p.distr)
 using JLD
 #save("/home/gcam/firms/Codes/FreeEntryResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res,"p",p);
 save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);

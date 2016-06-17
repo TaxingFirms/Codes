@@ -49,9 +49,7 @@ function compute_expvalentry(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::F
 
   expvalentry=0;
   for i_z = 1:pr.Nz
-    expvalentry = pr.firmvaluegrid[1,i_z]*fp.invariant_distr[i_z];
+    expvalentry = pr.firmvaluegrid[1,i_z]*fp.invariant_distr[i_z] - fp.e;
   end
   expvalentry
 end
-
-

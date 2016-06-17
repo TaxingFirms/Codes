@@ -25,6 +25,7 @@ immutable FirmParam
   delta::Real # Capital depreciation
   theta::Real # Collateral
   kappa::Real #Liquidation cost
+  e::Real # Entry cost
   collateral_factor::Real #theta*(1-delta)
   leverageratio::Real # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   zgrid::Array{Float64,1}
@@ -143,7 +144,7 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0125, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.6, kappa=1, rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0145, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.4, kappa=1, e=0.01,rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -155,7 +156,7 @@ function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0125, llambda0
   A = ( (aalphak)/(hp.beta^-1.0 - 1.0 + ddelta)  )^(-aalphak);
   zgrid = A*shocks
   ztrans=trans';
-  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega);
+  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega);
 end
 
 #Initialize taxes

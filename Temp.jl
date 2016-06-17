@@ -170,7 +170,7 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
     error("Consistency problem")
   end
 
-  if abs(labor_s - labor) > eps()
+  if abs(labor_s - labor) > 10^-10.0
     error("labor market didn't clear")
   end
 
