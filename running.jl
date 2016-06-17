@@ -37,12 +37,12 @@ pr  = init_firmproblem(p,tau,fp,hp);
 res=copy_opt_policies(pr);
 getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
 
-#Compute mass of entrants and stationary distribution 
+#Compute mass of entrants and stationary distribution
 # both are updated in p.
-mass_of_entrants!( res, pr, p, tau, fp)
+mass_of_entrants!( res, pr, p, tau, fp);
 
 # Compute aggregate results of interest and moments
-m = equilibrium_aggregates!(res, pr, p, tau, fp)
+aggregates!(res, pr, p, tau, hp, fp);
 
 using JLD
 #save("/home/gcam/firms/Codes/FreeEntryResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res,"p",p);

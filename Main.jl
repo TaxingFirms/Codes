@@ -50,15 +50,6 @@ type Taxes
   g::Real
 end
 
-type Equilibrium
-  r::Real #interest rate
-  w::Real #wage
-  #Results
-  distr::Array{Float64,2}
-  E::Float64
-  a::Aggregates
-  m::Moments
-end
 
 type FirmProblem
   #input
@@ -128,7 +119,15 @@ type Aggregates
   G::Float64
 end
 
-
+type Equilibrium
+  r::Real #interest rate
+  w::Real #wage
+  #Results
+  distr::Array{Float64,2}
+  E::Float64
+  a::Aggregates
+  m::Moments
+end
 
 ###########################################################################
 # 0.PARAMETER DEFINITION
@@ -144,7 +143,7 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0135, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.4, kappa=1, rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0125, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.6, kappa=1, rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -179,7 +178,11 @@ function guess_prices(tau,fp,hp)
   laborsupply= convert(Float64,NaN);
   welfare = convert(Float64,NaN);
   collections=Taxes(NaN,NaN,NaN,NaN);
-  Equilibrium(r,w,distr,E,netdistributions,agginterests,consumption,output, laborsupply,welfare,collections);
+
+  aggregates= Aggregates(NaN,NaN,NaN,NaN,NaN,NaN,collections,NaN,NaN,NaN,NaN,NaN,NaN)
+  moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)
+
+  Equilibrium(r,w,distr,E,aggregates,moments);
 end
 
 #Compute omega prime
