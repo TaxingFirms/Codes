@@ -144,7 +144,7 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0145, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.4, kappa=1, e=0.01,rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0145, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.45, kappa=1, e=0.00,rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -165,9 +165,9 @@ function init_taxes(;ttaud=0.15, ttauc = 0.35, ttaui = 0.3, ttaug = 0.15)
   end
 
 #Guess Prices
-function guess_prices(tau,fp,hp)
+function init_equilibirium(wguess,tau,fp,hp)
   r=(hp.beta^(-1.0) -1)/(1-tau.i);
-  w=0.69 #fp.alphal;
+  w=wguess; #fp.alphal;
 
   #Initiate Results
   distr= Array(Float64,(fp.Nomega,fp.Nz));

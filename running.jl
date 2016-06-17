@@ -15,36 +15,18 @@
 @everywhere include("FreeEntry.jl")
 @everywhere include("Aggregation.jl")
 @everywhere include("TaxReforms.jl")
-@everywhere include("Temp.jl")
+@everywhere include("SolveModel.jl")
 
 hp = init_hhparameters();
 fp  = init_firmparameters(hp);
-
 tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
-p = guess_prices(tau,fp,hp);
-pr  = init_firmproblem(p,tau,fp,hp);
 
 
+SolveModel!(tau,fp,hp)
 
-#Compute the model on first time
-@time firmVFIParallelOmega!(pr,p,tau,fp); #pr is updated, computes Value Function
-#597.841274 seconds on tesla, tol = 10^-3.
-
-#Compute wage such that free entry condition holds
-@time w=free_entry!(pr, p, tau, fp,hp,tol=.001)
-#1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
-
-#Extract policies and other idiosyncratic results of interest
-res=copy_opt_policies(pr);
-getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
-
-#Compute mass of entrants and stationary distribution
-# both are updated in p.
-mass_of_entrants!( res, pr, p, tau, fp);
-
-# Compute aggregate results of interest and moments
-aggregates!(res, pr, p, tau, hp, fp);
 p.E/sum(p.distr)
+p.moments
+
 using JLD
 #save("/home/gcam/firms/Codes/FreeEntryResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res,"p",p);
 save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
