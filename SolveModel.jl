@@ -1,4 +1,4 @@
-function SolveModel!(tau,fp;wguess=0.69)
+function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64=0.69)
 
   p = init_equilibirium(wguess,tau,fp,hp);
   pr  = init_firmproblem(p,tau,fp,hp);
@@ -21,4 +21,6 @@ function SolveModel!(tau,fp;wguess=0.69)
 
   # Compute aggregate results of interest and moments
   aggregates!(res, pr, p, tau, hp, fp);
+
+  return p,res,pr
 end

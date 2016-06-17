@@ -144,7 +144,7 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0145, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.45, kappa=1, e=0.00,rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -160,12 +160,12 @@ function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0145, llambda0
 end
 
 #Initialize taxes
-function init_taxes(;ttaud=0.15, ttauc = 0.35, ttaui = 0.3, ttaug = 0.15)
+function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15)
   Taxes(ttaud, ttauc, ttaui, ttaug);
   end
 
 #Guess Prices
-function init_equilibirium(wguess,tau,fp,hp)
+function init_equilibirium(wguess::Float64,tau::Taxes,fp::FirmParam,hp::HouseholdParam)
   r=(hp.beta^(-1.0) -1)/(1-tau.i);
   w=wguess; #fp.alphal;
 
@@ -199,10 +199,10 @@ function grossdistributions(omega::Real,kprime::Real,qprime::Real,fp::FirmParam)
 end
 
 #Predict future state
-function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
+function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, p::Equilibrium, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
   kprime = pr.kpolicygrid[i_omega,i_z];
   qprime = pr.qpolicygrid[i_omega,i_z];
-  omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
+  omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp);
   i_omegaprime = closestindex(omegaprime, pr.omega.step);
   #The block below checks that the index is within reasonable bounds
   if i_omegaprime<1 || i_omegaprime>pr.Nomega

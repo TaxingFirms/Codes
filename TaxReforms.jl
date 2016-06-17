@@ -16,7 +16,7 @@ function taxreform1(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  SolveModel!(taunew,fp,hp; wguess=p.w)
+  p,res=SolveModel!(taunew,fp,hp; wguess=p.w)
   newG=p.a.G;
 
   while abs(originalG -newG)<10^-3.0
@@ -28,7 +28,7 @@ function taxreform1(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     originalG=newG;
-    SolveModel!(taunew,fp,hp; wguess=p.w);
+    p,res= SolveModel!(taunew,fp,hp; wguess=p.w);
     newG=p.a.G;
   end
 end

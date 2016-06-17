@@ -22,7 +22,7 @@ fp  = init_firmparameters(hp);
 tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
 
 
-SolveModel!(tau,fp,hp)
+p,res,pr= SolveModel!(tau,fp,hp, wguess=0.719)
 
 p.E/sum(p.distr)
 p.moments

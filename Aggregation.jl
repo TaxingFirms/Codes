@@ -27,7 +27,7 @@ function unit_entry(distr1::Matrix, res::ResultsFP, pr::FirmProblem, p::Equilibr
           debt        += qprime*distr1[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
           labor       += lprime*distr1[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
-          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, tau, fp)
+          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, p, pr, tau, fp)
           netdistributions+=res.distributions[i_omegaprime,i_zprime]*distr1[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
         #Exiting incumbents
@@ -126,7 +126,7 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
   mp_omega=convert(Int64,round(pr.Nomega/2));
   mp_z=convert(Int64,round(pr.Nz/2));
   mp_zprime=mp_z;
-  vmp_omegaprime, mp_omegaprime = predict_state(mp_zprime, mp_omega, mp_z, pr, tau, fp);
+  vmp_omegaprime, mp_omegaprime = predict_state(mp_zprime, mp_omega, mp_z, p, pr, tau, fp);
   kprime = res.kprime[mp_omega,mp_z];
   qprime = res.qprime[mp_omega,mp_z];
   zprime = fp.zgrid[mp_zprime];
@@ -167,7 +167,7 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
           gdp         += (zprime*kprime^fp.alphak*lprime^fp.alphal -fp.f)*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
           corptax     += tau.c*(zprime*kprime^fp.alphak*lprime^fp.alphal -p.w*lprime - fp.delta*kprime - p.r*qprime -fp.f)*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
-          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, tau, fp);
+          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, p, pr, tau, fp);
           netdistributions+=res.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*fp.ztrans[i_zprime,i_z];
 
           if kprime>0
