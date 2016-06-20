@@ -75,7 +75,7 @@ println("originalG - newG ", originalG -newG)
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     originalG=newG;
-    SolveModel!(taunew,fp,hp; wguess=p.w);
+    SolveModel!(taunew,fp,hp);
     newG=p.a.G;
   end
   save("/home/dwills/firms/counterfactual2RN.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
