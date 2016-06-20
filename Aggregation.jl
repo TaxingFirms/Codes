@@ -256,7 +256,7 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
   end
 
   if abs((gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)> pr.omega.step
-        println("goods market didn't clear")
+        println("goods market didn't clear: ", (gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)
   end
 
   ##############################
