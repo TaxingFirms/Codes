@@ -8,7 +8,7 @@ function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64
   #597.841274 seconds on tesla, tol = 10^-3.
 
   #Compute wage such that free entry condition holds
-  @time w=free_entry!(pr, p, tau, fp,hp,tol=.001)
+  @time w=free_entry!(pr, p, tau, fp,hp; xtol=.001)
   #1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
 
   #Extract policies and other idiosyncratic results of interest

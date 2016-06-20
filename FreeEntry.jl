@@ -1,4 +1,4 @@
-function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam; tol = .00001)
+function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam; xtol = .00001)
   f(x) = expvalentry!(x,pr,p,tau,fp,hp);
 
   expvalentry= compute_expvalentry(pr,p,tau,fp,hp);

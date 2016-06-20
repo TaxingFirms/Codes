@@ -20,14 +20,14 @@
 
 hp = init_hhparameters();
 fp  = init_firmparameters(hp; llambda0=0.02, llambda1=0.04, ttheta=0.42, ff= 0.015, ddelta=0.12);
-tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
+tau = init_taxes() ;
 
 
-#p,res,pr= SolveModel!(tau,fp,hp)
+p,res,pr= SolveModel!(tau,fp,hp)
 
-#save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
+save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
-pr,tau,fp,res,p=load("/home/dwills/firms/ModelResults.jld", "pr","tau","fp","res","p");
+#pr,tau,fp,res,p=load("/home/dwills/firms/ModelResults.jld", "pr","tau","fp","res","p");
 
 
 taxreform2(0.3, p, tau, fp, hp)
