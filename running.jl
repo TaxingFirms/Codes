@@ -27,6 +27,9 @@ tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
 
 #save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
+pr,tau,fp,res,p=load("/home/dwills/firms/ModelResults.jld", "pr","tau","fp","res","p");
+
+
 taxreform2(0.3, p, tau, fp, hp)
 
 taxreform1(0.3, p, tau, fp, hp)
