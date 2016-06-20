@@ -34,7 +34,7 @@ function taxreform1(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
     newG=p.a.G;
   end
 
-  save("/home/dwills/firms/counterfactual1.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
+  save("/home/dwills/firms/counterfactual1RN.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
 
 end
 
@@ -78,5 +78,5 @@ println("originalG - newG ", originalG -newG)
     SolveModel!(taunew,fp,hp; wguess=p.w);
     newG=p.a.G;
   end
-  save("/home/dwills/firms/counterfactual2.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
+  save("/home/dwills/firms/counterfactual2RN.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
 end
