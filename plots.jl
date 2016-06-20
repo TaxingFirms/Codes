@@ -14,7 +14,8 @@ include("FreeEntry.jl")
 include("Aggregation.jl")
 include("TaxReforms.jl")
 
-pr,tau,fp,res,p=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
+
+pr,tau,fp,res,p=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/f=0147.jld", "pr","tau","fp","res","p");
 #pr,tau,fp,res,p=load("/Users/gcamilo/Dropbox/research/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
 
 omegagrid=pr.omega.grid;
@@ -76,7 +77,7 @@ prLow,tauLow,fpLow,resLow,pLow=load("/Users/gcamilo/Dropbox/research/1FirmTaxati
 # prHigh,tauHigh,fpHigh,resHigh,pHigh=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/Reform045.jld", "pr","tau","fp","res","p");
 prHigh,tauHigh,fpHigh,resHigh,pHigh=load("/Users/gcamilo/Dropbox/research/1FirmTaxation/SimpleDiscreteTime/Reform045.jld", "pr","tau","fp","res","p");
 oneDimensionLow = squeeze(sum(pLow.distr,2),2)
-oneDimensionHigh = squeeze(sum(pHigh.distr,2),2) 
+oneDimensionHigh = squeeze(sum(pHigh.distr,2),2)
 
 # PDF
 

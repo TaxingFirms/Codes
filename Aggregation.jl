@@ -278,12 +278,12 @@ function aggregates!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes
 
   mean_eqis2k= mean_eqis2k/ capital;
 
-  freq_eqis2k=freq_eqis2k/ mass_incumbents;
+  freq_eqis=freq_eqis/ mass_incumbents;
   mean_tobinsq=mean_tobinsq/ mass_incumbents;
 
   cov_nw=(cov_nw - mean_omega_shifted*mean_omegaprime_shifted / mass_incumbents)/ mass_incumbents;
 
-  p.m = Moments(mean_inv_rate, var_inv_rate, mean_leverage, var_leverage, mean_dividends2k, var_dividends2k, mean_profits2k, var_profits2k, mean_eqis2k, freq_eqis2k, mean_tobinsq, cov_nw)
+  p.m = Moments(mean_inv_rate, var_inv_rate, mean_leverage, var_leverage, mean_dividends2k, var_dividends2k, mean_profits2k, var_profits2k, mean_eqis2k, freq_eqis, mean_tobinsq, cov_nw)
   ##############################
 
 

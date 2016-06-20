@@ -16,7 +16,9 @@ function taxreform1(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  p,res=SolveModel!(taunew,fp,hp; wguess=p.w)
+  p,res,pr=SolveModel!(taunew,fp,hp)
+  save("/home/dwills/firms/counterfactual1.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
+
   newG=p.a.G;
 
   while abs(originalG -newG)<10^-3.0
@@ -28,9 +30,12 @@ function taxreform1(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     originalG=newG;
-    p,res= SolveModel!(taunew,fp,hp);
+    p,res,pr= SolveModel!(taunew,fp,hp);
     newG=p.a.G;
   end
+
+  save("/home/dwills/firms/counterfactual2.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
+
 end
 
 
@@ -40,10 +45,10 @@ end
 function taxreform2(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp::HouseholdParam)
 
   #Compute tax base for "revenue neutral" reforms
-  C = p.collections.c / tau.c #corporate base
-  D = p.collections.d / tau.d #corporate base
-  I = p.collections.i / tau.i #corporate base
-  G = p.collections.g / tau.g #corporate base
+  C = p.a.collections.c / tau.c #corporate base
+  D = p.a.collections.d / tau.d #corporate base
+  I = p.a.collections.i / tau.i #corporate base
+  G = p.a.collections.g / tau.g #corporate base
 
   x= (tauc - tau.c)*C/(D+G);
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x);
@@ -51,7 +56,9 @@ function taxreform2(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-  SolveModel!(tau,fp,hp; wguess=p.w)
+  SolveModel!(tau,fp,hp)
+  save("/home/dwills/firms/counterfactual2.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
+
   newG=p.a.G;
 
   while abs(originalG -newG)<10^-3.0
@@ -66,4 +73,5 @@ function taxreform2(tauc::Float64, p::Equilibrium, tau::Taxes, fp::FirmParam, hp
     SolveModel!(taunew,fp,hp; wguess=p.w);
     newG=p.a.G;
   end
+  save("/home/dwills/firms/counterfactual2.jld", "pr", pr, "tau", taunew, "fp", fp, "res",res, "p",p);
 end
