@@ -25,6 +25,7 @@ immutable FirmParam
   delta::Real # Capital depreciation
   theta::Real # Collateral
   kappa::Real #Liquidation cost
+  e::Real # Entry cost
   collateral_factor::Real #theta*(1-delta)
   leverageratio::Real # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   zgrid::Array{Float64,1}
@@ -50,20 +51,6 @@ type Taxes
   g::Real
 end
 
-type Equilibrium
-  r::Real #interest rate
-  w::Real #wage
-  #Results
-  distr::Array{Float64,2}
-  E::Float64
-  netdistributions::Float64
-  agginterests::Float64
-  consumption::Float64
-  output::Float64
-  laborsupply::Float64
-  welfare::Float64
-  collections::Taxes
-end
 
 type FirmProblem
   #input
@@ -99,6 +86,49 @@ type ResultsFP
   positivedistributions :: Array{Bool,2}
 end
 
+type Moments
+  mean_inv_rate::Float64
+  var_inv_rate::Float64
+  mean_leverage::Float64
+  var_leverage::Float64
+
+  mean_dividends2k::Float64
+  var_dividends2k::Float64
+  mean_profits2k::Float64
+
+  var_profits2k::Float64
+  mean_eqis2k::Float64
+  freq_equis2k::Float64
+  mean_tobinsq::Float64
+
+  cov_nw::Float64
+end
+
+type Aggregates
+  netdistributions::Float64
+  agginterests::Float64
+  consumption::Float64
+  output::Float64
+  laborsupply::Float64
+  welfare::Float64
+  collections::Taxes
+  bonds::Float64
+  capital::Float64
+  investment::Float64
+  grossdividends::Float64
+  financialcosts::Float64
+  G::Float64
+end
+
+type Equilibrium
+  r::Real #interest rate
+  w::Real #wage
+  #Results
+  distr::Array{Float64,2}
+  E::Float64
+  a::Aggregates
+  m::Moments
+end
 
 ###########################################################################
 # 0.PARAMETER DEFINITION
@@ -114,7 +144,7 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0135, llambda0= 0.08, llambda1= 0.028, ddelta= 0.14, ttheta=0.4, kappa=1, rhoz= 0.76, ssigmaz= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -126,18 +156,18 @@ function init_firmparameters(hp;aalphak=0.3, aalphal = 0.65, ff=0.0135, llambda0
   A = ( (aalphak)/(hp.beta^-1.0 - 1.0 + ddelta)  )^(-aalphak);
   zgrid = A*shocks
   ztrans=trans';
-  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega);
+  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega);
 end
 
 #Initialize taxes
-function init_taxes(;ttaud=0.15, ttauc = 0.35, ttaui = 0.3, ttaug = 0.15)
+function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15)
   Taxes(ttaud, ttauc, ttaui, ttaug);
   end
 
 #Guess Prices
-function guess_prices(tau,fp,hp)
+function init_equilibirium(wguess::Float64,tau::Taxes,fp::FirmParam,hp::HouseholdParam)
   r=(hp.beta^(-1.0) -1)/(1-tau.i);
-  w=0.69 #fp.alphal;
+  w=wguess; #fp.alphal;
 
   #Initiate Results
   distr= Array(Float64,(fp.Nomega,fp.Nz));
@@ -149,7 +179,11 @@ function guess_prices(tau,fp,hp)
   laborsupply= convert(Float64,NaN);
   welfare = convert(Float64,NaN);
   collections=Taxes(NaN,NaN,NaN,NaN);
-  Equilibrium(r,w,distr,E,netdistributions,agginterests,consumption,output, laborsupply,welfare,collections);
+
+  aggregates= Aggregates(NaN,NaN,NaN,NaN,NaN,NaN,collections,NaN,NaN,NaN,NaN,NaN,NaN)
+  moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)
+
+  Equilibrium(r,w,distr,E,aggregates,moments);
 end
 
 #Compute omega prime
@@ -164,3 +198,21 @@ function grossdistributions(omega::Real,kprime::Real,qprime::Real,fp::FirmParam)
   omega - kprime + qprime -fp.f
 end
 
+#Predict future state
+function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, p::Equilibrium, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
+  kprime = pr.kpolicygrid[i_omega,i_z];
+  qprime = pr.qpolicygrid[i_omega,i_z];
+  omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp);
+  i_omegaprime = closestindex(omegaprime, pr.omega.step);
+  #The block below checks that the index is within reasonable bounds
+  if i_omegaprime<1 || i_omegaprime>pr.Nomega
+    if i_omega==pr.Nomega || i_omegaprime < (pr.Nomega + 3)
+      i_omegaprime =pr.Nomega
+    elseif i_omega==1 || i_omegaprime > -3
+      i_omegaprime =1;
+    else
+      error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
+    end
+  end
+  return omegaprime, i_omegaprime
+end

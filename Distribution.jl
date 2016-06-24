@@ -24,7 +24,7 @@ function find_inds(i::Int, Nomega::Int)
 end
 
 # STATIONARY DISTRIBUTION,  E is the mass of entrants
-function stationarydist(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam;  tol=10.0^-4.0)
+function stationarydist(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam;  tol=eps())
   #Initiate Variables
   ii=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);
   jj=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);

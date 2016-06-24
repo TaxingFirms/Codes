@@ -1,4 +1,4 @@
-function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam; tol = .00001)
+function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam; xtol = .00001)
   f(x) = expvalentry!(x,pr,p,tau,fp,hp);
 
   expvalentry= compute_expvalentry(pr,p,tau,fp,hp);
@@ -49,9 +49,7 @@ function compute_expvalentry(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::F
 
   expvalentry=0;
   for i_z = 1:pr.Nz
-    expvalentry = pr.firmvaluegrid[1,i_z]*fp.invariant_distr[i_z];
+    expvalentry = pr.firmvaluegrid[1,i_z]*fp.invariant_distr[i_z] - fp.e;
   end
   expvalentry
 end
-
-
