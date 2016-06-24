@@ -14,6 +14,7 @@ include("FreeEntry.jl")
 include("Aggregation.jl")
 include("TaxReforms.jl")
 
+
 pr,tau,fp,res,p=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
 #pr,tau,fp,res,p=load("/Users/gcamilo/Dropbox/research/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
 
@@ -32,13 +33,14 @@ end
 
 
 
-
+figure()
 d= plot(omegagrid, res.distributions[:,7] )
 k= plot(omegagrid, res.kprime[:,7] )
 q= plot(omegagrid, res.qprime[:,7] )
   xlabel("Net worth")
   title("Policy functions (at z=7)")
   legend("dkq", loc="best")
+
 
 
 figure()
@@ -53,6 +55,7 @@ imshow(regions,aspect="auto",extent=(fp.zgrid[1],fp.zgrid[end],pr.omega.ub,0))
     title("Distribution Regions")
     xlabel("Productivity")
     ylabel("Net worth")
+
 
 #######
 # Distribution of firms by net worth
@@ -76,7 +79,7 @@ prLow,tauLow,fpLow,resLow,pLow=load("/Users/gcamilo/Dropbox/research/1FirmTaxati
 # prHigh,tauHigh,fpHigh,resHigh,pHigh=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/Reform045.jld", "pr","tau","fp","res","p");
 prHigh,tauHigh,fpHigh,resHigh,pHigh=load("/Users/gcamilo/Dropbox/research/1FirmTaxation/SimpleDiscreteTime/Reform045.jld", "pr","tau","fp","res","p");
 oneDimensionLow = squeeze(sum(pLow.distr,2),2)
-oneDimensionHigh = squeeze(sum(pHigh.distr,2),2) 
+oneDimensionHigh = squeeze(sum(pHigh.distr,2),2)
 
 # PDF
 

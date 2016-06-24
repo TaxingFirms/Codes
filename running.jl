@@ -8,6 +8,7 @@
 @everywhere using QuantEcon:tauchen
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero
+@everywhere using JLD
 @everywhere include("Main.jl")
 @everywhere include("Firms.jl")
 @everywhere include("Policies.jl")
@@ -15,67 +16,20 @@
 @everywhere include("FreeEntry.jl")
 @everywhere include("Aggregation.jl")
 @everywhere include("TaxReforms.jl")
+@everywhere include("SolveModel.jl")
 
 hp = init_hhparameters();
-fp  = init_firmparameters(hp);
-
-tau = init_taxes() #0.15, 0.3, 0.3, 0.15);
-p = guess_prices(tau,fp,hp);
-pr  = init_firmproblem(p,tau,fp,hp);
+fp  = init_firmparameters(hp; llambda0=0.02, llambda1=0.04, ttheta=0.42, ff= 0.015, ddelta=0.12);
+tau = init_taxes() ;
 
 
+p,res,pr= SolveModel!(tau,fp,hp)
 
-#Compute the model on first time
-# @time firmVFIParallel!(pr,p,tau,fp); #pr is updated, computes Value Function
-@time firmVFIParallelOmega!(pr,p,tau,fp); #pr is updated, computes Value Function
-#Compute wage such that free entry condition holds
-@time w=free_entry!(pr, p, tau, fp,hp,tol=.001) #0.6895019531249997
+save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
 
-#Extract policies and other idiosyncratic results of interest
-res=copy_opt_policies(pr);
-getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
-
-#Compute invariant distribution for E and compute aggregate results of interest
-equilibrium_aggregates!( res, pr, p, tau, fp);
-
-using JLD
-#save("/home/gcam/firms/Codes/FreeEntryResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res,"p",p);
-save("/home/dwills/firms/ModelResultsTxExit.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
+#pr,tau,fp,res,p=load("/home/dwills/firms/ModelResults.jld", "pr","tau","fp","res","p");
 
 
+taxreform2(0.3, p, tau, fp, hp)
 
-#####################
-# PLOTS
-
-using UnicodePlots
-a = lineplot(collect(pr.omega.grid),squeeze(mean(res.distributions,2),2),title="Average Policies", name = "dividends");
-lineplot!(a,collect(pr.omega.grid),squeeze(mean(res.kprime,2),2),name="K Policy");
-lineplot!(a,collect(pr.omega.grid),squeeze(mean(res.qprime,2),2),name="Q Policy");
-a
-
-b = lineplot(collect(pr.omega.grid),pr.kpolicygrid[:,1],title="K Policy", name = "z=1");
-map(x->lineplot!(b,collect(pr.omega.grid),pr.kpolicygrid[:,x],name=string("z=",x)),2:pr.Nz);
-b
-
-c = lineplot(collect(pr.omega.grid),pr.qpolicygrid[:,1],title="Q Policy", name = "z=1");
-map(x->lineplot!(c,collect(pr.omega.grid),pr.qpolicygrid[:,x],name=string("z=",x)),2:pr.Nz);
-c
-
-initPlot = 5 # Sometimes 0s in policy function
-d = lineplot(collect(pr.omega.grid)[initPlot:pr.Nomega],pr.qpolicygrid[initPlot:pr.Nomega,1]./pr.kpolicygrid[initPlot:pr.Nomega,1],title="Ratio Q/K Policy", name = "z=1");
-map(x->lineplot!(d,collect(pr.omega.grid)[initPlot:pr.Nomega],pr.qpolicygrid[initPlot:pr.Nomega,x]./pr.kpolicygrid[initPlot:pr.Nomega,x],name=string("z=",x)),2:pr.Nz);
-d
-
-e = lineplot(collect(pr.omega.grid),res.exitprobability[:,1],title="Exit Probability", name = "z=1");
-map(x->lineplot!(e,collect(pr.omega.grid),res.exitprobability[:,x],name=string("z=",x)),2:pr.Nz);
-e
-
-
-f = lineplot(collect(pr.omega.grid),distr[:,1],title="Invariant Distribution", name = "z=1");
-map(x->lineplot!(f,collect(pr.omega.grid),distr[:,x],name=string("z=",x)),2:pr.Nz);
-f
-
-g = lineplot(collect(pr.omega.grid),res.distributions[:,1],title="Net Distributions", name = "z=1");
-map(x->lineplot!(g,collect(pr.omega.grid),dist[:,x],name=string("z=",x)),2:pr.Nz);
-g
-
+taxreform1(0.3, p, tau, fp, hp)

@@ -55,6 +55,3 @@ function getpolicies!(res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxe
     end
   end
 end
-
-
-
