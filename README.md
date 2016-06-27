@@ -4,23 +4,23 @@ The main file is running.jl
 Objects
 - Taxes
 - Parameters
-- Prices
-- Results: value function, policy functions
+- Equilibrium
+- Firm Problem: value function, policy functions
 
 ValueFunctionIteration
-INPUT = prices, taxes, parameters
-OUTPUT = results
+INPUT = equilibrium, taxes, parameters, !firmproblem
+OUTPUT = firmproblem
 
 Distribution
-INPUT = results, parameters
-OUTPUT = stationary distribution
+INPUT = firmproblem, parameters, !equilibrium
+OUTPUT = equilibrium.(stationary distribution)
 
 FreeEntry
-INPUT = results
-OUTPUT = wage
+INPUT = firmproblem, taxes, parameteres, !equilibrium 
+OUTPUT = equilibrium.wage
 
 MktClearing
-INPUT = results, wage
-OUTPUT = mass of entrants
+INPUT = firmproblem, !equilibrium
+OUTPUT = equilibrium.(mass of entrants)
 
 
