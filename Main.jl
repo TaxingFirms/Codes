@@ -35,6 +35,11 @@ immutable FirmParam
   Nk::Int64
   Nq::Int64
   Nomega::Int64
+
+  omega::GridObject
+  kprime::GridObject
+  qprime::GridObject
+
 end
 
 immutable HouseholdParam
@@ -53,30 +58,21 @@ end
 
 
 type FirmProblem
-  #input
+  #constants
   betatilde::Real
   taudtilde::Real
-  omega::GridObject
-  firmvalueguess::Matrix
-  kprime::GridObject
-  qprime::GridObject
   discounted_interest::Real # betatilde*(1+(1-tau.c)*r)
+
+  #input
+  firmvalueguess::Matrix
+
   #output
   firmvaluegrid::Matrix
   kpolicygrid:: Matrix
   qpolicygrid::Matrix
-  Nk::Int64
-  Nq::Int64
-  Nz::Int64
-  Nomega::Int64
-  InterpolationGrid::Array{CoordInterpGrid,1}
-end
 
-type ResultsFP
-  firmvalue :: Array{Float64,2}
-  interpolation::Array{CoordInterpGrid,1}
-  kprime :: Array{Float64,2}
-  qprime :: Array{Float64,2}
+  InterpolationGrid::Array{CoordInterpGrid,1}
+
   distributions :: Array{Float64,2}
   financialcosts :: Array{Float64,2}
   grossdividends :: Array{Float64,2}
@@ -144,19 +140,51 @@ function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
 end
 
 # Initialize firm parameters
-function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int=9,  Nk::Int=80, Nq::Int=40, Nomega::Int=100)
+function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
   trans = mc.p;
   invariant=trans^100;
   invariant_dist=invariant[1,:];
-  #aalpha= aalphak/(1-aalphal);
-  #A = ( (aalpha)/(hp.beta^-1.0 - 1.0 + ddelta)  )^(-aalpha);
-  A = ( (aalphak)/(hp.beta^-1.0 - 1.0 + ddelta)  )^(-aalphak);
-  zgrid = A*shocks
+  zgrid = A*shocks;
   ztrans=trans';
-  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega);
+
+  #construct grid for capital
+  wage=aalphal;
+  auxconst= (1/wage)^(aalphal/(1-aalphal))*(aalphal^(aalphal/(1-aalphal)) - aalphal^(1/(1-aalphal)));
+  ggamma = zgrid.^(1/(1-aalphal)).*auxconst;
+  maxexpgamma =ztrans[:,end]'*ggamma;
+  kstar = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+  kub=1.5*kstar; #kstar should be the max, but let's give 5% more
+  klb = 0.0;
+  kstep = (kub-klb)/(Nk-1);
+  kgrid = 0:kstep:kub;
+  kprime=GridObject(kub, 0, kstep, Nk, kgrid);
+
+  #construct grid for debt
+  qub = ttheta*(1-ddelta)*kub ;
+    #lower bound is such that there is enough cash to finance max investment when a max(z) shock follows two min(z) shocks
+    zprime=zgrid[1];
+    minexpgamma =ztrans[:,1]'*ggamma;
+    kprime = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+    lprime= (zprime*aalphal*kprime^aalphak / wage)^(1/(1-aalphal));
+  ql= -(kstar - 0.4*(zprime*kprime^aalphak*lprime^aalphal -wage*lprime - ddelta*kprime -ff) +kprime)/(hp.beta^-1.0 -1);
+  qstep = (qub-qlb)/(Nq-1);
+  qgrid = qlb:qstep:qub;
+  qprime=GridObject(qub,qlb,qstep,Nq,qgrid);
+
+  #grid for net worth
+    zprime=zgrid[end];
+    lprime= (zprime*aalphal*kprime^aalphak / wage)^(1/(1-aalphal));
+  omegaub = zprime*kub^aalphak*lprime^aalphal -wage*lprime + (1-ddelta)*kub -ff;
+  omegalb=0;
+  omegastep=(omegaub-omegalb)/(Nomega-1);
+  omegagrid = omegalb:omegastep:omegaub; #collect(linspace(0,1.2*kstar,Nomega));
+  Nomega=length(omegagrid)
+  omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
+
+  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
 end
 
 #Initialize taxes

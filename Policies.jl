@@ -1,23 +1,5 @@
 
 
-#copies the optimal policies in a new object after the VFI is over, just to organize thing a bit.
-#also allocates memory for get_policies
-function copy_opt_policies(pr::FirmProblem)
-  firmvalue= pr.firmvaluegrid;
-  interpolation = pr.InterpolationGrid;
-  kprime = pr.kpolicygrid;
-  qprime = pr.qpolicygrid;
-
-  distributions = Array(Float64,(pr.Nomega,pr.Nz));
-  financialcosts = zeros(Float64,(pr.Nomega,pr.Nz));
-  grossdividends = zeros(Float64,(pr.Nomega,pr.Nz));
-  grossequityis = zeros(Float64,(pr.Nomega,pr.Nz));
-  exitprobability = Array(Float64,(pr.Nomega,pr.Nz));
-  exitrule = falses(pr.Nomega,pr.Nz,pr.Nz);
-  positivedistributions = falses(pr.Nomega,pr.Nz);
-
-  ResultsFP(firmvalue, interpolation,kprime,qprime, distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions)
-end
 
 #Gets the exit rules, distributions and other quantities of interest
 

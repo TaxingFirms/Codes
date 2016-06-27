@@ -1,39 +1,11 @@
-
-
 #Initialize firm problem
 
 function init_firmproblem(p::Equilibrium, tau::Taxes, fp::FirmParam, hp::HouseholdParam ; guessvalue = false, firmvalueguess::Matrix= ones(fp.Nomega,fp.Nz))
 
-  Nk, Nq, Nz, Nomega = fp.Nk, fp.Nq, fp.Nz, fp.Nomega
+  #Nk, Nq, Nz, Nomega = fp.Nk, fp.Nq, fp.Nz, fp.Nomega
 
   betatilde = (1.0 + (1-tau.i)/(1-tau.g)*p.r )^(-1);
   taudtilde = 1-(1-tau.d)/(1-tau.g);
-
-  #construct grid for capital
-  auxconst= (1/p.w)^(fp.alphal/(1-fp.alphal))*(fp.alphal^(fp.alphal/(1-fp.alphal)) - fp.alphal^(1/(1-fp.alphal)));
-  ggamma = fp.zgrid.^(1/(1-fp.alphal)).*auxconst;
-  maxexpgamma =fp.ztrans[:,end]'*ggamma;
-  kstar = (  ((fp.alphak/(1-fp.alphal))*maxexpgamma[1]*(1-tau.c) )/(betatilde^(-1.0) -1 + (1-tau.c)*fp.delta )  )^((1.0 - fp.alphal)/(1.0 - fp.alphak - fp.alphal));
-  kub=1.05*kstar; #kstar should be the max, but let's give 5% more
-  klb = 0.0;
-  kstep = (kub-klb)/(Nk-1);
-  kgrid = 0:kstep:kub;
-  kprime=GridObject(kub, 0, kstep, Nk, kgrid);
-
-  #construct grid for debt
-  qub = fp.theta*(1-fp.delta)*kub ;
-  qlb   = - (kub - omegaprimefun(kub ,0 ,1 , p ,tau ,fp) )/(1+(1+(1-tau.c)*p.r));
-  qstep = (qub-qlb)/(Nq-1);
-  qgrid = qlb:qstep:qub;
-  qprime=GridObject(qub,qlb,qstep,Nq,qgrid);
-
-  #grid for net worth
-  omegaub =  omegaprimefun(kub ,qlb,fp.Nz , p ,tau ,fp);
-  omegalb=0;
-  omegastep=(omegaub-omegalb)/(Nomega-1);
-  omegagrid = omegalb:omegastep:omegaub; #collect(linspace(0,1.2*kstar,Nomega));
-  Nomega=length(omegagrid)
-  omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
   #guess firm value
   if !guessvalue
@@ -43,11 +15,23 @@ function init_firmproblem(p::Equilibrium, tau::Taxes, fp::FirmParam, hp::Househo
   kpolicygrid    = similar(firmvaluegrid);
   qpolicygrid    = similar(firmvaluegrid);
 
+  #Preallocate results
+  distributions = Array(Float64,(pr.Nomega,pr.Nz));
+  financialcosts = zeros(Float64,(pr.Nomega,pr.Nz));
+  grossdividends = zeros(Float64,(pr.Nomega,pr.Nz));
+  grossequityis = zeros(Float64,(pr.Nomega,pr.Nz));
+  exitprobability = Array(Float64,(pr.Nomega,pr.Nz));
+  exitrule = falses(pr.Nomega,pr.Nz,pr.Nz);
+  positivedistributions = falses(pr.Nomega,pr.Nz);
+
   #Initialize the firm problem object
   FirmProblem( betatilde, taudtilde, omega, firmvalueguess, kprime, qprime, betatilde*(1+(1-tau.c)*p.r),
-   firmvaluegrid, kpolicygrid, qpolicygrid,Nk,Nq,Nz, Nomega,
-   map(x->CoordInterpGrid(omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:fp.Nz))
+   firmvaluegrid, kpolicygrid, qpolicygrid ,
+   map(x->CoordInterpGrid(omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:fp.Nz),
+   distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
 end
+
+
 
 #Interpolate current grid for value function
 function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
@@ -356,4 +340,3 @@ function firmVFIParallelOmega!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::
     it>= maxit ? error("maximum number of iterations reached"):it+=1;
   end
 end
-
