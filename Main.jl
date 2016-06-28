@@ -67,8 +67,8 @@ type FirmProblem
 
   #output
   firmvaluegrid::Matrix
-  kpolicygrid:: Matrix
-  qpolicygrid::Matrix
+  kpolicy:: Matrix
+  qpolicy::Matrix
 
   InterpolationGrid::Array{CoordInterpGrid,1}
 
@@ -150,7 +150,7 @@ function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalp
   auxconst= (1/wage)^(aalphal/(1-aalphal))*(aalphal^(aalphal/(1-aalphal)) - aalphal^(1/(1-aalphal)));
   ggamma = zgrid.^(1/(1-aalphal)).*auxconst;
   maxexpgamma =ztrans[:,end]'*ggamma;
-  kmax = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+  kmax = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(bbeta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
   kub=1.5*kmax; #kmax should be the max, but let's give 5% more
   klb = 0.0;
   kstep = (kub-klb)/(Nk-1);
@@ -162,9 +162,9 @@ function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalp
     #lower bound is such that there is enough cash to finance max investment when a max(z) shock follows two min(z) shocks
     zprime=zgrid[1];
     minexpgamma =ztrans[:,1]'*ggamma;
-    k1 = (  ((aalphak/(1-aalphal))*minexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+    k1 = (  ((aalphak/(1-aalphal))*minexpgamma[1] )/(bbeta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
     lprime= (zprime*aalphal*k1^aalphak / wage)^(1/(1-aalphal));
-  qlb= -(kmax - 0.4*(zprime*k1^aalphak*lprime^aalphal -wage*lprime - ddelta*k1 -ff) +k1)/(hp.beta^-1.0 -1);
+  qlb= -(kmax - 0.4*(zprime*k1^aalphak*lprime^aalphal -wage*lprime - ddelta*k1 -ff) +k1)/(bbeta^-1.0 -1);
   qstep = (qub-qlb)/(Nq-1);
   qgrid = qlb:qstep:qub;
   qprime=GridObject(qub,qlb,qstep,Nq,qgrid);
@@ -188,12 +188,12 @@ function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64
   end
 
 #Guess Prices
-function init_equilibirium(wguess::Float64,tau::Taxes,fp::FirmParam,hp::HouseholdParam)
-  r=(hp.beta^(-1.0) -1)/(1-tau.i);
-  w=wguess; #fp.alphal;
+function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
+  r=(pa.beta^(-1.0) -1)/(1-tau.i);
+  w=wguess; #pa.alphal;
 
   #Initiate Results
-  distr= Array(Float64,(fp.Nomega,fp.Nz));
+  distr= Array(Float64,(pa.Nomega,pa.Nz));
   E=convert(Float64,NaN);
   netdistributions = convert(Float64,NaN);
   agginterests = convert(Float64,NaN);
@@ -210,19 +210,19 @@ function init_equilibirium(wguess::Float64,tau::Taxes,fp::FirmParam,hp::Househol
 end
 
 #Compute omega prime
-function omegaprimefun(kprime::Real ,qprime::Real ,i_zprime::Int ,p::Equilibrium ,tau:: Taxes ,fp::FirmParam)
-  zprime=fp.zgrid[i_zprime];
-  lprime= (zprime*fp.alphal*kprime^fp.alphak / p.w)^(1/(1-fp.alphal));
+function omegaprimefun(kprime::Real, qprime::Real, i_zprime::Int, eq::Equilibrium, tau:: Taxes, pa::Param)
+  zprime=pa.zgrid[i_zprime];
+  lprime= (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
-  return (1-tau.c)*(zprime*kprime^fp.alphak*lprime^fp.alphal -p.w*lprime - fp.delta*kprime - p.r*qprime) + kprime - qprime +tau.c*fp.f
+  return (1-tau.c)*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime) + kprime - qprime +tau.c*pa.f
 end
 
-function grossdistributions(omega::Real,kprime::Real,qprime::Real,fp::FirmParam)
-  omega - kprime + qprime -fp.f
+function grossdistributions(omega::Real,kprime::Real,qprime::Real,pa::Param)
+  omega - kprime + qprime -pa.f
 end
 
 #Predict future state
-function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, p::Equilibrium, pr::FirmProblem, tau:: Taxes, fp::FirmParam)
+function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
   kprime = pr.kpolicygrid[i_omega,i_z];
   qprime = pr.qpolicygrid[i_omega,i_z];
   omegaprime   = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp);

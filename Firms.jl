@@ -1,37 +1,35 @@
 #Initialize firm problem
 
-function init_firmproblem(p::Equilibrium, tau::Taxes, fp::FirmParam, hp::HouseholdParam ; guessvalue = false, firmvalueguess::Matrix= ones(fp.Nomega,fp.Nz))
+function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
 
-  #Nk, Nq, Nz, Nomega = fp.Nk, fp.Nq, fp.Nz, fp.Nomega
+  #Nk, Nq, Nz, Nomega = pa.Nk, pa.Nq, pa.Nz, pa.Nomega
 
-  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*p.r )^(-1);
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
   taudtilde = 1-(1-tau.d)/(1-tau.g);
 
   #guess firm value
   if !guessvalue
-    firmvalueguess = repmat(omega.grid,1,fp.Nz);
+    firmvalueguess = repmat(pa.omega.grid,1,pa.Nz);
   end
   firmvaluegrid  = copy(firmvalueguess);
-  kpolicygrid    = similar(firmvaluegrid);
-  qpolicygrid    = similar(firmvaluegrid);
+  kpolicy    = similar(firmvaluegrid);
+  qpolicy    = similar(firmvaluegrid);
 
   #Preallocate results
-  distributions = Array(Float64,(pr.Nomega,pr.Nz));
-  financialcosts = zeros(Float64,(pr.Nomega,pr.Nz));
-  grossdividends = zeros(Float64,(pr.Nomega,pr.Nz));
-  grossequityis = zeros(Float64,(pr.Nomega,pr.Nz));
-  exitprobability = Array(Float64,(pr.Nomega,pr.Nz));
-  exitrule = falses(pr.Nomega,pr.Nz,pr.Nz);
-  positivedistributions = falses(pr.Nomega,pr.Nz);
+  distributions = Array(Float64,(pa.Nomega,pa.Nz));
+  financialcosts = zeros(Float64,(pa.Nomega,pa.Nz));
+  grossdividends = zeros(Float64,(pa.Nomega,pa.Nz));
+  grossequityis = zeros(Float64,(pa.Nomega,pa.Nz));
+  exitprobability = Array(Float64,(pa.Nomega,pa.Nz));
+  exitrule = falses(pa.Nomega,pa.Nz,pa.Nz);
+  positivedistributions = falses(pa.Nomega,pa.Nz);
 
   #Initialize the firm problem object
-  FirmProblem( betatilde, taudtilde, omega, firmvalueguess, kprime, qprime, betatilde*(1+(1-tau.c)*p.r),
+  FirmProblem( betatilde, taudtilde, discounted_interest, firmvalueguess, firmvaluegrid, kpolicy, qpolicy, betatilde*(1+(1-tau.c)*eq.r),
    firmvaluegrid, kpolicygrid, qpolicygrid ,
-   map(x->CoordInterpGrid(omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:fp.Nz),
+   map(x->CoordInterpGrid(pa.omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz),
    distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
 end
-
-
 
 #Interpolate current grid for value function
 function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
@@ -41,10 +39,10 @@ end
 # compute continuation value, given controls and z
 function continuation(kprime::Real, qprime::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam)
   cont =0.0;
-  exitvalue = (1-pr.taudtilde)*(fp.kappa*(1-fp.delta)*kprime - (1+p.r)*qprime) ;
-  for (i_zprime, zprime) in enumerate(fp.zgrid)
+  exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime) ;
+  for (i_zprime, zprime) in enumerate(pa.zgrid)
     omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp);
-    cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*fp.ztrans[i_zprime,i_z];
+    cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
     end
   return cont
 end
@@ -55,7 +53,7 @@ end
 function objectivefun(kprime::Real, qprime::Real, omega::Real, i_z::Int,p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam)
   grossdistributions(omega,kprime,qprime,fp)>=0 ?
     (1-pr.taudtilde)*grossdistributions(omega,kprime,qprime,fp) + pr.betatilde*continuation(kprime, qprime, i_z, p, pr, tau, fp):
-    (1+fp.lambda1)*grossdistributions(omega,kprime,qprime,fp) - fp.lambda0 + pr.betatilde*continuation(kprime, qprime, i_z, p, pr, tau, fp) ;
+    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,fp) - pa.lambda0 + pr.betatilde*continuation(kprime, qprime, i_z, p, pr, tau, fp) ;
 end
 
 #Maximization brute force
@@ -65,7 +63,7 @@ function maximizationbf(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, 
   qprimestar::Real = NaN;
 
   for kprime in pr.kprime.grid
-    for qprime in pr.qprime.lb:pr.qprime.step:fp.collateral_factor*kprime
+    for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime
       objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
       if objective > max
         max = objective;
@@ -73,7 +71,7 @@ function maximizationbf(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, 
         qprimestar = qprime;
       end
     end
-    qprime = fp.collateral_factor*kprime;
+    qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z,p, pr, tau, fp);
     if objective > max
       max = objective;
@@ -98,8 +96,8 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
   #CASE 2: When issuing equity, firm always use as much debt as possible
   elseif pr.discounted_interest <= 1
     #2.1 Capital below max leverage
-    for kprime in pr.kprime.lb:pr.kprime.step:(omega*fp.leverageratio)
-      for qprime in (kprime-omega):pr.qprime.step:fp.collateral_factor*kprime
+    for kprime in pr.kprime.lb:pr.kprime.step:(omega*pa.leverageratio)
+      for qprime in (kprime-omega):pr.qprime.step:pa.collateral_factor*kprime
         objective = objectivefun(kprime, qprime, omega, i_z,p, pr, tau, fp);
         if objective > max
           max = objective;
@@ -108,7 +106,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
         end
       end
       #Evaluate at collateral (may not be on the grid)
-      qprime = fp.collateral_factor*kprime;
+      qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
       if objective > max
         max = objective;
@@ -117,8 +115,8 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       end
     end
     #2.2 At zero dividends  (may not be on the grid)
-    kprime= omega*fp.leverageratio;
-    qprime = fp.collateral_factor*kprime;
+    kprime= omega*pa.leverageratio;
+    qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
     if objective > max
       max = objective;
@@ -126,8 +124,8 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       qprimestar = qprime;
     end
     #2.3 Capital above maximum leverage, debt is always at constraint
-    for kprime in (omega*fp.leverageratio):pr.kprime.step:pr.kprime.ub
-      qprime = fp.collateral_factor*kprime;
+    for kprime in (omega*pa.leverageratio):pr.kprime.step:pr.kprime.ub
+      qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
       if objective > max
         max = objective;
@@ -140,8 +138,8 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
   else
     println("Shouldn't be in this loop")
     #3.1 Capital below max leverage
-    for kprime in pr.kprime.lb:pr.kprime.step:(omega*fp.leverageratio)
-      for qprime in pr.qprime.lb:pr.qprime.step:fp.collateral_factor*kprime;
+    for kprime in pr.kprime.lb:pr.kprime.step:(omega*pa.leverageratio)
+      for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime;
         objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
         if objective > max
           max = objective;
@@ -150,7 +148,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
         end
       end
       #Evaluate at contraint (may not be on the grid)
-      qprime = fp.collateral_factor*kprime;
+      qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
       if objective > max
         max = objective;
@@ -159,8 +157,8 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       end
     end
     #3.2 At zero dividends
-    kprime= omega*fp.leverageratio;
-    qprime = fp.collateral_factor*kprime;
+    kprime= omega*pa.leverageratio;
+    qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
     if objective > max
       max = objective;
@@ -170,7 +168,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
     #3.3 Capital above max leverage
     for kprime in (omega*leverageratio):pr.kprime.step:pr.kprime.ub
       #3.3.1 Interior debt and equity
-      for qprime in pr.qprime.lb:pr.qprime.step:fp.collateral_factor*kprime
+      for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime
         objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp)
         if objective > max
           max = objective;
@@ -179,7 +177,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
         end
       end
       #3.3.2 Debt at contraint (may not be on the grid)
-      qprime = fp.collateral_factor*kprime;
+      qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
       if objective > max
         max = objective;

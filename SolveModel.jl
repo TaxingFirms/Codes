@@ -1,6 +1,6 @@
 function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64=0.69)
 
-  p = init_equilibirium(wguess,tau,fp,hp);
+  p = init_equilibirium(wguess,tau,pa);
   pr  = init_firmproblem(p,tau,fp,hp);
 
   #Compute the model on first time
