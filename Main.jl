@@ -16,7 +16,14 @@ immutable GridObject
   grid:: AbstractArray #Grid
 end
 
-type FirmParam
+type Param
+  ##Household parameters
+  beta::Real #Discount rate
+  sigma::Real  #Risk aversion/ ies
+  H::Real  # Labor supply parameter
+  psi::Real #Labor supply
+
+  ## Firm parameters
   alphak::Real #Capital share of output
   alphal::Real #Labor share of output
   f::Real
@@ -39,13 +46,6 @@ type FirmParam
   omega::GridObject
   kprime::GridObject
   qprime::GridObject
-end
-
-type HouseholdParam
-  beta::Real #Discount rate
-  sigma::Real  #Risk aversion/ ies
-  H::Real  # Labor supply parameter
-  psi::Real #Labor supply
 end
 
 type Taxes
@@ -128,18 +128,14 @@ end
 ###########################################################################
 # 0.PARAMETER DEFINITION
 
-function init_hhparameters(bbeta=0.98,ssigma=1.0,psi=1)
+# Initialize parameters
+function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
   #Guess H such that labor supply in deterministic steady sate =1
-  ddelta=0.14; aalphak=0.3; aalphal = 0.65;
   K= aalphak/((bbeta^(-1.0) -1 + ddelta));
   s= ddelta*K; #Savings
   c=1-s;
   H=aalphal/c;
-  HouseholdParam(bbeta, ssigma, H, psi);
-end
 
-# Initialize firm parameters
-function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
   shocks=exp(logshocks);
@@ -183,7 +179,7 @@ function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::
   Nomega=length(omegagrid)
   omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
-  FirmParam(aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
+  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
 end
 
 #Initialize taxes
