@@ -16,7 +16,7 @@ immutable GridObject
   grid:: AbstractArray #Grid
 end
 
-immutable FirmParam
+type FirmParam
   alphak::Real #Capital share of output
   alphal::Real #Labor share of output
   f::Real
@@ -30,7 +30,7 @@ immutable FirmParam
   leverageratio::Real # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   zgrid::Array{Float64,1}
   ztrans::Array{Float64,2}
-  invariant_distr::Array #Invariant distribution
+  invariant_distr::Array{Float64,1} #Invariant distribution
   Nz::Int64
   Nk::Int64
   Nq::Int64
@@ -39,10 +39,9 @@ immutable FirmParam
   omega::GridObject
   kprime::GridObject
   qprime::GridObject
-
 end
 
-immutable HouseholdParam
+type HouseholdParam
   beta::Real #Discount rate
   sigma::Real  #Risk aversion/ ies
   H::Real  # Labor supply parameter
@@ -146,7 +145,7 @@ function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::
   shocks=exp(logshocks);
   trans = mc.p;
   invariant=trans^100;
-  invariant_dist=invariant[1,:];
+  invariant_dist=collect(invariant[1,:]);
   zgrid = A*shocks;
   ztrans=trans';
 
@@ -155,8 +154,8 @@ function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::
   auxconst= (1/wage)^(aalphal/(1-aalphal))*(aalphal^(aalphal/(1-aalphal)) - aalphal^(1/(1-aalphal)));
   ggamma = zgrid.^(1/(1-aalphal)).*auxconst;
   maxexpgamma =ztrans[:,end]'*ggamma;
-  kstar = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
-  kub=1.5*kstar; #kstar should be the max, but let's give 5% more
+  kmax = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+  kub=1.5*kmax; #kmax should be the max, but let's give 5% more
   klb = 0.0;
   kstep = (kub-klb)/(Nk-1);
   kgrid = 0:kstep:kub;
@@ -167,20 +166,20 @@ function init_firmparameters(hp::HouseholdParam ;aalphak::Float64=0.3, aalphal::
     #lower bound is such that there is enough cash to finance max investment when a max(z) shock follows two min(z) shocks
     zprime=zgrid[1];
     minexpgamma =ztrans[:,1]'*ggamma;
-    kprime = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
-    lprime= (zprime*aalphal*kprime^aalphak / wage)^(1/(1-aalphal));
-  ql= -(kstar - 0.4*(zprime*kprime^aalphak*lprime^aalphal -wage*lprime - ddelta*kprime -ff) +kprime)/(hp.beta^-1.0 -1);
+    k1 = (  ((aalphak/(1-aalphal))*minexpgamma[1] )/(hp.beta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
+    lprime= (zprime*aalphal*k1^aalphak / wage)^(1/(1-aalphal));
+  qlb= -(kmax - 0.4*(zprime*k1^aalphak*lprime^aalphal -wage*lprime - ddelta*k1 -ff) +k1)/(hp.beta^-1.0 -1);
   qstep = (qub-qlb)/(Nq-1);
   qgrid = qlb:qstep:qub;
   qprime=GridObject(qub,qlb,qstep,Nq,qgrid);
 
   #grid for net worth
     zprime=zgrid[end];
-    lprime= (zprime*aalphal*kprime^aalphak / wage)^(1/(1-aalphal));
+    lprime= (zprime*aalphal*kub^aalphak / wage)^(1/(1-aalphal));
   omegaub = zprime*kub^aalphak*lprime^aalphal -wage*lprime + (1-ddelta)*kub -ff;
   omegalb=0;
   omegastep=(omegaub-omegalb)/(Nomega-1);
-  omegagrid = omegalb:omegastep:omegaub; #collect(linspace(0,1.2*kstar,Nomega));
+  omegagrid = omegalb:omegastep:omegaub; #collect(linspace(0,1.2*kmax,Nomega));
   Nomega=length(omegagrid)
   omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
