@@ -18,10 +18,8 @@
 @everywhere include("TaxReforms.jl")
 @everywhere include("SolveModel.jl")
 
-hp = init_hhparameters();
-fp  = init_firmparameters(hp; llambda0=0.02, llambda1=0.04, ttheta=0.42, ff= 0.015, ddelta=0.12);
+pa  = init_parameters();
 tau = init_taxes() ;
-
 
 p,res,pr= SolveModel!(tau,fp,hp)
 

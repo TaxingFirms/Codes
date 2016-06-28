@@ -171,13 +171,13 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
 end
 
 
-function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, tol=10.0^-3, maxit=500; mp=false)
+function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=500, mp=false, maximizationroutine=maximizationstep)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
     println("it=", it);
-    firmbellmanParallel!(pr,eq,tau,pa);
+    firmbellmanParallel!(pr,eq,tau,pa, maximizationroutine);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
     println("it=", it, "   dist=", dist);
@@ -199,12 +199,12 @@ end
 
 
 
-function firmbellmanParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function firmbellmanParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, maximizationroutine::Function)
 
   #Update value function
 
     # For every state
-    input = [modelState(z,pr,eq,tau,pa) for z in 1:pa.Nz];
+    input = [modelState(z,pr,eq,tau,pa, maximizationroutine) for z in 1:pa.Nz];
     resultVector = pmap(maximizeParallel,input)
 
     for i in 1:length(resultVector)
@@ -224,6 +224,7 @@ type modelState
   eq::Equilibrium
   tau::Taxes
   pa::Param
+  maxroutine::Function
 end
 
 function maximizeParallel(currentState::modelState)
@@ -231,11 +232,11 @@ function maximizeParallel(currentState::modelState)
   # First column of results has the value function
   # Second has K choice
   # Third has Q Choice
-
   results = Array(Float64,currentState.pa.Nomega,3)
+  routine=currentState.maxroutine;
 
   for (i_omega,omega) in enumerate(currentState.pa.omega.grid)
-    results[i_omega,1], results[i_omega,2], results[i_omega,3] = maximizationstep(omega, currentState.i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
+    results[i_omega,1], results[i_omega,2], results[i_omega,3] = routine(omega, currentState.i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
     # i_omega+=1;
   end
 
@@ -253,6 +254,7 @@ type modelStateOmega
   eq::Equilibrium
   tau::Taxes
   pa::Param
+  maxroutine::Function
 end
 
 function maximizeParallelOmega(currentState::modelStateOmega)
@@ -262,9 +264,10 @@ function maximizeParallelOmega(currentState::modelStateOmega)
   # Third has Q Choice
 
   results = Array(Float64,currentState.pa.Nz,3)
+  routine=currentState.maxroutine;
 
   for i_z in 1:currentState.pa.Nz
-    results[i_z,1], results[i_z,2], results[i_z,3] = maximizationstep(currentState.pa.omega.grid[currentState.i_omega], i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
+    results[i_z,1], results[i_z,2], results[i_z,3] = routine(currentState.pa.omega.grid[currentState.i_omega], i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
     # i_omega+=1;
   end
 
@@ -272,12 +275,12 @@ function maximizeParallelOmega(currentState::modelStateOmega)
 
 end
 
-function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, maximizationroutine::Function)
 
   #Update value function
 
     # For every state
-    input = [modelStateOmega(i_omega,pr,eq,tau,pa) for i_omega in 1:pa.Nomega];
+    input = [modelStateOmega(i_omega,pr,eq,tau,pa,maximizationroutine) for i_omega in 1:pa.Nomega];
     resultVector = pmap(maximizeParallelOmega,input);
 
     for i in 1:length(resultVector)
@@ -292,13 +295,13 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, tol=10.0^-3, maxit=500; mp=false)
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=500, mp=false)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
     println("it=", it);
-    firmbellmanParallelOmega!(pr,eq,tau,pa);
+    firmbellmanParallelOmega!(pr,eq,tau,pa,maximizationroutine);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
     println("it=", it, "   dist=", dist);

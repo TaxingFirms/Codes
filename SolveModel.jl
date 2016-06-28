@@ -1,11 +1,11 @@
-function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64=0.69)
+function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64=0.69, VFIfunction::Function = firmVFIParallelOmega! )
 
-  p = init_equilibirium(wguess,tau,pa);
-  pr  = init_firmproblem(p,tau,fp,hp);
+  eq = init_equilibirium(wguess,tau,pa);
+  pr  = init_firmproblem(eq,tau,pa);
 
   #Compute the model on first time
-  @time firmVFIParallelOmega!(pr,p,tau,fp); #pr is updated, computes Value Function
-  #597.841274 seconds on tesla, tol = 10^-3.
+  @time VFIfunction(pr,eq,tau,pa); #pr is updated, computes Value Function
+    @time firmVFIParallel!(pr,eq,tau,pa; maximizationroutine=maximizationbf);
 
   #Compute wage such that free entry condition holds
   @time w=free_entry!(pr, p, tau, fp,hp; xtol=.001)
