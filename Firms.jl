@@ -1,35 +1,14 @@
-#Initialize firm problem
+# This script has the functions needed to run the value function iteration.
+# The value function iteration takes prices from eq::Equilibrium,
+# taxes from tau::Taxes and parameters from pa::Param and it computes the
+# value and policy functions in pr::FirmProblem
+#
+# We have 2 functions that can be called to perform the VFI: firmVFIParallel!,
+# firmVFIParallel!
+#
+# We have 2 functions that compute the maximization step in the Bellman
+# operator: maximizationbf, maximizationstep
 
-function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
-
-  #Nk, Nq, Nz, Nomega = pa.Nk, pa.Nq, pa.Nz, pa.Nomega
-
-  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
-  taudtilde = 1-(1-tau.d)/(1-tau.g);
-
-  #guess firm value
-  if !guessvalue
-    firmvalueguess = repmat(pa.omega.grid,1,pa.Nz);
-  end
-  firmvaluegrid  = copy(firmvalueguess);
-  kpolicy    = similar(firmvaluegrid);
-  qpolicy    = similar(firmvaluegrid);
-
-  #Preallocate results
-  distributions = Array(Float64,(pa.Nomega,pa.Nz));
-  financialcosts = zeros(Float64,(pa.Nomega,pa.Nz));
-  grossdividends = zeros(Float64,(pa.Nomega,pa.Nz));
-  grossequityis = zeros(Float64,(pa.Nomega,pa.Nz));
-  exitprobability = Array(Float64,(pa.Nomega,pa.Nz));
-  exitrule = falses(pa.Nomega,pa.Nz,pa.Nz);
-  positivedistributions = falses(pa.Nomega,pa.Nz);
-
-  #Initialize the firm problem object
-  FirmProblem( betatilde, taudtilde, discounted_interest, firmvalueguess, firmvaluegrid, kpolicy, qpolicy, betatilde*(1+(1-tau.c)*eq.r),
-   firmvaluegrid, kpolicygrid, qpolicygrid ,
-   map(x->CoordInterpGrid(pa.omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz),
-   distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
-end
 
 #Interpolate current grid for value function
 function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
@@ -37,11 +16,11 @@ function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
 end
 
 # compute continuation value, given controls and z
-function continuation(kprime::Real, qprime::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam)
+function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   cont =0.0;
   exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime) ;
   for (i_zprime, zprime) in enumerate(pa.zgrid)
-    omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp);
+    omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
     end
   return cont
@@ -50,21 +29,21 @@ end
 
 #Objective functions for maximization step
 # Positive distributions
-function objectivefun(kprime::Real, qprime::Real, omega::Real, i_z::Int,p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam)
-  grossdistributions(omega,kprime,qprime,fp)>=0 ?
-    (1-pr.taudtilde)*grossdistributions(omega,kprime,qprime,fp) + pr.betatilde*continuation(kprime, qprime, i_z, p, pr, tau, fp):
-    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,fp) - pa.lambda0 + pr.betatilde*continuation(kprime, qprime, i_z, p, pr, tau, fp) ;
+function objectivefun(kprime::Real, qprime::Real, omega::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  grossdistributions(omega,kprime,qprime,pa)>=0 ?
+    (1-pr.taudtilde)*grossdistributions(omega,kprime,qprime,pa) + pr.betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa):
+    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0 + pr.betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa);
 end
 
 #Maximization brute force
-function maximizationbf(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam, extractpolicies::Bool)
+function maximizationbf(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
   max = -Inf;
   kprimestar::Real = NaN;
   qprimestar::Real = NaN;
 
-  for kprime in pr.kprime.grid
-    for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime
-      objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+  for kprime in pa.kprime.grid
+    for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime
+      objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max
         max = objective;
         kprimestar = kprime;
@@ -72,7 +51,7 @@ function maximizationbf(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, 
       end
     end
     qprime = pa.collateral_factor*kprime;
-    objective = objectivefun(kprime, qprime, omega, i_z,p, pr, tau, fp);
+    objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
     if objective > max
       max = objective;
       kprimestar = kprime;
@@ -86,7 +65,7 @@ end
 
 
 # Maximization step
-function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem, tau::Taxes, fp::FirmParam, extractpolicies::Bool)
+function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
   max = -Inf;
   kprimestar::Real = NaN;
   qprimestar::Real = NaN;
@@ -96,9 +75,9 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
   #CASE 2: When issuing equity, firm always use as much debt as possible
   elseif pr.discounted_interest <= 1
     #2.1 Capital below max leverage
-    for kprime in pr.kprime.lb:pr.kprime.step:(omega*pa.leverageratio)
-      for qprime in (kprime-omega):pr.qprime.step:pa.collateral_factor*kprime
-        objective = objectivefun(kprime, qprime, omega, i_z,p, pr, tau, fp);
+    for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
+      for qprime in (kprime-omega):pa.qprime.step:pa.collateral_factor*kprime
+        objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
         if objective > max
           max = objective;
           kprimestar = kprime;
@@ -107,7 +86,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       end
       #Evaluate at collateral (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
-      objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+      objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max
         max = objective;
         kprimestar = kprime;
@@ -117,16 +96,16 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
     #2.2 At zero dividends  (may not be on the grid)
     kprime= omega*pa.leverageratio;
     qprime = pa.collateral_factor*kprime;
-    objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+    objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
     if objective > max
       max = objective;
       kprimestar = kprime;
       qprimestar = qprime;
     end
     #2.3 Capital above maximum leverage, debt is always at constraint
-    for kprime in (omega*pa.leverageratio):pr.kprime.step:pr.kprime.ub
+    for kprime in (omega*pa.leverageratio):pa.kprime.step:pa.kprime.ub
       qprime = pa.collateral_factor*kprime;
-      objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+      objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max
         max = objective;
         kprimestar = kprime;
@@ -138,9 +117,9 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
   else
     println("Shouldn't be in this loop")
     #3.1 Capital below max leverage
-    for kprime in pr.kprime.lb:pr.kprime.step:(omega*pa.leverageratio)
-      for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime;
-        objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+    for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
+      for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime;
+        objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
         if objective > max
           max = objective;
           kprimestar = kprime;
@@ -149,7 +128,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       end
       #Evaluate at contraint (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
-      objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+      objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max
         max = objective;
         kprimestar = kprime;
@@ -159,17 +138,17 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
     #3.2 At zero dividends
     kprime= omega*pa.leverageratio;
     qprime = pa.collateral_factor*kprime;
-    objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+    objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
     if objective > max
       max = objective;
       kprimestar = kprime;
       qprimestar = qprime;
     end
     #3.3 Capital above max leverage
-    for kprime in (omega*leverageratio):pr.kprime.step:pr.kprime.ub
+    for kprime in (omega*leverageratio):pa.kprime.step:pa.kprime.ub
       #3.3.1 Interior debt and equity
-      for qprime in pr.qprime.lb:pr.qprime.step:pa.collateral_factor*kprime
-        objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp)
+      for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime
+        objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa)
         if objective > max
           max = objective;
           kprimestar = kprime;
@@ -178,7 +157,7 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
       end
       #3.3.2 Debt at contraint (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
-      objective = objectivefun(kprime, qprime, omega, i_z, p, pr, tau, fp);
+      objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max
         max = objective;
         kprimestar = kprime;
@@ -192,14 +171,13 @@ function maximizationstep(omega::Real, i_z::Int, p::Equilibrium, pr::FirmProblem
 end
 
 
-function firmVFIParallel!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam, tol=10.0^-3, maxit=500; mp=false)
+function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, tol=10.0^-3, maxit=500; mp=false)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
     println("it=", it);
-    firmbellmanParallel!(pr,p,tau,fp);
-    #firmbellmanParallelOmega!(pr,p,tau,fp);
+    firmbellmanParallel!(pr,eq,tau,pa);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
     println("it=", it, "   dist=", dist);
@@ -213,7 +191,7 @@ function firmVFIParallel!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmP
     pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
     end
 
-    pr.InterpolationGrid = map(x->CoordInterpGrid(pr.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pr.Nz)
+    pr.InterpolationGrid = map(x->CoordInterpGrid(pa.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz)
     it>= maxit ? error("maximum number of iterations reached"):it+=1;
   end
 end
@@ -221,12 +199,12 @@ end
 
 
 
-function firmbellmanParallel!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam)
+function firmbellmanParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
   #Update value function
 
     # For every state
-    input = [modelState(z,p,pr,tau,fp) for z in 1:pr.Nz];
+    input = [modelState(z,pr,eq,tau,pa) for z in 1:pa.Nz];
     resultVector = pmap(maximizeParallel,input)
 
     for i in 1:length(resultVector)
@@ -235,17 +213,17 @@ function firmbellmanParallel!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::F
       #anArray = results[thisIndex] # two dimensional linear indexing
       # print(resultVector)
       pr.firmvaluegrid[:,i]  = resultVector[i][:,1]
-      pr.kpolicygrid[:,i]    = resultVector[i][:,2]
-      pr.qpolicygrid[:,i]    = resultVector[i][:,3]
+      pr.kpolicy[:,i]    = resultVector[i][:,2]
+      pr.qpolicy[:,i]    = resultVector[i][:,3]
     end
 end
 
 type modelState
   i_z::Int64
-  p::Equilibrium
   pr::FirmProblem
+  eq::Equilibrium
   tau::Taxes
-  fp::FirmParam
+  pa::Param
 end
 
 function maximizeParallel(currentState::modelState)
@@ -254,10 +232,10 @@ function maximizeParallel(currentState::modelState)
   # Second has K choice
   # Third has Q Choice
 
-  results = Array(Float64,currentState.pr.Nomega,3)
+  results = Array(Float64,currentState.pa.Nomega,3)
 
-  for (i_omega,omega) in enumerate(currentState.pr.omega.grid)
-    results[i_omega,1], results[i_omega,2], results[i_omega,3] = maximizationstep(omega, currentState.i_z,currentState.p ,currentState.pr, currentState.tau, currentState.fp,true);
+  for (i_omega,omega) in enumerate(currentState.pa.omega.grid)
+    results[i_omega,1], results[i_omega,2], results[i_omega,3] = maximizationstep(omega, currentState.i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
     # i_omega+=1;
   end
 
@@ -271,10 +249,10 @@ end
 
 type modelStateOmega
   i_omega::Int64
-  p::Equilibrium
   pr::FirmProblem
+  eq::Equilibrium
   tau::Taxes
-  fp::FirmParam
+  pa::Param
 end
 
 function maximizeParallelOmega(currentState::modelStateOmega)
@@ -283,10 +261,10 @@ function maximizeParallelOmega(currentState::modelStateOmega)
   # Second has K choice
   # Third has Q Choice
 
-  results = Array(Float64,currentState.pr.Nz,3)
+  results = Array(Float64,currentState.pa.Nz,3)
 
-  for i_z in 1:currentState.pr.Nz
-    results[i_z,1], results[i_z,2], results[i_z,3] = maximizationstep(currentState.pr.omega.grid[currentState.i_omega], i_z,currentState.p ,currentState.pr, currentState.tau, currentState.fp,true);
+  for i_z in 1:currentState.pa.Nz
+    results[i_z,1], results[i_z,2], results[i_z,3] = maximizationstep(currentState.pa.omega.grid[currentState.i_omega], i_z,currentState.eq ,currentState.pr, currentState.tau, currentState.pa,true);
     # i_omega+=1;
   end
 
@@ -294,12 +272,12 @@ function maximizeParallelOmega(currentState::modelStateOmega)
 
 end
 
-function firmbellmanParallelOmega!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam)
+function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
   #Update value function
 
     # For every state
-    input = [modelStateOmega(i_omega,p,pr,tau,fp) for i_omega in 1:pr.Nomega];
+    input = [modelStateOmega(i_omega,pr,eq,tau,pa) for i_omega in 1:pa.Nomega];
     resultVector = pmap(maximizeParallelOmega,input);
 
     for i in 1:length(resultVector)
@@ -308,19 +286,19 @@ function firmbellmanParallelOmega!(pr::FirmProblem, p::Equilibrium, tau::Taxes, 
       #anArray = results[thisIndex] # two dimensional linear indexing
       # print(resultVector)
       pr.firmvaluegrid[i,:]  = resultVector[i][:,1]
-      pr.kpolicygrid[i,:]    = resultVector[i][:,2]
-      pr.qpolicygrid[i,:]    = resultVector[i][:,3]
+      pr.kpolicy[i,:]    = resultVector[i][:,2]
+      pr.qpolicy[i,:]    = resultVector[i][:,3]
     end
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam, tol=10.0^-3, maxit=500; mp=false)
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, tol=10.0^-3, maxit=500; mp=false)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
     println("it=", it);
-    firmbellmanParallelOmega!(pr,p,tau,fp);
+    firmbellmanParallelOmega!(pr,eq,tau,pa);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
     println("it=", it, "   dist=", dist);
@@ -334,7 +312,7 @@ function firmVFIParallelOmega!(pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::
     pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
     end
 
-    pr.InterpolationGrid = map(x->CoordInterpGrid(pr.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pr.Nz)
+    pr.InterpolationGrid = map(x->CoordInterpGrid(pa.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz)
     it>= maxit ? error("maximum number of iterations reached"):it+=1;
   end
 end

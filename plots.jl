@@ -18,7 +18,7 @@ include("TaxReforms.jl")
 pr,tau,fp,res,p=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
 #pr,tau,fp,res,p=load("/Users/gcamilo/Dropbox/research/1FirmTaxation/SimpleDiscreteTime/ModelResults.jld", "pr","tau","fp","res","p");
 
-omegagrid=pr.omega.grid;
+omegagrid=pa.omega.grid;
 
 regions=zeros(size(res.distributions));
 
@@ -34,12 +34,12 @@ end
 
 
 figure()
-d= plot(omegagrid, res.distributions[:,7] )
-k= plot(omegagrid, res.kprime[:,7] )
-q= plot(omegagrid, res.qprime[:,7] )
+#d= plot(omegagrid, res.distributions[:,7] )
+k= plot(pa.omega.grid, pr.kpolicy[:,7] )
+q= plot(pa.omega.grid, pr.qpolicy[:,7] )
   xlabel("Net worth")
   title("Policy functions (at z=7)")
-  legend("dkq", loc="best")
+  legend("kq", loc="best")
 
 
 

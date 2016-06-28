@@ -209,6 +209,38 @@ function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
   Equilibrium(r,w,distr,E,aggregates,moments);
 end
 
+
+#Initialize firm problem
+function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
+
+  #Nk, Nq, Nz, Nomega = pa.Nk, pa.Nq, pa.Nz, pa.Nomega
+
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
+
+  #guess firm value
+  if !guessvalue
+    firmvalueguess = repmat(pa.omega.grid,1,pa.Nz);
+  end
+  firmvaluegrid  = copy(firmvalueguess);
+  kpolicy    = similar(firmvaluegrid);
+  qpolicy    = similar(firmvaluegrid);
+
+  #Preallocate results
+  distributions = Array(Float64,(pa.Nomega,pa.Nz));
+  financialcosts = zeros(Float64,(pa.Nomega,pa.Nz));
+  grossdividends = zeros(Float64,(pa.Nomega,pa.Nz));
+  grossequityis = zeros(Float64,(pa.Nomega,pa.Nz));
+  exitprobability = Array(Float64,(pa.Nomega,pa.Nz));
+  exitrule = falses(pa.Nomega,pa.Nz,pa.Nz);
+  positivedistributions = falses(pa.Nomega,pa.Nz);
+
+  #Initialize the firm problem object
+  FirmProblem( betatilde, taudtilde, betatilde*(1+(1-tau.c)*eq.r), firmvalueguess, firmvaluegrid, kpolicy, qpolicy,
+   map(x->CoordInterpGrid(pa.omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz),
+   distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
+end
+
 #Compute omega prime
 function omegaprimefun(kprime::Real, qprime::Real, i_zprime::Int, eq::Equilibrium, tau:: Taxes, pa::Param)
   zprime=pa.zgrid[i_zprime];
