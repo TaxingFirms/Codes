@@ -7,7 +7,7 @@ Objects
 - Prices
 - Results: value function, policy functions
 
-ValueFunctionIteration
+Firms (ValueFunctionIteration)
 INPUT = prices, taxes, parameters
 OUTPUT = results
 
@@ -19,8 +19,8 @@ FreeEntry
 INPUT = results
 OUTPUT = wage
 
-MktClearing
-INPUT = results, wage
+Aggregation
+INPUT = results, wage, distribution
 OUTPUT = mass of entrants
 
 
