@@ -5,8 +5,10 @@ function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64
 
   #Compute the model on first time
   @time VFIfunction(pr,eq,tau,pa); #pr is updated, computes Value Function
+      #firmVFIParallelOmega!(pr,eq,tau,pa)
   #Compute wage such that free entry condition holds
-  @time w=free_entry!(eq, pr, tau, pa; xtol=.001)
+  @time w=free_entry!(eq, pr, tau, pa, VFIfunction)
+      #free_entry!(eq, pr, tau, pa,firmVFIParallelOmega!)
   #1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
 
   #Extract policies and other idiosyncratic results of interest

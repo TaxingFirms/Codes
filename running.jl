@@ -11,9 +11,8 @@
 @everywhere using JLD
 @everywhere include("Main.jl")
 @everywhere include("Firms.jl")
-@everywhere include("Policies.jl")
-@everywhere include("Distribution.jl")
 @everywhere include("FreeEntry.jl")
+@everywhere include("Distribution.jl")
 @everywhere include("Aggregation.jl")
 @everywhere include("TaxReforms.jl")
 @everywhere include("SolveModel.jl")

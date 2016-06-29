@@ -31,8 +31,8 @@ function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param, V
   end
 
   expvalentry>0?
-    fzero(f,center,center+radius; xtol=10^-3.0 ):
-    fzero(f,max(center-radius,0); xtol=10^-3.0 )
+    myfzero(f,center, expvalentry, center+radius, newvalentry; xtol=10^-3.0 ):
+    myfzero(f,center-radius, newvalentry, center, expvalentry; xtol=10^-3.0 )
 end
 
 function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function)
@@ -55,4 +55,64 @@ function compute_expvalentry(pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::
     expvalentry = pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
   end
   expvalentry
+end
+
+
+function _middle(x::Float64, y::Float64)
+  # Use the usual float rules for combining non-finite numbers
+  if !isfinite(x) || !isfinite(y)
+    return x + y
+  end
+
+  # Always return 0.0 when inputs have opposite sign
+  if sign(x) != sign(y) && x != 0.0 && y != 0.0
+    return 0.0
+  end
+
+  negate = x < 0.0 || y < 0.0
+
+  xint = reinterpret(UInt64, abs(x))
+  yint = reinterpret(UInt64, abs(y))
+  unsigned = reinterpret(Float64, (xint + yint) >> 1)
+
+  return negate ? -unsigned : unsigned
+end
+
+
+function myfzero(f, x0::Float64, y0::Float64, x2::Float64, y2::Float64; xtol::Real=0.0, xtolrel::Real=0.0, verbose::Bool=false)
+
+    if (xtol < 0.0) | (xtolrel < 0.0)
+        error("Tolerances must be non-negative")
+    end
+
+    #x0, y0 = a, f(a)
+    #x2, y2 = b, f(b)
+
+    if sign(y0) * sign(y2) > 0
+        error("[a,b] is not a bracket")
+    end
+
+    x1 = _middle(x0, x2)
+    y1 = f(x1)
+
+
+    while x0 < x1 && x1 < x2
+        if sign(y0) == sign(y1)
+            x0, x2 = x1, x2
+            y0, y2 = y1, y2
+        else
+            x0, x2 = x0, x1
+            y0, y2 = y0, y1
+        end
+
+        x1 = _middle(x0, x2)
+        y1 = f(x1)
+
+        sign(y1) == 0 && return x1
+        abs(x2 - x0) <= max(xtol, xtolrel*abs(x1)) && return(x1)
+
+        verbose && println(@sprintf("xi =%18.15f,\t f(xi) = %18.15f", x1, f(x1)))
+    end
+
+    return abs(y0) < abs(y2) ? x0 : x2
 end
