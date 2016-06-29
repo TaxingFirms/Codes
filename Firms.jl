@@ -319,3 +319,42 @@ function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa:
     it>= maxit ? error("maximum number of iterations reached"):it+=1;
   end
 end
+
+
+
+#Gets the exit rules, distributions and other quantities of interest
+
+function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  for (i_z,z) in enumerate(pa.zgrid)
+    for (i_omega, omega) in enumerate(pa.omega.grid)
+      kprime= pr.kpolicy[i_omega, i_z];
+      qprime= pr.qpolicy[i_omega, i_z];
+
+
+      if grossdistributions(omega,kprime,qprime,pa) >=0
+        pr.positivedistributions[i_omega, i_z]= true;
+        pr.distributions[i_omega, i_z]= (1-tau.d)*grossdistributions(omega,kprime,qprime,pa);
+        pr.grossdividends[i_omega, i_z]= grossdistributions(omega,kprime,qprime,pa);
+      else
+        pr.distributions[i_omega, i_z]= (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0;
+        pr.financialcosts[i_omega, i_z]= pa.lambda1*grossdistributions(omega,kprime,qprime,pa) -pa.lambda0;
+        pr.grossequityis[i_omega, i_z]= grossdistributions(omega,kprime,qprime,pa);
+      end
+
+
+      prexit=0.0;
+       #This just avoids computing this constant again and again while computing omegaprime
+      exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime);
+      for (i_zprime,zprime) in enumerate(pa.zgrid)
+        lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
+        omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
+        contvalue = firmvaluefunction(omegaprime,i_zprime,pr);
+        if exitvalue>=contvalue #if indiferent, firms choose to exit
+          pr.exitrule[i_omega, i_z,i_zprime]=true;
+          prexit+=pa.ztrans[i_zprime,i_z];
+        end
+      end
+      pr.exitprobability[i_omega, i_z]=prexit;
+    end
+  end
+end

@@ -1,11 +1,15 @@
-function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam; xtol = .00001)
-  f(x) = expvalentry!(x,pr,p,tau,fp,hp);
+# This script has the functions to compute a wage consistent with free entry
+# It calls the value function iteration until the value function in
+# pr::FirmProblem is zero for entrants. It saves the wage in eq.w
 
-  expvalentry= compute_expvalentry(pr,p,tau,fp,hp);
-  println(" Expected Value Entrants = ",expvalentry, " w = ",p.w);
+function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param, VFIfunction::Function; xtol = .00001)
+  f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction);
+
+  expvalentry= compute_expvalentry(pr,eq,tau,pa);
+  println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
 
   #The folowing block is meant to speed up bisection a little.
-  center= p.w;
+  center= eq.w;
   radius=10^-2.0;
   flag = false;
   while !flag
@@ -31,25 +35,24 @@ function free_entry!(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam
     fzero(f,max(center-radius,0); xtol=10^-3.0 )
 end
 
-function expvalentry!(w::Real,pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam)
+function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function)
   #Computes the interest rate consistent with free entry.
-  p.w=w;
+  eq.w=w;
   println("w= ",w);
-  pr  = init_firmproblem(p,tau,fp,hp); #When the prices change, optimal size changes and we need to update the grids.
 
-  firmVFIParallelOmega!(pr,p,tau,fp);
-  expvalentry=compute_expvalentry(pr,p,tau,fp,hp);
+  VFIfunction(pr,eq,tau,pa);
+  expvalentry=compute_expvalentry(pr,eq,tau,pa);
   println("w= ",w, " expvalentry = ", expvalentry);
 
   return expvalentry
 end
 
-function compute_expvalentry(pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam, hp::HouseholdParam)
+function compute_expvalentry(pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
   #Computes the expected value just once, without updating prices
 
   expvalentry=0;
-  for i_z = 1:pr.Nz
-    expvalentry = pr.firmvaluegrid[1,i_z]*fp.invariant_distr[i_z] - fp.e;
+  for i_z = 1:pa.Nz
+    expvalentry = pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
   end
   expvalentry
 end

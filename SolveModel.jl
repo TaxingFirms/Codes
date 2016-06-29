@@ -5,15 +5,12 @@ function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64
 
   #Compute the model on first time
   @time VFIfunction(pr,eq,tau,pa); #pr is updated, computes Value Function
-    @time firmVFIParallel!(pr,eq,tau,pa; maximizationroutine=maximizationbf);
-
   #Compute wage such that free entry condition holds
-  @time w=free_entry!(pr, p, tau, fp,hp; xtol=.001)
+  @time w=free_entry!(eq, pr, tau, pa; xtol=.001)
   #1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
 
   #Extract policies and other idiosyncratic results of interest
-  res=copy_opt_policies(pr);
-  getpolicies!(res,pr,p,tau,fp);  #r is updated exctracts policies
+  getpolicies!(pr,eq,tau,pa);  #r is updated exctracts policies
 
   # Compute mass of entrants and stationary distribution
   # both are updated in p.
