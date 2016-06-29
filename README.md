@@ -7,20 +7,20 @@ Objects
 - Equilibrium
 - Firm Problem: value function, policy functions
 
-ValueFunctionIteration
+Firms.jl
 INPUT = equilibrium, taxes, parameters, !firmproblem
 OUTPUT = firmproblem
 
-Distribution
+Distribution.jl
 INPUT = firmproblem, parameters, !equilibrium
 OUTPUT = equilibrium.(stationary distribution)
 
-FreeEntry
+FreeEntry.jl
 INPUT = firmproblem, taxes, parameteres, !equilibrium 
 OUTPUT = equilibrium.wage
 
-MktClearing
+Aggregation.jl
 INPUT = firmproblem, !equilibrium
-OUTPUT = equilibrium.(mass of entrants)
+OUTPUT = equilibrium.(mass of entrants,momemnts, aggregates)
 
 
