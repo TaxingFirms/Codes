@@ -1,25 +1,23 @@
-function SolveModel!(tau::Taxes,fp::FirmParam,hp::HouseholdParam;wguess::Float64=0.69, VFIfunction::Function = firmVFIParallelOmega! )
+function SolveModel!(tau::Taxes,pa::Param;wguess::Float64=0.69, VFIfunction::Function = firmVFIParallelOmega! )
 
   eq = init_equilibirium(wguess,tau,pa);
   pr  = init_firmproblem(eq,tau,pa);
 
   #Compute the model on first time
   @time VFIfunction(pr,eq,tau,pa); #pr is updated, computes Value Function
-      #firmVFIParallelOmega!(pr,eq,tau,pa)
+
   #Compute wage such that free entry condition holds
   @time w=free_entry!(eq, pr, tau, pa, VFIfunction)
-      #free_entry!(eq, pr, tau, pa,firmVFIParallelOmega!)
-  #1339.480311 seconds on tesla, tol = 10^-2, w = 0.719
 
   #Extract policies and other idiosyncratic results of interest
   getpolicies!(pr,eq,tau,pa);  #r is updated exctracts policies
 
   # Compute mass of entrants and stationary distribution
   # both are updated in p.
-  mass_of_entrants!( res, pr, p, tau, fp);
+  mass_of_entrants!( pr, eq, tau, pa);
 
   # Compute aggregate results of interest and moments
-  aggregates!(res, pr, p, tau, hp, fp);
+  aggregates!(pr, eq, tau, pa);
 
-  return p,res,pr
+  return pr,eq
 end

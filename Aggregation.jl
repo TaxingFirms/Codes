@@ -13,18 +13,18 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
   netdistributions=0.0;
   liquidations=0.0;
 
-  for i_z in 1:pr.Nz
+  for i_z in 1:pa.Nz
     #### First we consider entrants ###
 
     netdistributions+=pr.distributions[1,i_z]*pa.invariant_distr[i_z]
 
     #### Next we consider incumbents ###
-    for i_omega in 1:pr.Nomega
+    for i_omega in 1:pa.Nomega
       kprime=pr.kpolicy[i_omega,i_z];
       qprime=pr.qpolicy[i_omega,i_z];
 
 
-      for i_zprime in 1:pr.Nz
+      for i_zprime in 1:pa.Nz
         #Non-exiting incumbents
         if !pr.exitrule[i_omega,i_z,i_zprime]
           zprime       = pa.zgrid[i_zprime];
@@ -34,7 +34,7 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
           labor       += lprime*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa)
-          netdistributions+=res.distributions[i_omegaprime,i_zprime]*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          netdistributions+=pr.distributions[i_omegaprime,i_zprime]*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
         #Exiting incumbents
         else
@@ -135,7 +135,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   zprime = pa.zgrid[mp_zprime];
   lprime = (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
-  Kinv = ((pr.kprime[mp_omegaprime,mp_zprime] - (1-pa.delta)*kprime)/kprime);
+  Kinv = ((pr.kpolicy[mp_omegaprime,mp_zprime] - (1-pa.delta)*kprime)/kprime);
   Klev = qprime/kprime;
   Kdiv= pr.grossdividends[mp_omegaprime,mp_zprime]/kprime;
   Kprof = (zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime - pa.f)/kprime;
@@ -161,7 +161,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
       for i_zprime in 1:pa.Nz
         #Non-exiting incumbents
-        if !res.exitrule[i_omega,i_z,i_zprime]
+        if !pr.exitrule[i_omega,i_z,i_zprime]
           zprime       = pa.zgrid[i_zprime];
           lprime       = (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
@@ -188,7 +188,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
             mean_leverage_shifted += (leverage - Klev)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
             var_leverage += (leverage - Klev)^2*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
-            div2k= res.grossdividends[i_omegaprime,i_zprime]/kprime; #Before tax dividends
+            div2k= pr.grossdividends[i_omegaprime,i_zprime]/kprime; #Before tax dividends
             mean_dividends2k += div2k*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
             mean_dividends2k_shifted += (div2k - Kdiv)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
             var_dividends2k += (div2k - Kdiv)^2*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
@@ -201,7 +201,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
             eqis2k = pr.grossequityis[i_omegaprime,i_zprime]/kprime;
             mean_eqis2k += eqis2k*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
-            tobinsq = pr.firmvalue[i_omegaprime,i_zprime]/kprime;
+            tobinsq = pr.firmvaluegrid[i_omegaprime,i_zprime]/kprime;
             mean_tobinsq += tobinsq*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
             cov_nw += (omegaprime - Komega)*(omega-Komega)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
@@ -228,12 +228,12 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
 
   ### COMPUTE VALUES THAT DO NOT DEPEND K
-  investment = sum(distr.*res.kprime) - (1-pa.delta)*capital;
+  investment = sum(distr.*pr.kpolicy) - (1-pa.delta)*capital;
   grossdividends=sum(distr.*pr.grossdividends);
   financialcosts= - sum(distr.*pr.financialcosts);
 
   divtax= tau.d*grossdividends;
-  inctax = tau.i*p.r*debt;
+  inctax = tau.i*eq.r*debt;
 
   G = divtax + corptax + inctax;
   ######################################
@@ -244,7 +244,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   netdistributionscheck = sum(distr.*pr.distributions);
   debtcheck = sum(distr.*pr.qpolicy)
   capitalcheck= sum(distr.*pr.kpolicy)
-  labor_s = 1/pa.H - 1/pa.w*((1-tau.i)*eq.r*debt + netdistributions +liquidations);
+  labor_s = 1/pa.H - 1/eq.w*((1-tau.i)*eq.r*debt + netdistributions +liquidations);
   consumption = eq.w/pa.H;
 
   if abs(capital - capitalcheck) >10.0^-4.0 ||

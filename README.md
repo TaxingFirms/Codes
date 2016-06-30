@@ -1,26 +1,24 @@
-# Codes
+git log --one# Codes
 The main file is running.jl
 
 Objects
 - Taxes
 - Parameters
-- Equilibrium
-- Firm Problem: value function, policy functions
+- Prices
+- Results: value function, policy functions
 
-Firms.jl
-INPUT = equilibrium, taxes, parameters, !firmproblem
-OUTPUT = firmproblem
+ValueFunctionIteration
+INPUT = prices, taxes, parameters
+OUTPUT = results
 
-Distribution.jl
-INPUT = firmproblem, parameters, !equilibrium
-OUTPUT = equilibrium.(stationary distribution)
+Distribution
+INPUT = results, parameters
+OUTPUT = stationary distribution
 
-FreeEntry.jl
-INPUT = firmproblem, taxes, parameteres, !equilibrium 
-OUTPUT = equilibrium.wage
+FreeEntry
+INPUT = results
+OUTPUT = wage
 
-Aggregation.jl
-INPUT = firmproblem, !equilibrium
-OUTPUT = equilibrium.(mass of entrants,momemnts, aggregates)
-
-
+MktClearing
+INPUT = results, wage
+OUTPUT = mass of entrants

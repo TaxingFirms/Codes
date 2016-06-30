@@ -1,3 +1,12 @@
+# This script has the functions needed to update the stationary distribution,
+# given policy functions from pr:FirmProblem and a mass of entrants eq.E
+# getpolicies! needs to be run before any of the functions to extract the exit
+# rule
+#
+# There are three functions to do this (and all should return the same
+# distribution): stationarydist, stationarydist_iterate and distributionStupid
+
+
 
 #Find the closest gridpoint to omega'
 function closestindex(omegaprime::Real, step::Real)
@@ -24,29 +33,29 @@ function find_inds(i::Int, Nomega::Int)
 end
 
 # STATIONARY DISTRIBUTION,  E is the mass of entrants
-function stationarydist(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam;  tol=eps())
+function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;  tol=eps())
   #Initiate Variables
-  ii=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);
-  jj=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);
-  vv=zeros(pr.Nomega*pr.Nz*pr.Nz);
+  ii=zeros(Int,pa.Nomega*pa.Nz*pa.Nz);
+  jj=zeros(Int,pa.Nomega*pa.Nz*pa.Nz);
+  vv=zeros(pa.Nomega*pa.Nz*pa.Nz);
   #Construct the transition matrix
   k=1;
-  for i_z=1:pr.Nz
-    for i_omega = 1:pr.Nomega
-      kprime= pr.kpolicygrid[i_omega,i_z];
-      qprime= pr.qpolicygrid[i_omega,i_z];
-      for i_zprime= 1:fp.Nz
-        if !res.exitrule[i_omega, i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
-          i_omegaprime = closestindex(omegaprime, pr.omega.step)
-          if i_omegaprime<1 || i_omegaprime>pr.Nomega
-            i_omega == pr.Nomega?
-              i_omegaprime =pr.Nomega:
+  for i_z=1:pa.Nz
+    for i_omega = 1:pa.Nomega
+      kprime= pr.kpolicy[i_omega,i_z];
+      qprime= pr.qpolicy[i_omega,i_z];
+      for i_zprime= 1:pa.Nz
+        if !pr.exitrule[i_omega, i_z,i_zprime]
+          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
+          i_omegaprime = closestindex(omegaprime, pa.omega.step)
+          if i_omegaprime<1 || i_omegaprime>pa.Nomega
+            i_omega == pa.Nomega?
+              i_omegaprime =pa.Nomega:
               error("omega' out of the grid ", " i_z = ", i_z, " i_omega = ", i_omega, " i_z' = ",i_zprime, " i_omega' = ",i_omegaprime)
           end
-          ii[k]= find_dist_ind(i_omega, i_z, pr.Nomega);
-          jj[k]= find_dist_ind(i_omegaprime, i_zprime, pr.Nomega);
-          vv[k]= fp.ztrans[i_zprime,i_z];
+          ii[k]= find_dist_ind(i_omega, i_z, pa.Nomega);
+          jj[k]= find_dist_ind(i_omegaprime, i_zprime, pa.Nomega);
+          vv[k]= pa.ztrans[i_zprime,i_z];
           k+=1;
         end
       end
@@ -56,22 +65,22 @@ function stationarydist(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium,
   rows=ii[1:k-1];
   cols=jj[1:k-1];
   vals=vv[1:k-1];
-  transmat = sparse(rows,cols,vals,pr.Nz*pr.Nomega,pr.Nz*pr.Nomega);
+  transmat = sparse(rows,cols,vals,pa.Nz*pa.Nomega,pa.Nz*pa.Nomega);
 
   #Entrants
-  ie=zeros(Int64,pr.Nz);
-  ve=zeros(Float64,pr.Nz);
+  ie=zeros(Int64,pa.Nz);
+  ve=zeros(Float64,pa.Nz);
   k=1;
-  for i_z in 1:fp.Nz
-        ie[k]= find_dist_ind(1, i_z, pr.Nomega);
-        ve[k]= E*fp.invariant_distr[i_z];
+  for i_z in 1:pa.Nz
+        ie[k]= find_dist_ind(1, i_z, pa.Nomega);
+        ve[k]= E*pa.invariant_distr[i_z];
         k+=1;
   end
 
-  entrants= sparsevec(ie,ve,pr.Nz*pr.Nomega);
-  I=speye(Float64,pr.Nz*pr.Nomega); #Identity matrix
+  entrants= sparsevec(ie,ve,pa.Nz*pa.Nomega);
+  I=speye(Float64,pa.Nz*pa.Nomega); #Identity matrix
 
-  distrguess = ones(pr.Nomega* pr.Nz);
+  distrguess = ones(pa.Nomega* pa.Nz);
   distrguess=  distrguess/sum(distrguess);
 
   distr_vectorized=deepcopy(distrguess);
@@ -98,12 +107,12 @@ function stationarydist(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium,
     dist_vectorized = \(A,b):
     error("I - T is not invertible");
   =#
-  distr=reshape(distr_vectorized, (pr.Nomega,pr.Nz))
+  distr=reshape(distr_vectorized, (pa.Nomega,pa.Nz))
 
 end
 
-function stationarydist_iterate( E, res, pr, p, tau, fp; tol=eps() )
-  distrguess = ones(pr.Nomega, pr.Nz);
+function stationarydist_iterate( E::Float64, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=eps() )
+  distrguess = ones(pa.Nomega, pa.Nz);
   distrguess=  distrguess/sum(distrguess);
 
   distr=deepcopy(distrguess);
@@ -111,7 +120,7 @@ function stationarydist_iterate( E, res, pr, p, tau, fp; tol=eps() )
   it=1; maxit = 10.0^5.0;
   while dist >tol && it<maxit
     println("it = ",it," dist = ", dist)
-    distrprime = transitionrule(distr,E,res,pr,p,tau,fp)
+    distrprime = transitionrule(distr,E,pr,eq,tau,pa)
     dist= norm(distrprime -distr);
 
     distr=deepcopy(distrprime);
@@ -126,31 +135,31 @@ end
 
 
 
-function transitionrule(distr::Matrix,E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau:: Taxes, fp::FirmParam)
+function transitionrule(distr::Matrix,E::Real, pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
 
-  distrprime= zeros(pr.Nomega, pr.Nz);
+  distrprime= zeros(pa.Nomega, pa.Nz);
 
-  for i_z in 1:pr.Nz
+  for i_z in 1:pa.Nz
     #First we consider entrants
-    distrprime[1,i_z]+=E*fp.invariant_distr[i_z];
+    distrprime[1,i_z]+=E*pa.invariant_distr[i_z];
     #Non-exiting incumbents
-    for i_omega in 1:pr.Nomega
-      kprime=res.kprime[i_omega,i_z];
-      qprime=res.qprime[i_omega,i_z];
-      for i_zprime in 1:pr.Nz
-        if !res.exitrule[i_omega,i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
-          i_omegaprime = closestindex(omegaprime, pr.omega.step);
+    for i_omega in 1:pa.Nomega
+      kprime=pr.kpolicy[i_omega,i_z];
+      qprime=pr.qpolicy[i_omega,i_z];
+      for i_zprime in 1:pa.Nz
+        if !pr.exitrule[i_omega,i_z,i_zprime]
+          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
+          i_omegaprime = closestindex(omegaprime, pa.omega.step);
 
           #The block below checks that the index is within reasonable bounds
-          if i_omegaprime<1 || i_omegaprime>pr.Nomega
-            i_omega == pr.Nomega?
-              i_omegaprime =pr.Nomega:
+          if i_omegaprime<1 || i_omegaprime>pa.Nomega
+            i_omega == pa.Nomega?
+              i_omegaprime =pa.Nomega:
               error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
           end
-#=          if i_omegaprime<1 || i_omegaprime>pr.Nomega
-            if i_omega==pr.Nomega || i_omegaprime < (pr.Nomega + 3)
-              i_omegaprime =pr.Nomega
+#=          if i_omegaprime<1 || i_omegaprime>pa.Nomega
+            if i_omega==pa.Nomega || i_omegaprime < (pa.Nomega + 3)
+              i_omegaprime =pa.Nomega
             elseif i_omega==1 || i_omegaprime > -3
               i_omegaprime =1;
             else
@@ -158,7 +167,7 @@ function transitionrule(distr::Matrix,E::Real,res::ResultsFP, pr::FirmProblem, p
             end
           end
 =#
-          distrprime[i_omegaprime,i_zprime] += fp.ztrans[i_zprime,i_z]*distr[i_omega,i_z];
+          distrprime[i_omegaprime,i_zprime] += pa.ztrans[i_zprime,i_z]*distr[i_omega,i_z];
         end
 
       end
@@ -167,119 +176,41 @@ function transitionrule(distr::Matrix,E::Real,res::ResultsFP, pr::FirmProblem, p
 distrprime
 end
 
-function distributionStupid(E::Real,res::ResultsFP, pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam;  tol=10.0^-4.0)
+function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;  tol=10.0^-4.0)
 
-  initialDistr = zeros(Float64,pr.Nomega,pr.Nz)
-  nextDistr = zeros(Float64,pr.Nomega,pr.Nz)
+  initialDistr = zeros(Float64,pa.Nomega,pa.Nz)
+  nextDistr = zeros(Float64,pa.Nomega,pa.Nz)
 
-  initialDistr[1,:] = fp.invariant_distr
+  initialDistr[1,:] = pa.invariant_distr
   diffValue = 10.0
   while diffValue > tol
-    for i_z=1:pr.Nz, i_omega = 1:pr.Nomega
-      kprime= pr.kpolicygrid[i_omega,i_z];
-      qprime= pr.qpolicygrid[i_omega,i_z];
-      for i_zprime= 1:fp.Nz
-        if !res.exitrule[i_omega, i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
-          i_omegaprime = closestindex(omegaprime, pr.omega.step)
-          if i_omegaprime>pr.Nomega  && i_omega == pr.Nomega
-            i_omegaprime = pr.Nomega
+    for i_z=1:pa.Nz, i_omega = 1:pa.Nomega
+      kprime= pr.kpolicy[i_omega,i_z];
+      qprime= pr.qpolicy[i_omega,i_z];
+      for i_zprime= 1:pa.Nz
+        if !pr.exitrule[i_omega, i_z,i_zprime]
+          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
+          i_omegaprime = closestindex(omegaprime, pa.omega.step)
+          if i_omegaprime>pa.Nomega  && i_omega == pa.Nomega
+            i_omegaprime = pa.Nomega
           elseif i_omegaprime < 1
               error("omega' out of the grid ", " i_z = ", i_z, " i_omega = ", i_omega, " i_z' = ",i_zprime, " i_omega' = ",i_omegaprime)
           end
-          nextDistr[i_omegaprime,i_zprime] += fp.ztrans[i_zprime,i_z]*initialDistr[i_omega,i_z]
+          nextDistr[i_omegaprime,i_zprime] += pa.ztrans[i_zprime,i_z]*initialDistr[i_omega,i_z]
         end
       end # end i_z'
 
       if i_omega == 1
-        nextDistr[i_omega,i_z] += E*fp.invariant_distr[i_z]
+        nextDistr[i_omega,i_z] += E*pa.invariant_distr[i_z]
       end
     end # end i_omega, i_z
 
     diffValue    = maxabs(nextDistr - initialDistr)
     initialDistr = deepcopy(nextDistr)
-    nextDistr    = zeros(Float64,pr.Nomega,pr.Nz)
+    nextDistr    = zeros(Float64,pa.Nomega,pa.Nz)
 
   end
 
   initialDistr
-
-end
-
-###### CONSTANT EXOGENOUS EXIT
-function stationarydistCE(E::Real, pr::FirmProblem, p::Equilibrium, tau::Taxes, fp::FirmParam;  tol=10.0^-4.0)
-  #Initiate Variables
-  ii=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);
-  jj=zeros(Int,pr.Nomega*pr.Nz*pr.Nz);
-  vv=zeros(pr.Nomega*pr.Nz*pr.Nz);
-  #Construct the transition matrix
-  k=1;
-  for i_z=1:pr.Nz
-    for i_omega = 1:pr.Nomega
-      kprime= pr.kpolicygrid[i_omega,i_z];
-      qprime= pr.qpolicygrid[i_omega,i_z];
-      for i_zprime= 1:fp.Nz
-#        if !res.exitrule[i_omega, i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime,qprime,i_zprime,p,tau,fp)
-          i_omegaprime = closestindex(omegaprime, pr.omega.step)
-          if i_omegaprime<1
-            i_omegaprime=1;
-          elseif i_omegaprime>pr.Nomega
-            i_omegaprime =pr.Nomega
-          end
-          ii[k]= find_dist_ind(i_omega, i_z, pr.Nomega);
-          jj[k]= find_dist_ind(i_omegaprime, i_zprime, pr.Nomega);
-          vv[k]= fp.ztrans[i_zprime,i_z]*(1-exitprob);
-          k+=1;
-#        end
-
-      end
-    end
-  end
-  #The initial vector was larger than needed because of exit. We trim it.
-
-  transmat = sparse(ii,jj,vv,pr.Nz*pr.Nomega,pr.Nz*pr.Nomega);
-
-  #Entrants
-  ie=zeros(Int64,pr.Nz);
-  ve=zeros(Float64,pr.Nz);
-  k=1;
-  for i_z in 1:fp.Nz
-        ie[k]= find_dist_ind(1, i_z, pr.Nomega);
-        ve[k]= E*fp.invariant_distr[i_z];
-        k+=1;
-  end
-
-  entrants= sparsevec(ie,ve,pr.Nz*pr.Nomega);
-  I=speye(Float64,pr.Nz*pr.Nomega); #Identity matrix
-
-  distrguess = ones(pr.Nomega* pr.Nz);
-  distrguess=  distrguess/sum(distrguess);
-
-  distr_vectorized=deepcopy(distrguess);
-  dist=Inf;
-  it=1; maxit = 10.0^5.0;
-  while dist >tol && it<maxit
-    println("it = ",it," dist = ", dist)
-    #println(it)
-    distrprime= transmat'*distr_vectorized +entrants;
-
-    dist= norm(distrprime -distr_vectorized);
-    distr_vectorized=deepcopy(distrprime);
-    it+=1;
-  end
-  if it==maxit
-    error("Distribution did not converge after maximum number of iterations")
-  end
-
-
-  #=
-  A= full(I-transmat');
-  b=full(entrants);
-  det(A) != 0 ?
-    dist_vectorized = \(A,b):
-    error("I - T is not invertible");
-  =#
-  distr=reshape(distr_vectorized, (pr.Nomega,pr.Nz))
 
 end

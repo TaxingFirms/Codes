@@ -14,19 +14,20 @@
 @everywhere include("FreeEntry.jl")
 @everywhere include("Distribution.jl")
 @everywhere include("Aggregation.jl")
-@everywhere include("TaxReforms.jl")
 @everywhere include("SolveModel.jl")
+@everywhere include("TaxReforms.jl")
+
 
 pa  = init_parameters();
 tau = init_taxes() ;
 
-p,res,pr= SolveModel!(tau,fp,hp)
+pr,eq= SolveModel!(tau,pa);
 
-save("/home/dwills/firms/ModelResults.jld", "pr", pr, "tau", tau, "fp", fp, "res",res, "p",p);
-
-#pr,tau,fp,res,p=load("/home/dwills/firms/ModelResults.jld", "pr","tau","fp","res","p");
+save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 
-taxreform2(0.3, p, tau, fp, hp)
+pr1,eq1, tau1 = taxreform1(0.3, eq, tau, pa);
+save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
 
-taxreform1(0.3, p, tau, fp, hp)
+pr2,eq2, tau2 = taxreform2(0.3, eq, tau, pa);
+save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);

@@ -13,7 +13,7 @@ function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param, V
   radius=10^-2.0;
   flag = false;
   while !flag
-    radius*=2.0;
+    radius*=1.5;
     expvalentry>0?
       newcenter = center + radius:
       newcenter = center - radius;
