@@ -46,13 +46,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
       qprime= pr.qpolicy[i_omega,i_z];
       for i_zprime= 1:pa.Nz
         if !pr.exitrule[i_omega, i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
-          i_omegaprime = closestindex(omegaprime, pa.omega.step)
-          if i_omegaprime<1 || i_omegaprime>pa.Nomega
-            i_omega == pa.Nomega?
-              i_omegaprime =pa.Nomega:
-              error("omega' out of the grid ", " i_z = ", i_z, " i_omega = ", i_omega, " i_z' = ",i_zprime, " i_omega' = ",i_omegaprime)
-          end
+          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
           ii[k]= find_dist_ind(i_omega, i_z, pa.Nomega);
           jj[k]= find_dist_ind(i_omegaprime, i_zprime, pa.Nomega);
           vv[k]= pa.ztrans[i_zprime,i_z];
@@ -148,25 +142,7 @@ function transitionrule(distr::Matrix,E::Real, pr::FirmProblem, eq::Equilibrium,
       qprime=pr.qpolicy[i_omega,i_z];
       for i_zprime in 1:pa.Nz
         if !pr.exitrule[i_omega,i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
-          i_omegaprime = closestindex(omegaprime, pa.omega.step);
-
-          #The block below checks that the index is within reasonable bounds
-          if i_omegaprime<1 || i_omegaprime>pa.Nomega
-            i_omega == pa.Nomega?
-              i_omegaprime =pa.Nomega:
-              error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
-          end
-#=          if i_omegaprime<1 || i_omegaprime>pa.Nomega
-            if i_omega==pa.Nomega || i_omegaprime < (pa.Nomega + 3)
-              i_omegaprime =pa.Nomega
-            elseif i_omega==1 || i_omegaprime > -3
-              i_omegaprime =1;
-            else
-              error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)
-            end
-          end
-=#
+          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
           distrprime[i_omegaprime,i_zprime] += pa.ztrans[i_zprime,i_z]*distr[i_omega,i_z];
         end
 
@@ -176,7 +152,7 @@ function transitionrule(distr::Matrix,E::Real, pr::FirmProblem, eq::Equilibrium,
 distrprime
 end
 
-function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;  tol=10.0^-4.0)
+function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;  tol=eps())
 
   initialDistr = zeros(Float64,pa.Nomega,pa.Nz)
   nextDistr = zeros(Float64,pa.Nomega,pa.Nz)
@@ -189,13 +165,7 @@ function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes
       qprime= pr.qpolicy[i_omega,i_z];
       for i_zprime= 1:pa.Nz
         if !pr.exitrule[i_omega, i_z,i_zprime]
-          omegaprime = omegaprimefun(kprime, qprime, i_zprime, eq, tau, pa)
-          i_omegaprime = closestindex(omegaprime, pa.omega.step)
-          if i_omegaprime>pa.Nomega  && i_omega == pa.Nomega
-            i_omegaprime = pa.Nomega
-          elseif i_omegaprime < 1
-              error("omega' out of the grid ", " i_z = ", i_z, " i_omega = ", i_omega, " i_z' = ",i_zprime, " i_omega' = ",i_omegaprime)
-          end
+          omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
           nextDistr[i_omegaprime,i_zprime] += pa.ztrans[i_zprime,i_z]*initialDistr[i_omega,i_z]
         end
       end # end i_z'

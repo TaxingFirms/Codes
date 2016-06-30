@@ -2,8 +2,8 @@
 # It calls the value function iteration until the value function in
 # pr::FirmProblem is zero for entrants. It saves the wage in eq.w
 
-function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param, VFIfunction::Function; xtol = .00001)
-  f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction);
+function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-4.0)
+  f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine);
 
   expvalentry= compute_expvalentry(pr,eq,tau,pa);
   println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
@@ -31,16 +31,16 @@ function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param, V
   end
 
   expvalentry>0?
-    myfzero(f,center, expvalentry, center+radius, newvalentry; xtol=10^-3.0 ):
-    myfzero(f,center-radius, newvalentry, center, expvalentry; xtol=10^-3.0 )
+    myfzero(f,center, expvalentry, center+radius, newvalentry; xtol= tol ):
+    myfzero(f,center-radius, newvalentry, center, expvalentry; xtol= tol )
 end
 
-function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function)
+function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function, maxroutine::Function)
   #Computes the interest rate consistent with free entry.
   eq.w=w;
   println("w= ",w);
 
-  VFIfunction(pr,eq,tau,pa);
+  VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine);
   expvalentry=compute_expvalentry(pr,eq,tau,pa);
   println("w= ",w, " expvalentry = ", expvalentry);
 

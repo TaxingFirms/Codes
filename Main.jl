@@ -151,7 +151,7 @@ function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalp
   ggamma = zgrid.^(1/(1-aalphal)).*auxconst;
   maxexpgamma =ztrans[:,end]'*ggamma;
   kmax = (  ((aalphak/(1-aalphal))*maxexpgamma[1] )/(bbeta^-1.0 -1 +ddelta )  )^((1.0 - aalphal)/(1.0 - aalphak - aalphal));
-  kub=1.5*kmax; #kmax should be the max, but let's give 5% more
+  kub=1.05*kmax; 
   klb = 0.0;
   kstep = (kub-klb)/(Nk-1);
   kgrid = 0:kstep:kub;

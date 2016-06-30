@@ -66,9 +66,9 @@ end
 
 
 
-function mass_of_entrants!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function mass_of_entrants!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distribution::Function)
   #Computes the mass of entrants such that the labor market clears,
-  distr1=stationarydist(1,pr, eq, tau,pa);
+  distr1=distribution(1.0,pr, eq, tau,pa);
   bonds1, labor_d1, netdistributions1, liquidations1 = unit_entry(distr1, pr, eq, tau, pa);
 
   E=( pa.H*(labor_d1 + eq.w^(-1.0)*((1-tau.i)*eq.r*bonds1+ netdistributions1 +liquidations1) ) )^-1.0;
