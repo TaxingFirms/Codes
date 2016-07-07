@@ -1,4 +1,4 @@
-# Codes
+git log --one# Codes
 The main file is running.jl
 
 Objects
@@ -22,5 +22,3 @@ OUTPUT = wage
 Aggregation
 INPUT = results, wage, distribution
 OUTPUT = mass of entrants
-
-
