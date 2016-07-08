@@ -81,7 +81,7 @@ function mass_of_entrantsGHH!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa:
   #Computes the mass of entrants such that the labor market clears,
   distr1=distribution(1.0,pr, eq, tau,pa);
   bonds1, labor_d1, netdistributions1, liquidations1 = unit_entry(distr1, pr, eq, tau, pa);
-  labor_s= (eq.w/pa.H)^pa.psi.
+  labor_s= (eq.w/pa.H)^pa.psi
 
   E= labor_s/labor_d1;
   eq.distr = E*distr1;
@@ -255,7 +255,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   netdistributionscheck = sum(distr.*pr.distributions);
   debtcheck = sum(distr.*pr.qpolicy)
   capitalcheck= sum(distr.*pr.kpolicy)
-  labor_s = 1/pa.H - 1/eq.w*((1-tau.i)*eq.r*debt + netdistributions +liquidations);
+  labor_s =   labor_s= (eq.w/pa.H)^pa.psi;
   consumption = eq.w/pa.H;
 
   if abs(capital - capitalcheck) >10.0^-4.0 ||

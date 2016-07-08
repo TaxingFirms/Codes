@@ -22,7 +22,7 @@
 pa  = init_parameters();
 tau = init_taxes();
 
-@time pr,eq= SolveModel!(tau,pa);
+@time pr,eq= SolveSteadyState!(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 # Speed Benchmark: 41 seconds, 41 M, 3.7GB
