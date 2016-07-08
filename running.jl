@@ -14,7 +14,7 @@
 @everywhere include("FreeEntry.jl")
 @everywhere include("Distribution.jl")
 @everywhere include("Aggregation.jl")
-@everywhere include("SolveModel.jl")
+@everywhere include("SolveSteadyState.jl")
 @everywhere include("TaxReforms.jl")
 @everywhere include("calibrate.jl")
 
