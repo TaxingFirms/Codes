@@ -255,8 +255,8 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   netdistributionscheck = sum(distr.*pr.distributions);
   debtcheck = sum(distr.*pr.qpolicy)
   capitalcheck= sum(distr.*pr.kpolicy)
-  labor_s =   labor_s= (eq.w/pa.H)^pa.psi;
-  consumption = eq.w/pa.H;
+  labor_s = (eq.w/pa.H)^pa.psi;
+  consumption = ;
 
   if abs(capital - capitalcheck) >10.0^-4.0 ||
       abs(debt - debtcheck) >10.0^-4.0 ||
