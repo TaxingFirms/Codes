@@ -9,11 +9,11 @@
 
 # Define types. This will allow to be more organized when passing parameters to functions.
 immutable GridObject
-  ub:: Real  #upper bound
-  lb:: Real  #lower bound
-  step:: Real #Distance between grid points
-  N:: Int    #Number of gridpoints
-  grid:: AbstractArray #Grid
+  ub::Real  #upper bound
+  lb::Real  #lower bound
+  step::Real #Distance between grid points
+  N::Int    #Number of gridpoints
+  grid::AbstractArray #Grid
 end
 
 type Param
@@ -67,36 +67,33 @@ type FirmProblem
 
   #output
   firmvaluegrid::Matrix
-  kpolicy:: Matrix
+  kpolicy::Matrix
   qpolicy::Matrix
 
   InterpolationGrid::Array{CoordInterpGrid,1}
 
-  distributions :: Array{Float64,2}
-  financialcosts :: Array{Float64,2}
-  grossdividends :: Array{Float64,2}
-  grossequityis :: Array{Float64,2}
-  exitprobability :: Array{Float64,2}
-  exitrule:: Array{Bool,3}
-  positivedistributions :: Array{Bool,2}
+  distributions::Array{Float64,2}
+  financialcosts::Array{Float64,2}
+  grossdividends::Array{Float64,2}
+  grossequityis::Array{Float64,2}
+  exitprobability::Array{Float64,2}
+  exitrule::Array{Bool,3}
+  positivedistributions::Array{Bool,2}
 end
 
 type Moments
   mean_inv_rate::Float64
-  var_inv_rate::Float64
+  sd_inv_rate::Float64
   mean_leverage::Float64
-  var_leverage::Float64
-
+  sd_leverage::Float64
   mean_dividends2k::Float64
-  var_dividends2k::Float64
+  sd_dividends2k::Float64
   mean_profits2k::Float64
-
-  var_profits2k::Float64
+  sd_profits2k::Float64
   mean_eqis2k::Float64
   freq_equis2k::Float64
   mean_tobinsq::Float64
-
-  cov_nw::Float64
+  autocov_profits2k::Float64
 end
 
 type Aggregates

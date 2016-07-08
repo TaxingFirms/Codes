@@ -101,6 +101,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
     dist_vectorized = \(A,b):
     error("I - T is not invertible");
   =#
+
   distr=reshape(distr_vectorized, (pa.Nomega,pa.Nz))
 
 end
@@ -184,3 +185,118 @@ function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes
   initialDistr
 
 end
+
+function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; cutoffCapital::Float64=0.0, toPrint::Bool=true)
+
+  indexCutoff = 1
+  for i in 1:pa.Nomega
+    if (pa.omega.grid[i]-pa.omega.lb)/(pa.omega.ub-pa.omega.lb) > cutoffCapital
+      indexCutoff = i
+      break
+    end
+  end
+
+  # Now, since taking averages, we need a factor to wheigh the distribution
+  # so that it adds up to one, taking into account the ones we are ccutting off
+  # dividing by this makes the mass add up to one, but maintains relative proportions
+  # of firms in each state
+  massCorrection = 0.0
+  for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
+    massCorrection += eq.distr[i_omega,i_z]
+  end
+
+  # Compute moments
+
+  mean_inv_rate     = 0.0
+  var_inv_rate      = 0.0
+  mean_leverage     = 0.0
+  var_leverage      = 0.0
+  mean_dividends2k  = 0.0
+  var_dividends2k   = 0.0
+  mean_profits2k    = 0.0
+  var_profits2k     = 0.0
+  mean_eqis2k       = 0.0
+  freq_equis2k      = 0.0
+  mean_tobinsq      = 0.0
+  autocov_profits2k = 0.0
+
+  # First the means
+  for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
+    firstKPrime = pr.kpolicy[i_omega,i_z]
+    firstQPrime = pr.qpolicy[i_omega,i_z]
+
+    # assuming leverage is debt/capital, make sure previous capital was not zero
+    mean_leverage += firstKPrime > 0.0 ? (firstQPrime/firstKPrime)*eq.distr[i_omega,i_z]/massCorrection : 0.0
+    # if dividends below zero actually they are distributions
+    mean_dividends2k += pr.distributions[i_omega,i_z] >= 0.0 ? pr.distributions[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0 
+    mean_eqis2k      += pr.distributions[i_omega,i_z] <= 0.0 ? pr.distributions[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0 
+    freq_equis2k     += pr.distributions[i_omega,i_z] <= 0.0 ? eq.distr[i_omega,i_z]/massCorrection  : 0.0
+    mean_tobinsq     += pr.firmvaluegrid[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection
+
+    for i_zprime in 1:pa.Nz
+      omegaprime = omegaprimefun(firstKPrime,firstQPrime,i_zprime,eq,tau,pa);
+      i_omegaprime = closestindex(omegaprime,pa.omega.step) 
+      secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
+
+      # Investment, make sure previous capital was not zero
+      mean_inv_rate += firstKPrime > 0.0 ? 
+        ((secondKPrime-firstKPrime)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
+        0.0
+
+      # Profits
+      lprime = (pa.alphal*pa.zgrid[i_zprime]*(firstKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
+      mean_profits2k += pa.zgrid[i_zprime]*((firstKPrime^pa.alphak)*(lprime^pa.alphal))*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection
+    end
+  end
+
+  # Now the variances
+  for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
+    firstKPrime  = pr.kpolicy[i_omega,i_z]
+    firstQPrime  = pr.qpolicy[i_omega,i_z]
+    var_leverage += firstKPrime > 0.0 ? 
+      ((firstQPrime/firstKPrime-mean_leverage)^2)*eq.distr[i_omega,i_z]/massCorrection : 0.0
+
+    for i_zprime in 1:pa.Nz
+      omegaprime   = omegaprimefun(firstKPrime,firstQPrime,i_zprime,eq,tau,pa);
+      i_omegaprime = closestindex(omegaprime,pa.omega.step) 
+      secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
+      secondQPrime = pr.qpolicy[i_omegaprime,i_zprime]
+
+      # Investment, make sure previous capital was not zero
+      var_inv_rate += firstKPrime > 0.0 ? 
+        ((((secondKPrime-firstKPrime)/firstKPrime)-mean_inv_rate)^2)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
+        0.0
+      # Profits
+      lprime = (pa.alphal*pa.zgrid[i_zprime]*(firstKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
+      currentProfits = pa.zgrid[i_zprime]*((firstKPrime^pa.alphak)*(lprime^pa.alphal))
+      var_profits2k += ((currentProfits-mean_profits2k)^2)*pa.ztrans[i_zprime,i_z]-mean_profits2k*eq.distr[i_omega,i_z]/massCorrection
+
+      for i_zprime2 in 1:pa.Nz  
+        lprime = (pa.alphal*pa.zgrid[i_zprime]*(secondKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
+        currentProfits2 = pa.zgrid[i_zprime2]*((secondKPrime^pa.alphak)*(lprime^pa.alphal))
+        autocov_profits2k += ((currentProfits2-mean_profits2k)*(currentProfits-mean_profits2k))*pa.ztrans[i_zprime2,i_zprime]*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection
+      end
+    end
+  end 
+
+  autocov_profits2k = autocov_profits2k/var_profits2k
+
+  resultingMoments = Moments(mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
+    mean_profits2k,sqrt(var_profits2k),mean_eqis2k,freq_equis2k,mean_tobinsq,autocov_profits2k)
+
+  if toPrint
+    using DataFrames
+    namesMoments = ["Mean Investment","SD Investment","Mean Leverage","SD Leverage",
+    "Mean Dividends","SD Dividends","Mean Profits","SD Profits",
+    "Mean Equity Issuance","Frequency of Equity Issuance","Means Tobins Q","Autocovariance Profits"]
+    
+    valueMoments = [mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
+    mean_profits2k,sqrt(var_profits2k),mean_eqis2k,freq_equis2k,mean_tobinsq,autocov_profits2k]
+    println(DataFrame(names=namesMoments,aggVals=valueMoments))
+  end
+
+  resultingMoments
+end
+
+
+

@@ -184,11 +184,11 @@ function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Para
 
     # McQueen - Porteus Accelerating thing
     if mp
-    bUnder = minimum(pr.firmvaluegrid - pr.firmvalueguess)
-    bOver  = maximum(pr.firmvaluegrid - pr.firmvalueguess)
-    pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (pr.betatilde/(1-pr.betatilde))*(bUnder + bOver)/2
+      bUnder = minimum(pr.firmvaluegrid - pr.firmvalueguess)
+      bOver  = maximum(pr.firmvaluegrid - pr.firmvalueguess)
+      pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (pr.betatilde/(1-pr.betatilde))*(bUnder + bOver)/2
     else
-    pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
+      pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
     end
 
     pr.InterpolationGrid = map(x->CoordInterpGrid(pa.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz)
