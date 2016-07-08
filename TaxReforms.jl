@@ -16,7 +16,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  pr1,eq1=SolveModel!(taunew,pa; wguess = eq.w);
+  pr1,eq1=SolveSteadyState!(taunew,pa; wguess = eq.w);
   newG=eq1.a.G;
 
 
@@ -29,7 +29,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
     taunew = Taxes(ntaud,tau.c,tau.i,tau.g);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1= SolveModel!(taunew,pa);
+    pr1,eq1= SolveSteadyState!(taunew,pa);
     newG=eq1.a.G;
   end
 
@@ -56,7 +56,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-  pr1,eq1=SolveModel!(taunew,pa; wguess = eq.w)
+  pr1,eq1=SolveSteadyState!(taunew,pa; wguess = eq.w)
   newG=eq1.a.G;
 
   while abs(originalG -newG)>10^-6.0
@@ -68,7 +68,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
     taunew = Taxes(ntau,tau.c,tau.i,ntau);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1=SolveModel!(taunew,pa);
+    pr1,eq1=SolveSteadyState!(taunew,pa);
     newG=eq1.a.G;
   end
 
