@@ -16,6 +16,9 @@ function computeDistance(initialParams)
 	# llambda0 - fixed cost of issuance
 	# llambda1 - variable cost of issuance
 
+	println("Parameters: delta ",initialParams[1]," rhoz ", initialParams[2], " ssigmaz ", initialParams[3], " ttheta ",initialParams[4],
+		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6])
+
 	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6]);
 	tau = init_taxes();
 	pr,eq= SolveModel!(tau,pa);
@@ -28,56 +31,3 @@ function computeDistance(initialParams)
 
 	sum((currentMomentsMatch-dataMoments).^2)
 end
-
-# Optimization
-#         delta     rhoz    sigmaz   theta   lambda0   lambda1
-LB = [      .01,      .5,    .01,    .01 ,   .01,       .0001 ]
-#         delta     rhoz    sigmaz   theta
-UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03  ]
-
-initialGuess = [0.14,0.76,0.0352,.45,.08,.028]
-count = 0
-
-
-
-using NLopt
-using Calculus
-
-function f(x::Vector,grad::Vector)
-	g(y) = computeDistance(x)
-
-	if length(grad) > 0
-		grad[:] = Calculus.gradient(g,x)
-	end
-	answer = g(x)
-	global count
-    count::Int += 1
-    println("f_$count($x)=$answer")
-
-    answer
-end
-
-
-# Simulated Annealing First
-
-opt = Opt(:GN_DIRECT_L,length(LB))
-
-lower_bounds!(opt,LB)
-upper_bounds!(opt,UB)
-min_objective!(opt,f)
-xtol_rel!(opt,.1)
-
-(minf,minx,ret) = optimize(opt,initialGuess)
-println("got $minf at $minx after $count iterations (returned $ret)")
-
-
-# Nelder-Mead Locally to improve
-
-# opt = Opt(:LN_SBPLX,length(LB))
-# lower_bounds!(opt,LB)
-# upper_bounds!(opt,UB)
-# min_objective!(opt,f)
-# xtol_rel!(opt,.1)
-
-# (minf,minx,ret) = optimize(opt,initialGuess)
-# println("got $minf at $minx after $count iterations (returned $ret)")

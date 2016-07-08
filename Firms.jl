@@ -307,7 +307,7 @@ function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa:
     println("it=", it, "   dist=", dist);
 
     # McQueen - Porteus Accelerating thing
-    if it > 100
+    if it > 2000
       mp=true;
       println("Switching to McQueen-Porteus bounds due to slow convergence");
     end
