@@ -30,12 +30,12 @@ function computeDistance(initialParams)
 end
 
 # Optimization
+#         delta     rhoz    sigmaz   theta   lambda0   lambda1
+LB = [      .01,      .5,    .01,    .01 ,   .01,       .0001 ]
 #         delta     rhoz    sigmaz   theta
-LB = [      .01,      .5,    .01,    .01 ,   .01, .0001 ]
-	   #   theta        rho   sigma   k0       highOrLow
-UB  = [     .15,     .95,   .50 ,     .4,    .15, .03  ]
+UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03  ]
 
-initialGuess = [0.14,0.76,0.0352,0.0034917457985334703,.45,.08,.028]
+initialGuess = [0.14,0.76,0.0352,.45,.08,.028]
 count = 0
 
 
@@ -58,20 +58,10 @@ function f(x::Vector,grad::Vector)
 end
 
 
-# opt = Opt(:GN_DIRECT_L,length(LB))
-#
-# lower_bounds!(opt,LB)
-# upper_bounds!(opt,UB)
-# min_objective!(opt,f)
-# xtol_rel!(opt,.1)
-#
-# (minf,minx,ret) = optimize(opt,initialGuess)
-# println("got $minf at $minx after $count iterations (returned $ret)")
+# Simulated Annealing First
 
+opt = Opt(:GN_DIRECT_L,length(LB))
 
-
-
-opt = Opt(:LN_SBPLX,length(LB))
 lower_bounds!(opt,LB)
 upper_bounds!(opt,UB)
 min_objective!(opt,f)
@@ -79,3 +69,15 @@ xtol_rel!(opt,.1)
 
 (minf,minx,ret) = optimize(opt,initialGuess)
 println("got $minf at $minx after $count iterations (returned $ret)")
+
+
+# Nelder-Mead Locally to improve
+
+# opt = Opt(:LN_SBPLX,length(LB))
+# lower_bounds!(opt,LB)
+# upper_bounds!(opt,UB)
+# min_objective!(opt,f)
+# xtol_rel!(opt,.1)
+
+# (minf,minx,ret) = optimize(opt,initialGuess)
+# println("got $minf at $minx after $count iterations (returned $ret)")
