@@ -77,6 +77,7 @@ type FirmProblem
   grossdividends::Array{Float64,2}
   grossequityis::Array{Float64,2}
   exitprobability::Array{Float64,2}
+  lpolicy::Array{Float64,3}
   exitrule::Array{Bool,3}
   positivedistributions::Array{Bool,2}
 end
@@ -229,13 +230,14 @@ function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = 
   grossdividends = zeros(Float64,(pa.Nomega,pa.Nz));
   grossequityis = zeros(Float64,(pa.Nomega,pa.Nz));
   exitprobability = Array(Float64,(pa.Nomega,pa.Nz));
+  lpolicy = zeros(Float64,(pa.Nomega,pa.Nz,pa.Nz));
   exitrule = falses(pa.Nomega,pa.Nz,pa.Nz);
   positivedistributions = falses(pa.Nomega,pa.Nz);
 
   #Initialize the firm problem object
   FirmProblem( betatilde, taudtilde, betatilde*(1+(1-tau.c)*eq.r), firmvalueguess, firmvaluegrid, kpolicy, qpolicy,
    map(x->CoordInterpGrid(pa.omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz),
-   distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
+   distributions, financialcosts, grossdividends, grossequityis, exitprobability, lpolicy, exitrule, positivedistributions);
 end
 
 #Compute omega prime

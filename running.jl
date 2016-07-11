@@ -1,7 +1,9 @@
 # All you need to run the code
 # Modify ~/.juliarc.jl and add the following line:
 # push!(LOAD_PATH, "/Path/To/My/Module/")
-# @everywhere cd("C:/Users/m1dsw00.BOARD/Codes")
+
+
+@everywhere cd("C:/Users/m1dsw00.BOARD/Codes")
 
 @everywhere using QuantEcon:tauchen
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
@@ -19,11 +21,11 @@
 
 
 pa  = init_parameters();
-tau = init_taxes(ttaud=0.15, ttauc=0.3, ttaui = 0.35, ttaug = 0.0);
+tau = init_taxes();
 
-@time pr,eq= SolveSteadyState!(tau,pa;maxroutine=maximizationbf);
+@time pr,eq= SolveSteadyState!(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-
+pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 # Speed Benchmark: 41 seconds, 41 M, 3.7GB
 ## @time pr,eq= SolveModel!(tau,pa; maxroutine=maximizationbf);
 # 650 s, 42 M aaloc 3.7 gb
@@ -35,11 +37,6 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 ## pa  = init_parameters( Nz=15 );
 ## @time pr,eq= SolveModel!(tau,pa);
 # 113 second
-
-
-
-save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-
 
 pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
 save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);

@@ -352,6 +352,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
       exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
+        pr.lpolicy[i_omega, i_z,i_zprime]= lprime;
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
         contvalue = firmvaluefunction(omegaprime,i_zprime,pr);
         if exitvalue>=contvalue #if indiferent, firms choose to exit
