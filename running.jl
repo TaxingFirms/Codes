@@ -9,7 +9,11 @@
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero
 @everywhere using JLD
+<<<<<<< HEAD
+using DataFrames
+=======
 @everywhere using Dierckx:Spline1D
+>>>>>>> e52a2fe536c0432dea4f6a6b1000be51be944554
 @everywhere include("Main.jl")
 @everywhere include("Firms.jl")
 @everywhere include("FreeEntry.jl")
@@ -23,7 +27,11 @@
 pa  = init_parameters();
 tau = init_taxes();
 
+<<<<<<< HEAD
+@time pr,eq = SolveModel!(tau,pa);
+=======
 @time pr,eq= SolveSteadyState!(tau,pa);
+>>>>>>> e52a2fe536c0432dea4f6a6b1000be51be944554
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 # Speed Benchmark: 41 seconds, 41 M, 3.7GB
@@ -57,7 +65,7 @@ LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001 ]
 UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03  ]
 
 initialGuess = [0.14,0.76,0.0352,.45,.08,.028]
-count = 0
+count        = 0
 
 
 
@@ -74,7 +82,6 @@ function f(x::Vector,grad::Vector)
 	global count
     count::Int += 1
     println("f_$count($x)=$answer")
-
     answer
 end
 

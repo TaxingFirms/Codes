@@ -171,7 +171,7 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
 end
 
 
-function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=500, mp=false, maximizationroutine=maximizationstep)
+function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=5000, mp=false, maximizationroutine=maximizationstep)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
@@ -295,7 +295,7 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=500, mp=false)
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
