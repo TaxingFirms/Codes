@@ -330,6 +330,7 @@ end
 #Gets the exit rules, distributions and other quantities of interest
 
 function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  lpolicy = zeros(Float64,(pa.Nomega,pa.Nz,pa.Nz));
   for (i_z,z) in enumerate(pa.zgrid)
     for (i_omega, omega) in enumerate(pa.omega.grid)
       kprime= pr.kpolicy[i_omega, i_z];
@@ -352,7 +353,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
       exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
-        pr.lpolicy[i_omega, i_z,i_zprime]= lprime;
+        lpolicy[i_omega, i_z,i_zprime]= lprime;
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
         contvalue = firmvaluefunction(omegaprime,i_zprime,pr);
         if exitvalue>=contvalue #if indiferent, firms choose to exit
@@ -363,4 +364,5 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
       pr.exitprobability[i_omega, i_z]=prexit;
     end
   end
+  pr.lpolicy=deepcopy(lpolicy);
 end
