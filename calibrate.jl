@@ -6,7 +6,7 @@
 function computeDistance(initialParams)
 	# Moments are Avg Inv,SD Inv, Avg Lev, SD Lev, Avg Divs, SD Divs, Avg Profits, SD Profits, Avg Eq Iss,
 	# Freq Iss, AutoCovProfits
-	dataMoments = [.06,.08,.27,.38,.02,.10,.05,.30,-.01,.65,.66]
+	dataMoments = [.06,.08,.27,.38,.02,.10,.05,.30,.081,.65,.66]
 
 	# Parameters to be calibrated are, in order
 	# Delta  - depreciation
