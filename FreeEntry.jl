@@ -5,7 +5,7 @@
 function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-4.0)
   f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine);
 
-  expvalentry= compute_expvalentry(pr,eq,tau,pa);
+  expvalentry= compute_expvalentry(pr,pa);
   println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
 
   #The folowing block is meant to speed up bisection a little.
@@ -41,13 +41,13 @@ function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa:
   println("w= ",w);
 
   VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine);
-  expvalentry=compute_expvalentry(pr,eq,tau,pa);
+  expvalentry=compute_expvalentry(pr,pa);
   println("w= ",w, " expvalentry = ", expvalentry);
 
   return expvalentry
 end
 
-function compute_expvalentry(pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
+function compute_expvalentry(pr::FirmProblem, pa::Param)
   #Computes the expected value just once, without updating prices
 
   expvalentry=0;
