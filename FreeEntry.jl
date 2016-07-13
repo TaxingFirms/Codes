@@ -51,7 +51,7 @@ function compute_expvalentry(pr::FirmProblem, pa::Param)
 
   expvalentry=0;
   for i_z = 1:pa.Nz
-    expvalentry = pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
+    expvalentry += pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
   end
   expvalentry
 end

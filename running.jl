@@ -23,8 +23,6 @@ using DataFrames
 
 pa  = init_parameters();
 tau = init_taxes();
-
-
 @time pr,eq= SolveSteadyState!(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
@@ -42,15 +40,25 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 ## @time pr,eq= SolveModel!(tau,pa);
 # 113 second
 
-@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
-save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
 
 #tax reform 2 is not converging after the
 @time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa);
 save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
 
-@time pr3,eq3,tau3 = taxreform2(0.0, eq, tau, pa);
-save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
+#NOT WORKING
+##@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
+##save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
+##
+##@time pr3,eq3,tau3 = taxreform2(0.0, eq, tau, pa);
+##save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
+
+
+
+#################
+# Transitions
+#################
+
+
 
 
 #################

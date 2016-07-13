@@ -122,6 +122,12 @@ type Equilibrium
   m::Moments
 end
 
+type PeriodSolution
+  fpr::FirmProblem
+  eq::Equilibrium
+end
+
+
 ###########################################################################
 # 0.PARAMETER DEFINITION
 

@@ -10,7 +10,7 @@ function init_transitions(T::Int64)
   transitions= Array(PeriodSolution,(T,));
 end
 
-function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution, ssT::PeriodSolution, tauseq::Array{Taxes,1}, pa::Param; update::Float64=0.9, tol = 10^-4.0, maxit=10^4.0 , maxroutine::Function=maximizationstep )
+function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution, ssT::PeriodSolution, tauseq::Array{Taxes,1}, pa::Param; update::Float64=0.9, tol::Float64 = 10^-4.0, maxit=10^4.0::Float64 , maxroutine::Function=maximizationstep )
 
 
     # Guess paths for r, w, E
@@ -27,7 +27,7 @@ function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolu
     tr[T] = ssT;
 
 
-
+    #Fix a path for entry and solve for prices
 
 
 
@@ -120,7 +120,7 @@ end
 
 ##########################################
 
-function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64)
+function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution)
 
   what=Array(Float64,(T,));
   rhat=Array(Float64,(T,));
@@ -146,7 +146,7 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64)
     # and aggregate firm problem
 
     tr[1].eq.distr = ss0.eq.distr;
-    tr[1].eq.a.labor, tr[1].eq.a.consumption = firm_aggregates_transitions(tr[1].fpr, SS0.fpr, tr[1].eq, SS0.eq, tr[1].tau, pa);
+    tr[1].eq.a.labor, tr[1].eq.a.consumption = firm_aggregates_transitions(tr[1].fpr, SS0.fpr, tr[1].eq, ss0.eq, tr[1].tau, pa);
 
     for t=2:T
       tr[t].eq.distr = transitionrule(tr[t-1].eq.distr,tr[t].eq.E, tr[t-1].fpr, tr[t].eq , tausec[t], pa);
@@ -169,7 +169,7 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64)
         # Update interest rate
         tr[t-1].eq.r = update*tr[t-1].eq.r + (1-update)*rhat[t-1];
       end
-      if t=T
+      if t==T
         C = tr[T].eq.a.consumption;
         L = tr[T].eq.a.labor;
         rhat[T] = (1-tr[T].tau.i)^(-1)* (   pa.beta^(-1) *  ( (C- pa.H/(1+1/pa.sigma)*L)/(C - pa.H/(1+1/pa.sigma)*L) )^pa.sigma  -1   );
