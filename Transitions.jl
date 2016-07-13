@@ -1,27 +1,35 @@
 # This script takes an initial equilibrium, a final equilibrium and a path for
 # taxes and return a path for equilibrium prices and allocations
 
-type SteadyState
+type PeriodSolution
   fpr::FirmProblem
   eq::Equilibrium
 end
 
 function init_transitions(T::Int64)
-  transitions= Array(SteadyState,(T,));
+  transitions= Array(PeriodSolution,(T,));
 end
 
-function transitions!(tr:: Array(SteadyState,(T,)), T::Int64, ss0::SteadyState, ssT::SteadyState , tauseq::Array{Taxes,1}, pa::Param; update::Float64=0.9, tol = 10^-4.0, maxit=10^4.0 , maxroutine::Function=maximizationstep )
+function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution, ssT::PeriodSolution, tauseq::Array{Taxes,1}, pa::Param; update::Float64=0.9, tol = 10^-4.0, maxit=10^4.0 , maxroutine::Function=maximizationstep )
 
 
     # Guess paths for r, w, E
     for t=1:T-1
-      tr[t].eq.w= t*(ssT.eq.w - ss0.eq.w)/T + ss0.eq.w;
-      tr[t].eq.r= t*(ssT.eq.r - ss0.eq.r)/T + ss0.eq.r;
+      wguess= t*(ssT.eq.w - ss0.eq.w)/T + ss0.eq.w;
+      rguess= t*(ssT.eq.r - ss0.eq.r)/T + ss0.eq.r;
+      eq = init_equilibirium(wguess,tau,pa; r=rguess);
+      fpr = init_firmproblem(eq,tau,pa);
+      tr[t] = PeriodSolution(fpr,eq);
       tr[t].eq.E= t*(ssT.eq.E - ss0.eq.E)/T + ss0.eq.E;
     end
 
     # Assume new steady state is reached after T periods
     tr[T] = ssT;
+
+
+
+
+
 
     #Initialize array
     expvalentry= Array(Float64,(T,));
@@ -30,7 +38,7 @@ function transitions!(tr:: Array(SteadyState,(T,)), T::Int64, ss0::SteadyState, 
     it=1;
     while distance>tol  && it<maxit
       # Solve for path for prices using a shooting algorithm
-      updateprices!(tr:: Array(SteadyState,(T,)), T::Int64);
+      updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64);
 
       # Free entry condition
       for t=1:T
@@ -39,6 +47,10 @@ function transitions!(tr:: Array(SteadyState,(T,)), T::Int64, ss0::SteadyState, 
 
       distance = norm(expvalentry,Inf);
       it+=1;
+      if distance >tol
+        for t=1:T
+          tr[t].eq.E = (expvalentry[t] - tol)/tol
+        end
     end
 
 
@@ -108,7 +120,7 @@ end
 
 ##########################################
 
-function updateprices!(tr:: Array(SteadyState,(T,)), T::Int64)
+function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64)
 
   what=Array(Float64,(T,));
   rhat=Array(Float64,(T,));

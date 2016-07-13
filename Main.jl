@@ -9,32 +9,32 @@
 
 # Define types. This will allow to be more organized when passing parameters to functions.
 immutable GridObject
-  ub::Real  #upper bound
-  lb::Real  #lower bound
-  step::Real #Distance between grid points
-  N::Int    #Number of gridpoints
+  ub::Float64  #upper bound
+  lb::Float64  #lower bound
+  step::Float64 #Distance between grid points
+  N::Int64    #Number of gridpoints
   grid::AbstractArray #Grid
 end
 
 type Param
   ##Household parameters
-  beta::Real #Discount rate
-  sigma::Real  #Risk aversion/ ies
-  H::Real  # Labor supply parameter
-  psi::Real #Labor supply elasticity
+  beta::Float64 #Discount rate
+  sigma::Float64  #Risk aversion/ ies
+  H::Float64  # Labor supply parameter
+  psi::Float64 #Labor supply elasticity
 
   ## Firm parameters
-  alphak::Real #Capital share of output
-  alphal::Real #Labor share of output
-  f::Real
-  lambda0::Real
-  lambda1::Real
-  delta::Real # Capital depreciation
-  theta::Real # Collateral
-  kappa::Real #Liquidation cost
-  e::Real # Entry cost
-  collateral_factor::Real #theta*(1-delta)
-  leverageratio::Real # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
+  alphak::Float64 #Capital share of output
+  alphal::Float64 #Labor share of output
+  f::Float64
+  lambda0::Float64
+  lambda1::Float64
+  delta::Float64 # Capital depreciation
+  theta::Float64 # Collateral
+  kappa::Float64 #Liquidation cost
+  e::Float64 # Entry cost
+  collateral_factor::Float64 #theta*(1-delta)
+  leverageratio::Float64 # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   zgrid::Array{Float64,1}
   ztrans::Array{Float64,2}
   invariant_distr::Array{Float64,1} #Invariant distribution
@@ -49,26 +49,26 @@ type Param
 end
 
 type Taxes
-  d::Real
-  c::Real
-  i::Real
-  g::Real
+  d::Float64
+  c::Float64
+  i::Float64
+  g::Float64
 end
 
 
 type FirmProblem
   #constants
-  betatilde::Real
-  taudtilde::Real
-  discounted_interest::Real # betatilde*(1+(1-tau.c)*r)
+  betatilde::Float64
+  taudtilde::Float64
+  discounted_interest::Float64 # betatilde*(1+(1-tau.c)*r)
 
   #input
-  firmvalueguess::Matrix
+  firmvalueguess::Array{Float64,2}
 
   #output
-  firmvaluegrid::Matrix
-  kpolicy::Matrix
-  qpolicy::Matrix
+  firmvaluegrid::Array{Float64,2}
+  kpolicy::Array{Float64,2}
+  qpolicy::Array{Float64,2}
 
   InterpolationGrid::Array{CoordInterpGrid,1}
 
@@ -113,8 +113,8 @@ type Aggregates
 end
 
 type Equilibrium
-  r::Real #interest rate
-  w::Real #wage
+  r::Float64 #interest rate
+  w::Float64 #wage
   #Results
   distr::Array{Float64,2}
   E::Float64
@@ -185,8 +185,7 @@ function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64
   end
 
 #Guess Prices
-function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
-  r=(pa.beta^(-1.0) -1)/(1-tau.i);
+function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param;  r=(pa.beta^(-1.0) -1)/(1-tau.i))
   w=wguess; #pa.alphal;
 
   #Initiate Results

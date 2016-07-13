@@ -295,16 +295,16 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false)
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false, verbose=true )
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
-    println("it=", it);
+    verbose && println("it=", it);
     firmbellmanParallelOmega!(pr,eq,tau,pa,maximizationroutine);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
-    println("it=", it, "   dist=", dist);
+    verbose && println("it=", it, "   dist=", dist);
 
     # McQueen - Porteus Accelerating thing
     if it > 2000

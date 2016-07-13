@@ -5,10 +5,10 @@
 
 @everywhere cd("C:/Users/m1dsw00.BOARD/Codes")
 
-@everywhere using QuantEcon:tauchen
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero
-@everywhere using JLD
+using QuantEcon:tauchen
+using JLD
 using DataFrames
 
 @everywhere include("Main.jl")
@@ -27,7 +27,9 @@ tau = init_taxes();
 
 @time pr,eq= SolveSteadyState!(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+#pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+
+
 # Speed Benchmark: 41 seconds, 41 M, 3.7GB
 ## @time pr,eq= SolveModel!(tau,pa; maxroutine=maximizationbf);
 # 650 s, 42 M aaloc 3.7 gb
@@ -40,12 +42,15 @@ pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 ## @time pr,eq= SolveModel!(tau,pa);
 # 113 second
 
-pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
+@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
 save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
 
 #tax reform 2 is not converging after the
-pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa);
+@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa);
 save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
+
+@time pr3,eq3,tau3 = taxreform2(0.0, eq, tau, pa);
+save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
 
 
 #################
