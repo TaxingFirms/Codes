@@ -1,7 +1,7 @@
 #Variables of interest are GDP, Welfare, TFP, Consumption and Labor.
 
 
-function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
+function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c
@@ -16,16 +16,16 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  pr1,eq1=SolveSteadyState!(taunew,pa;  wguess = wguess, verbose=false);
+  pr1,eq1=SolveSteadyState!(taunew,pa;  wguess = wguess, verbose=true);
   newG=eq1.a.G;
 
 
-  while abs(originalG -newG)>10^-6.0
+  while abs(originalG -newG)>tol
     println("originalG - newG ", originalG -newG)
     tau=deepcopy(taunew);
 
     D= eq1.a.collections.d / tau.d;
-    ntaud= tau.d + (originalG -newG)/(D);
+    ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D)
     taunew = Taxes(ntaud,tau.c,tau.i,tau.g);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
@@ -40,7 +40,7 @@ end
 
 
 
-function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
+function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c #corporate base
@@ -59,12 +59,12 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
   pr1,eq1=SolveSteadyState!(taunew,pa; wguess = wguess, verbose=false)
   newG=eq1.a.G;
 
-  while abs(originalG -newG)>10^-6.0
+  while abs(originalG -newG)>tol
     println("originalG - newG ", originalG -newG)
     tau=deepcopy(taunew);
 
     D= eq1.a.collections.d / tau.d;
-    ntau= tau.d + (originalG -newG)/D;
+    ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
     taunew = Taxes(ntau,tau.c,tau.i,ntau);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 

@@ -27,23 +27,9 @@ tau = init_taxes();
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-
-# Speed Benchmark: 41 seconds, 41 M, 3.7GB
-## @time pr,eq= SolveModel!(tau,pa; maxroutine=maximizationbf);
-# 650 s, 42 M aaloc 3.7 gb
-#
-## pa  = init_parameters( Nz=9, Nk=150, Nq=75, Nomega=150 );
-## @time pr,eq= SolveModel!(tau,pa);
-# 117 seconds
-#
-## pa  = init_parameters( Nz=15 );
-## @time pr,eq= SolveModel!(tau,pa);
-# 113 second
-
-
-#tax reform 2 is not converging after the
-@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa);
+@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa; tol=1.5*10^-5.0, update=0.7);
 save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
+#pr2,eq2,tau2,pa=load("Counterfactual2.jld", "pr","eq","tau","pa");
 
 #NOT WORKING
 ##@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
@@ -51,6 +37,9 @@ save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
 ##
 ##@time pr3,eq3,tau3 = taxreform2(0.0, eq, tau, pa);
 ##save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
+
+
+
 
 
 
