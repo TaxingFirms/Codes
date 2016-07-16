@@ -78,7 +78,7 @@ end
 
 
 
-function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
+function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0, verbose =false)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base
@@ -94,7 +94,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
+  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose)
   newG=eq1.a.G;
 
   while abs(originalG -newG)>tol
@@ -103,12 +103,12 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     D= eq1.a.collections.d / tau.d;
     tauind= (originalG - tauc*C)/(D + I);
-    ntauind= update*tauind + (1-update)*tau.d;
+    ntauind= update*tau.d + (1-update)*tauind;
 
     taunew = Taxes(ntauind,tauc,ntauind,ntauind);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1=SolveSteadyState!(taunew,pa; wguess = wguess, verbose=false);
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
     newG=eq1.a.G;
   end
   println("originalG - newG ", originalG -newG)

@@ -161,6 +161,13 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   for i_z in 1:pa.Nz
     #### First we consider entrants ###
     netdistributions+=pr.distributions[1,i_z]*eq.E*pa.invariant_distr[i_z];
+    kprime=0.0;
+    qprime=0.0;
+    lprime    = (zprime*pa.alphal*kprime^pa.alphak / wage)^(1/(1-pa.alphal));
+    lprime_d += lprime*eq.E*pa.invariant_distr[i_z];
+    gdp      += (zprime*kprime^pa.alphak*lprime^pa.alphal - pa.f)*eq.E*pa.invariant_distr[i_z];
+    corptax  += tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal - wage*lprime - pa.delta*kprime - irate*qprime - pa.f)*eq.E*pa.invariant_distr[i_z];
+
     if compute_moments
       freq_eqis+=(1-pr.positivedistributions[1,i_z])*eq.E*pa.invariant_distr[i_z];
       mean_eqis+=pr.grossequityis*eq.E*pa.invariant_distr[i_z];
