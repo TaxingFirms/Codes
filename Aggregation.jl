@@ -7,7 +7,7 @@
 function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   # This function uses the distribution for a UNITARY mass of entrant to compute
   # the aggregates needed to compute the actual mss of entrants
-
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
   debt=0.0;
   labor=0.0;
   netdistributions=0.0;
@@ -38,7 +38,7 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
 
         #Exiting incumbents
         else
-          liquidations += (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           debt += qprime*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
       end
@@ -97,7 +97,7 @@ end
 function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; compute_moments=true)
 # Computes aggregates and moments once the model is completely solved.
   distr=eq.distr;
-
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
 
   ########## Initialize accumulators ###########
   # Aggregates
@@ -231,7 +231,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
         #Exiting incumbents
         else
           liquidationcosts += (1-pa.kappa)*(1-pa.delta)*kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
-          liquidations += (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           capital += kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end

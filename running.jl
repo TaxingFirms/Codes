@@ -23,24 +23,27 @@ using DataFrames
 
 pa  = init_parameters();
 tau = init_taxes();
-@time pr,eq= SolveSteadyState!(tau,pa);
+@time pr,eq= SolveSteadyState(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa; tol=1.5*10^-5.0, update=0.7);
+
+@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa;update=0.0);
 save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
 #pr2,eq2,tau2,pa=load("Counterfactual2.jld", "pr","eq","tau","pa");
+
+@time pr3,eq3,tau3 = taxreform3(0.3, eq, tau, pa);
+save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
+
+@time pr4,eq4,tau4 = taxreform3(0.0, eq, tau, pa);
+save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
+
+
 
 #NOT WORKING
 ##@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
 ##save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
 ##
-##@time pr3,eq3,tau3 = taxreform2(0.0, eq, tau, pa);
-##save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
-
-
-
-
 
 
 #################

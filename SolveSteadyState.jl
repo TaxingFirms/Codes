@@ -1,9 +1,9 @@
-function SolveSteadyState!(tau::Taxes,pa::Param;wguess::Float64=0.6,
+function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.6,
   VFIfunction::Function = firmVFIParallelOmega!, distr_routine::Function = stationarydist,
      maxroutine::Function=maximizationstep ,verbose::Bool=true )
 
   eq = init_equilibirium(wguess,tau,pa);
-  pr  = init_firmproblem(eq,tau,pa);
+  pr  = init_firmproblem(pa);
 
   #Compute the model on first time
   VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine , verbose = verbose); #pr is updated, computes Value Function

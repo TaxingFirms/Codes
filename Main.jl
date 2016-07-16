@@ -57,10 +57,6 @@ end
 
 
 type FirmProblem
-  #constants
-  betatilde::Float64
-  taudtilde::Float64
-  discounted_interest::Float64 # betatilde*(1+(1-tau.c)*r)
 
   #input
   firmvalueguess::Array{Float64,2}
@@ -191,9 +187,9 @@ function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64
   end
 
 #Guess Prices
-function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param;  r=(pa.beta^(-1.0) -1)/(1-tau.i))
+function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
   w=wguess; #pa.alphal;
-
+  r=(pa.beta^(-1.0) -1)/(1-tau.i);
   #Initiate Results
   distr= Array(Float64,(pa.Nomega,pa.Nz));
   E=convert(Float64,NaN);
@@ -213,12 +209,10 @@ end
 
 
 #Initialize firm problem
-function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
+function init_firmproblem( pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
 
   #Nk, Nq, Nz, Nomega = pa.Nk, pa.Nq, pa.Nz, pa.Nomega
 
-  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
-  taudtilde = 1-(1-tau.d)/(1-tau.g);
 
   #guess firm value
   if !guessvalue
@@ -238,7 +232,7 @@ function init_firmproblem(eq::Equilibrium, tau::Taxes, pa::Param ; guessvalue = 
   positivedistributions = falses(pa.Nomega,pa.Nz);
 
   #Initialize the firm problem object
-  FirmProblem( betatilde, taudtilde, betatilde*(1+(1-tau.c)*eq.r), firmvalueguess, firmvaluegrid, kpolicy, qpolicy,
+  FirmProblem( firmvalueguess, firmvaluegrid, kpolicy, qpolicy,
    map(x->CoordInterpGrid(pa.omega.grid,firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz),
    distributions, financialcosts, grossdividends, grossequityis, exitprobability, exitrule, positivedistributions);
 end
@@ -263,7 +257,7 @@ function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProb
   i_omegaprime = closestindex(omegaprime, pa.omega.step);
   #The block below checks that the index is within reasonable bounds
   if i_omegaprime<1 || i_omegaprime>pa.Nomega
-    if i_omega==pr.Nomega || i_omegaprime < (pa.Nomega + 3)
+    if i_omega==pa.Nomega || i_omegaprime < (pa.Nomega + 3)
       i_omegaprime =pa.Nomega
     elseif i_omega==1 || i_omegaprime > -3
       i_omegaprime =1;

@@ -16,7 +16,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  pr1,eq1=SolveSteadyState!(taunew,pa;  wguess = wguess, verbose=true);
+  pr1,eq1=SolveSteadyState(taunew,pa;  wguess = wguess, verbose=false);
   newG=eq1.a.G;
 
 
@@ -29,7 +29,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     taunew = Taxes(ntaud,tau.c,tau.i,tau.g);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1= SolveSteadyState!(taunew,pa; wguess = wguess, verbose=false);
+    pr1,eq1= SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
     newG=eq1.a.G;
   end
   println("originalG - newG ", originalG -newG)
@@ -44,8 +44,8 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c #corporate base
-  D = eq.a.collections.d / tau.d #corporate base
-  I = eq.a.collections.i / tau.i #corporate base
+  D = eq.a.collections.d / tau.d #divideend base
+  I = eq.a.collections.i / tau.i #interest base
 
   originalG=eq.a.G;
   wguess= eq.w;
@@ -56,7 +56,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-  pr1,eq1=SolveSteadyState!(taunew,pa; wguess = wguess, verbose=false)
+  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
   newG=eq1.a.G;
 
   while abs(originalG -newG)>tol
@@ -66,6 +66,46 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     D= eq1.a.collections.d / tau.d;
     ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
     taunew = Taxes(ntau,tau.c,tau.i,ntau);
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+    newG=eq1.a.G;
+  end
+  println("originalG - newG ", originalG -newG)
+  return pr1, eq1, taunew
+end
+
+
+
+
+function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
+
+  #Compute tax base for "revenue neutral" reforms
+  C = eq.a.collections.c / tau.c; #corporate base
+  D = eq.a.collections.d / tau.d; #dividend base
+  I = eq.a.collections.i / tau.i; #interest base
+
+  originalG=eq.a.G;
+  wguess= eq.w;
+
+  tauind= (originalG - tauc*C)/(D + I);
+  taunew = Taxes(tauind,tauc,tauind,tauind);
+  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+  #Initiate prices and firm problem, and ultimately, the counterfactual object.
+
+  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
+  newG=eq1.a.G;
+
+  while abs(originalG -newG)>tol
+    println("originalG - newG ", originalG -newG)
+    tau=deepcopy(taunew);
+
+    D= eq1.a.collections.d / tau.d;
+    tauind= (originalG - tauc*C)/(D + I);
+    ntauind= update*tauind + (1-update)*tau.d;
+
+    taunew = Taxes(ntauind,tauc,ntauind,ntauind);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     pr1,eq1=SolveSteadyState!(taunew,pa; wguess = wguess, verbose=false);

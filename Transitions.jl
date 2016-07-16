@@ -2,18 +2,16 @@
 # taxes and return a path for equilibrium prices and allocations
 
 
-function init_transitions(T::Int64)
   T=30;
   ss0=PeriodSolution(pr,eq);
   ssT=PeriodSolution(pr2,eq2);
   tausec=Array(Taxes,(T,));
   for t=1:T
-  	tausec[t]=tau2;
+  	tausec[t]=deepcopy(tau2);
   end
   tr= Array(PeriodSolution,(T,));
 
-  return ss0, blah
-end
+
 
 function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution, ssT::PeriodSolution, tauseq::Array{Taxes,1}, pa::Param; update::Float64=0.9, tol::Float64 = 10^-4.0, maxit=10^4.0::Float64 , maxroutine::Function=maximizationstep )
 
@@ -22,15 +20,15 @@ function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolu
     for t=1:T-1
       wguess= t*(ssT.eq.w - ss0.eq.w)/T + ss0.eq.w;
       rguess= (t-1)*(ssT.eq.r - ss0.eq.r)/T + ss0.eq.r;
-      println("w = ",wguess, " r = ", rguess)
-      eq = init_equilibirium(wguess,tausec[t],pa; r=rguess);
-      fpr = init_firmproblem(eq,tausec[t],pa);
+      eq = init_equilibirium(wguess,tausec[t],pa);
+      fpr = init_firmproblem(pa);
       tr[t] = PeriodSolution(fpr,eq);
+      tr[t].eq.r= rguess;
       tr[t].eq.E= t*(ssT.eq.E - ss0.eq.E)/T + ss0.eq.E;
     end
 
     # Assume new steady state is reached after T periods
-    tr[T] = ssT;
+    tr[T] = deepcopy(ssT);
 
 
     #Fix a path for entry and solve for prices
@@ -44,7 +42,7 @@ function transitions!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolu
     it=1;
     while distance>tol  && it<maxit
       # Solve for path for prices using a shooting algorithm
-      updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64);
+      updateprices!(T, tr,  ss0, tol=10.0^-3.0, update=0.99);
 
       # Free entry condition
       for t=1:T
@@ -127,7 +125,7 @@ end
 
 ##########################################
 
-function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution; verbose=true, update=0.9)
+function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSolution; verbose=true, update=0.9 , maxroutine=maximizationstep, tol = 10^-4.0, maxit = 10.0^5.0)
 
   what=Array(Float64,(T,));
   rhat=Array(Float64,(T,));
@@ -137,11 +135,10 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSol
   while distance>tol  && it<maxit
 
     #Solve value function backwards
-    norm=0.0;
+    maxnorm=0.0;
 
     for dummy=1:(T-1)
       t = T + 1 - dummy
-      println(t)
       # Firms
       pr= deepcopy(tr[t].fpr);
       firmbellmanParallelOmega!(pr,tr[t].eq,tausec[t],pa,maxroutine);
@@ -158,13 +155,13 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSol
     tr[1].eq.a.laborsupply, tr[1].eq.a.consumption = firm_aggregates_transitions(tr[1].fpr, ss0.fpr, tr[1].eq, ss0.eq, tausec[1], pa);
     what[1] = pa.H*(tr[1].eq.a.laborsupply)^1/pa.psi;
     # Compute contribution to price discrepancy
-    norm += max(abs(what[1] - tr[1].eq.w),norm);
+    maxnorm = max(abs(what[1] - tr[1].eq.w),maxnorm);
     # Update wage (note that updating at this point is fine)
     tr[1].eq.distr = ss0.eq.distr;
     tr[1].eq.a.laborsupply, tr[1].eq.a.consumption = firm_aggregates_transitions(tr[1].fpr, ss0.fpr, tr[1].eq, ss0.eq, tausec[1], pa);
     what[1] = pa.H*(tr[1].eq.a.laborsupply)^1/pa.psi;
     # Compute contribution to price discrepancy
-    norm += max(abs(what[1] - tr[1].eq.w),norm);
+    maxnorm = max(abs(what[1] - tr[1].eq.w),maxnorm);
     # Update wage (note that updating at this point is fine)
     tr[1].eq.w = update*tr[1].eq.w + (1-update)*what[1];
 
@@ -177,7 +174,7 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSol
       # Compute candidate wage
       what[t] = pa.H*(tr[t].eq.a.laborsupply)^(1.0/pa.psi);
       # Compute contribution to price discrepancy
-      norm += max(abs(what[t] - tr[t].eq.w),norm);
+      maxnorm = max(abs(what[t] - tr[t].eq.w),maxnorm);
       # Update wage (note that updating at this point is fine)
       tr[t].eq.w = update*tr[t].eq.w + (1.0-update)*what[t];
 
@@ -187,14 +184,15 @@ function updateprices!(tr:: Array(PeriodSolution,(T,)), T::Int64, ss0::PeriodSol
       L = tr[t-1].eq.a.laborsupply;
       rhat[t] = (1.0-tausec[t].i)^(-1.0)* (   pa.beta^(-1.0) *  ( (Cprime - pa.H/(1.0+1.0/pa.sigma)*Lprime)/(C - pa.H/(1.0+1.0/pa.sigma)*L) )^pa.sigma  -1.0   );
       # Compute contribution to price discrepancy
-      norm =max( abs(rhat[t] - tr[t].eq.r), norm);
+      maxnorm =max( abs(rhat[t] - tr[t].eq.r), maxnorm);
       # Update interest rate
-      tr[t].eq.r = update*tr[t].eq.r + (1-update)*rhat[t];
+      tr[t].eq.r = update*tr[t].eq.r + (1-update)*max(rhat[t],eps());
     end
 
 
-
-    distance = norm;
+    println(maxnorm)
+    distance = maxnorm;
     it+=1;
   end
+
 end
