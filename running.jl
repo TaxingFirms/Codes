@@ -32,7 +32,7 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
 #pr2,eq2,tau2,pa=load("Counterfactual2.jld", "pr","eq","tau","pa");
 
-@time pr3,eq3,tau3 = taxreform3(0.3, eq, tau, pa; tol=10.0^-4.0, update = 0.9);
+@time pr3,eq3,tau3 = taxreform3(0.3, eq, tau, pa; tol=10.0^-4.0, update = 0.98);
 save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
 
 @time pr4,eq4,tau4 = taxreform3(0.0, eq, tau, pa);
