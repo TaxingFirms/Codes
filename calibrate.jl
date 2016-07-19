@@ -21,7 +21,7 @@ function computeDistance(initialParams)
 
 	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6]);
 	tau = init_taxes();
-	pr,eq= SolveModel!(tau,pa);
+	pr,eq= SolveSteadyState!(tau,pa);
 
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 

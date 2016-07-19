@@ -22,7 +22,7 @@ using DataFrames
 @everywhere include("Transitions.jl")
 
 
-pa  = init_parameters();
+pa  = init_parameters(bbeta=0.98,ssigma=1.0,psi=1,aalphak=0.3, aalphal = 0.65, ff=0.015, llambda0= 0.08, llambda1= 0.04, ddelta= 0.12, ttheta=0.42, kappa=1.0, e=0.00,rhoz= 0.76, ssigmaz= 0.0352, Nz=9, Nk=80, Nq=40, Nomega=100, A=0.76);
 tau = init_taxes();
 @time pr,eq= SolveSteadyState(tau,pa);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);

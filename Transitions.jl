@@ -25,6 +25,7 @@ function updateprices!(T::Int64, tr:: Array{PeriodSolution,1},  ss0::PeriodSolut
       firmbellmanParallelOmega!(pr,tr[t].eq,tausec[t],pa,maxroutine);
       getpolicies!(pr,tr[t].eq,tausec[t],pa);
       tr[t-1].fpr = deepcopy(pr);
+    println(  norm(pr.firmvaluegrid - ssT.fpr.firmvaluegrid)  )
       #Households
       ## householdProblem!(tr[t-1].hpr, aprime::tr[t].hpr.a,aprime::tr[t].hpr.mu, tr[t].eq.r, tr[t].eq.w, tausec[t], pa);
     end
@@ -150,6 +151,5 @@ function firm_aggregates_transitions(crt_fpr::FirmProblem, prev_fpr::FirmProblem
   G = divtax + corptax + inctax;
 
   goodsnet_s = gdp - G - financialcosts - investment;
-  println(" gdp ", gdp, " G ", G, " fc ", financialcosts, " i " ,investment)
   return lprime_d,goodsnet_s;
 end
