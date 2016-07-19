@@ -94,7 +94,7 @@ end
 
 
 
-function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; compute_moments::Bool=true)
+function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; compute_moments::Bool=false)
 # Computes aggregates and moments once the model is completely solved.
   distr=eq.distr;
   taudtilde = 1-(1-tau.d)/(1-tau.g);
@@ -111,6 +111,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   netdistributions=0.0;
 
   #Moments
+  mass_incumbents=0.0;
   if compute_moments
     mean_inv_rate=0.0;
     ss_inv_rate=0.0; #sum of squares
@@ -134,7 +135,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     mean_omega_shifted=0.0;
     mean_omegaprime_shifted=0.0;
     mean_profits2ksecond_shifted=0.0;
-    mass_incumbents=0.0;
+
 
     ##Define constants to avoid catastrophic cancellation
     # (Understanding this isn't important)
@@ -173,17 +174,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     if compute_moments
       freq_eqis+=(1-pr.positivedistributions[1,i_zprime])*eq.E*pa.invariant_distr[i_zprime];
       mean_eqis+= - pr.grossequityis[1,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
-      ksecond = pr.kpolicy[1,i_zprime];
-      for i_zsecond in 1:pa.Nz
-        if !pr.exitrule[1,i_zprime,i_zsecond] && ksecond >0
-          zsecond = pa.zgrid[i_zsecond];
-          lsecond = (zsecond*pa.alphal*ksecond^pa.alphak / eq.w)^(1/(1-pa.alphal));
-          prof2ksecond = (zsecond*ksecond^pa.alphak*lsecond^pa.alphal - eq.w*lsecond -pa.f)/ksecond;
-
-          mean_profits2ksecond_shifted += (prof2ksecond - Kprof)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]*pa.ztrans[i_zsecond,i_zprime];
-          scov_profits2k += (prof2k - Kprof)*(prof2ksecond - Kprof)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]*pa.ztrans[i_zsecond,i_zprime];
-        end
-      end
 
       #investment rate, leverage, etc are undefinied for entrants
     end
@@ -314,7 +304,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   ##############################
 
 
-
   ########## Moments ##########
   if compute_moments
     mean_inv_rate = mean_inv_rate / mass_incumbents;
@@ -331,7 +320,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
     mean_profits2k=mean_profits2k/ mass_incumbents;
     var_profits2k=(ss_profits2k - mean_profits2k_shifted^2/mass_incumbents )/ mass_incumbents;
-    var_profits2ksecond=(ss_profits2ksecond - mean_profits2ksecond_shifted^2/mass_incumbents )/ mass_incumbents;
     sd_profits2k= sqrt(var_profits2k);
 
     mean_eqis2k= mean_eqis/ capital;
@@ -340,7 +328,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
     cov_nw=(cov_nw - mean_omega_shifted*mean_omegaprime_shifted / mass_incumbents)/ mass_incumbents;
     cov_profits2k= (scov_profits2k - mean_profits2k_shifted*mean_profits2ksecond_shifted / mass_incumbents)/mass_incumbents;
-println(mean_profits2k_shifted, " ", mean_profits2ksecond_shifted)
     correl_profits2k = cov_profits2k/var_profits2k;
 
     eq.m = Moments(mean_inv_rate, sd_inv_rate, mean_leverage, sd_leverage, mean_dividends2k, sd_dividends2k, mean_profits2k, sd_profits2k, mean_eqis2k, freq_eqis, mean_tobinsq, correl_profits2k)

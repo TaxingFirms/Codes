@@ -238,11 +238,16 @@ function init_firmproblem( pa::Param ; guessvalue = false, firmvalueguess::Matri
 end
 
 #Compute omega prime
-function omegaprimefun(kprime::Real, qprime::Real, i_zprime::Int, eq::Equilibrium, tau:: Taxes, pa::Param)
+function omegaprimefun(kprime::Float64, qprime::Float64, i_zprime::Int64, eq::Equilibrium, tau::Taxes, pa::Param)
   zprime=pa.zgrid[i_zprime];
   lprime= (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
   return (1-tau.c)*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime) + kprime - qprime +tau.c*pa.f
+end
+
+function profits(zprime::Float64, kprime::Float64, eq::Equilibrium, pa::Param)
+  lprime= (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
+  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.f;
 end
 
 function grossdistributions(omega::Real,kprime::Real,qprime::Real,pa::Param)
