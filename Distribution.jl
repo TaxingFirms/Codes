@@ -190,7 +190,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
 
   indexCutoff = 1
   for i in 1:pa.Nomega
-    if (pa.omega.grid[i]-pa.omega.lb)/(pa.omega.ub-pa.omega.lb) > cutoffCapital
+    if (pa.omega.grid[i]-pa.omega.lb)/(pa.omega.ub-pa.omega.lb) >= cutoffCapital
       indexCutoff = i
       break
     end
@@ -201,8 +201,11 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   # dividing by this makes the mass add up to one, but maintains relative proportions
   # of firms in each state
   massCorrection = 0.0
+  mass2=0.0
   for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
-    massCorrection += eq.distr[i_omega,i_z]
+    firstKPrime = pr.kpolicy[i_omega,i_z]; # since we drop obs with k= 0, adjust for that as well.
+    massCorrection += firstKPrime > 0.0 ? eq.distr[i_omega,i_z]:0.0;
+    mass2 += eq.distr[i_omega,i_z];
   end
 
   # Compute moments
@@ -215,10 +218,11 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   var_dividends2k   = 0.0
   mean_profits2k    = 0.0
   var_profits2k     = 0.0
-  mean_eqis2k       = 0.0
-  freq_equis      = 0.0
+  mean_eqis         = 0.0
+  freq_equis        = 0.0
   mean_tobinsq      = 0.0
   autocov_profits2k = 0.0
+  capital= 0.0
 
   # First the means
   for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
@@ -226,27 +230,37 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     firstKPrime = pr.kpolicy[i_omega,i_z]
     firstQPrime = pr.qpolicy[i_omega,i_z]
 
+    capital+= firstKPrime*eq.distr[i_omega,i_z]/mass2;
+
     # assuming leverage is debt/capital, make sure previous capital was not zero
     mean_leverage += firstKPrime > 0.0 ? (firstQPrime/firstKPrime)*eq.distr[i_omega,i_z]/massCorrection : 0.0
     # if dividends below zero actually they are distributions
-    mean_dividends2k += pr.positivedistributions[i_omega,i_z] ? pr.grossdividends[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
-    mean_eqis2k      += !pr.positivedistributions[i_omega,i_z] ? pr.grossequityis[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
-    freq_equis     += !pr.positivedistributions[i_omega,i_z] ? eq.distr[i_omega,i_z]/massCorrection  : 0.0
-    mean_tobinsq     += pr.firmvaluegrid[i_omega,i_z]*eq.distr[i_omega,i_z]/massCorrection
+    mean_eqis      += !pr.positivedistributions[i_omega,i_z] ? -pr.grossequityis[i_omega,i_z]*eq.distr[i_omega,i_z]/mass2 : 0.0
+    freq_equis     += !pr.positivedistributions[i_omega,i_z] ? eq.distr[i_omega,i_z]/mass2  : 0.0
 
     for i_zprime in 1:pa.Nz
       omegaprime = omegaprimefun(firstKPrime,firstQPrime,i_zprime,eq,tau,pa);
       i_omegaprime = closestindex(omegaprime,pa.omega.step)
       secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
 
+      # Dividend to capital ratio
+
+      mean_dividends2k += pr.positivedistributions[i_omegaprime,i_zprime] && firstKPrime>0.0 ?
+        (pr.grossdividends[i_omegaprime,i_zprime]/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
+
       # Investment, make sure previous capital was not zero
       mean_inv_rate += firstKPrime > 0.0 ?
-        ((secondKPrime-firstKPrime)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
+        ((secondKPrime-(1-pa.delta)*firstKPrime)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
         0.0
 
       # Profits
-      lprime = (pa.alphal*pa.zgrid[i_zprime]*(firstKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
-      mean_profits2k += pa.zgrid[i_zprime]*((firstKPrime^pa.alphak)*(lprime^pa.alphal))*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection
+      mean_profits2k +=firstKPrime > 0.0 ?
+       (profits(pa.zgrid[i_zprime],firstKPrime,eq,pa)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :0.0
+
+      # Tobin's Q
+      mean_tobinsq += firstKPrime > 0.0 ?
+        (pr.firmvaluegrid[i_omegaprime,i_zprime]/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
+
     end
   end
 
@@ -267,15 +281,20 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
       var_inv_rate += firstKPrime > 0.0 ?
         ((((secondKPrime-(1-pa.delta)*firstKPrime)/firstKPrime)-mean_inv_rate)^2)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
         0.0
+
+      # Dividends
+      var_dividends2k += pr.positivedistributions[i_omegaprime,i_zprime] && firstKPrime>0.0 ?
+          ((pr.grossdividends[i_omegaprime,i_zprime]/firstKPrime  - mean_dividends2k)^2.0)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
+
       # Profits
-      lprime = (pa.alphal*pa.zgrid[i_zprime]*(firstKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
-      currentProfits = pa.zgrid[i_zprime]*((firstKPrime^pa.alphak)*(lprime^pa.alphal))
-      var_profits2k += ((currentProfits-mean_profits2k)^2)*pa.ztrans[i_zprime,i_z]-mean_profits2k*eq.distr[i_omega,i_z]/massCorrection
+      currentProfits = profits(pa.zgrid[i_zprime],firstKPrime,eq,pa)/firstKPrime;
+      var_profits2k += firstKPrime > 0.0 ?
+        ((currentProfits-mean_profits2k)^2.0)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
 
       for i_zprime2 in 1:pa.Nz
-        lprime2 = (pa.alphal*pa.zgrid[i_zprime2]*(secondKPrime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
-        currentProfits2 = pa.zgrid[i_zprime2]*((secondKPrime^pa.alphak)*(lprime2^pa.alphal))
-        autocov_profits2k += ((currentProfits2-mean_profits2k)*(currentProfits-mean_profits2k))*pa.ztrans[i_zprime2,i_zprime]*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection
+        currentProfits2 =profits(pa.zgrid[i_zprime2],secondKPrime,eq,pa)/secondKPrime;
+        autocov_profits2k += (firstKPrime >0.0 && secondKPrime > 0.0) ?
+          ((currentProfits2-mean_profits2k)*(currentProfits-mean_profits2k))*pa.ztrans[i_zprime2,i_zprime]*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
       end
     end
   end
@@ -283,7 +302,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   autocov_profits2k = autocov_profits2k/var_profits2k
 
   resultingMoments = Moments(mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
-    mean_profits2k,sqrt(var_profits2k),mean_eqis2k,freq_equis,mean_tobinsq,autocov_profits2k)
+    mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k)
 
   if toPrint
 #    using DataFrames
@@ -292,7 +311,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     "Mean Equity Issuance","Frequency of Equity Issuance","Means Tobins Q","Autocovariance Profits"]
 
     valueMoments = [mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
-    mean_profits2k,sqrt(var_profits2k),mean_eqis2k,freq_equis,mean_tobinsq,autocov_profits2k]
+    mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k]
     println(DataFrame(names=namesMoments,aggVals=valueMoments))
   end
 
