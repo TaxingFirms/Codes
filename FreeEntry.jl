@@ -2,21 +2,21 @@
 # It calls the value function iteration until the value function in
 # pr::FirmProblem is zero for entrants. It saves the wage in eq.w
 
-function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-4.0)
-  f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine);
+function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-4.0, verbose=true)
+  f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine,verbose);
 
-  expvalentry= compute_expvalentry(pr,eq,tau,pa);
-  println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
+  expvalentry= compute_expvalentry(pr,pa);
+  verbose && println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
 
   #The folowing block is meant to speed up bisection a little.
   center= eq.w;
-  radius=10^-2.0;
+  radius=10.0^-2.0;
   flag = false;
   while !flag
     radius*=1.5;
     expvalentry>0?
       newcenter = center + radius:
-      newcenter = center - radius;
+      newcenter = max(center - radius,eps());
 
     global newvalentry
     newvalentry = f(newcenter);
@@ -27,32 +27,31 @@ function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  
       center=newcenter;
       expvalentry= newvalentry;
     end
-    println("center = ", center, " radius = ", radius, " flag is ", flag)
+    verbose && println(" flag is ", flag)
   end
 
   expvalentry>0?
     myfzero(f,center, expvalentry, center+radius, newvalentry; xtol= tol ):
-    myfzero(f,center-radius, newvalentry, center, expvalentry; xtol= tol )
+    myfzero(f, max(center - radius,eps()), newvalentry, center, expvalentry; xtol= tol );
 end
 
-function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function, maxroutine::Function)
+function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param, VFIfunction::Function, maxroutine::Function, verbose::Bool )
   #Computes the interest rate consistent with free entry.
   eq.w=w;
-  println("w= ",w);
 
-  VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine);
-  expvalentry=compute_expvalentry(pr,eq,tau,pa);
-  println("w= ",w, " expvalentry = ", expvalentry);
+  VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine, verbose = verbose);
+  expvalentry=compute_expvalentry(pr,pa);
+  verbose && println("w= ",w, " expvalentry = ", expvalentry);
 
   return expvalentry
 end
 
-function compute_expvalentry(pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
+function compute_expvalentry(pr::FirmProblem, pa::Param)
   #Computes the expected value just once, without updating prices
 
   expvalentry=0;
   for i_z = 1:pa.Nz
-    expvalentry = pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
+    expvalentry += pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
   end
   expvalentry
 end

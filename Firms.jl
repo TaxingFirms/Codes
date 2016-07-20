@@ -17,8 +17,9 @@ end
 
 # compute continuation value, given controls and z
 function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
   cont =0.0;
-  exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime) ;
+  exitvalue = (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime) ;
   for (i_zprime, zprime) in enumerate(pa.zgrid)
     omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
@@ -30,9 +31,11 @@ end
 #Objective functions for maximization step
 # Positive distributions
 function objectivefun(kprime::Real, qprime::Real, omega::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
   grossdistributions(omega,kprime,qprime,pa)>=0 ?
-    (1-pr.taudtilde)*grossdistributions(omega,kprime,qprime,pa) + pr.betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa):
-    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0 + pr.betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa);
+    (1-taudtilde)*grossdistributions(omega,kprime,qprime,pa) + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa):
+    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0 + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa);
 end
 
 #Maximization brute force
@@ -69,11 +72,14 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
   max = -Inf;
   kprimestar::Real = NaN;
   qprimestar::Real = NaN;
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+  discounted_interest = betatilde*(1+(1-tau.c)*eq.r);
   #CASE 1: Firm never distributes dividends
-  if pr.discounted_interest>1 && pr.taudtilde >= 0
+  if discounted_interest>1 && taudtilde >= 0
     error("Firm never distributes dividends")
   #CASE 2: When issuing equity, firm always use as much debt as possible
-  elseif pr.discounted_interest <= 1
+  elseif discounted_interest <= 1
     #2.1 Capital below max leverage
     for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
       for qprime in (kprime-omega):pa.qprime.step:pa.collateral_factor*kprime
@@ -171,7 +177,7 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
 end
 
 
-function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=500, mp=false, maximizationroutine=maximizationstep)
+function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=5000, mp=false, maximizationroutine=maximizationstep)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
@@ -184,11 +190,12 @@ function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Para
 
     # McQueen - Porteus Accelerating thing
     if mp
-    bUnder = minimum(pr.firmvaluegrid - pr.firmvalueguess)
-    bOver  = maximum(pr.firmvaluegrid - pr.firmvalueguess)
-    pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (pr.betatilde/(1-pr.betatilde))*(bUnder + bOver)/2
+      betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+      bUnder = minimum(pr.firmvaluegrid - pr.firmvalueguess)
+      bOver  = maximum(pr.firmvaluegrid - pr.firmvalueguess)
+      pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (betatilde/(1-betatilde))*(bUnder + bOver)/2
     else
-    pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
+      pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
     end
 
     pr.InterpolationGrid = map(x->CoordInterpGrid(pa.omega.grid,pr.firmvalueguess[:,x],BCnearest, InterpLinear),1:pa.Nz)
@@ -295,27 +302,28 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=500, mp=false)
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false, verbose=true )
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
-    println("it=", it);
+    verbose && println("it=", it);
     firmbellmanParallelOmega!(pr,eq,tau,pa,maximizationroutine);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
-    println("it=", it, "   dist=", dist);
+    verbose && println("it=", it, "   dist=", dist);
 
     # McQueen - Porteus Accelerating thing
-    if it > 100
+    if it > 2000
       mp=true;
       println("Switching to McQueen-Porteus bounds due to slow convergence");
     end
 
     if mp
+    betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
     bUnder = minimum(pr.firmvaluegrid - pr.firmvalueguess)
     bOver  = maximum(pr.firmvaluegrid - pr.firmvalueguess)
-    pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (pr.betatilde/(1-pr.betatilde))*(bUnder + bOver)/2
+    pr.firmvalueguess = deepcopy(pr.firmvaluegrid) .+ (betatilde/(1-betatilde))*(bUnder + bOver)/2
     else
     pr.firmvalueguess = deepcopy(pr.firmvaluegrid);
     end
@@ -330,6 +338,7 @@ end
 #Gets the exit rules, distributions and other quantities of interest
 
 function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
   for (i_z,z) in enumerate(pa.zgrid)
     for (i_omega, omega) in enumerate(pa.omega.grid)
       kprime= pr.kpolicy[i_omega, i_z];
@@ -349,7 +358,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
       prexit=0.0;
        #This just avoids computing this constant again and again while computing omegaprime
-      exitvalue = (1-pr.taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime);
+      exitvalue = (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
