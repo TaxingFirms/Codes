@@ -35,6 +35,7 @@ type Param
   e::Float64 # Entry cost
   collateral_factor::Float64 #theta*(1-delta)
   leverageratio::Float64 # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
+  A::Float64 # Scale
   zgrid::Array{Float64,1}
   ztrans::Array{Float64,2}
   invariant_distr::Array{Float64,1} #Invariant distribution
@@ -178,7 +179,7 @@ function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalp
   Nomega=length(omegagrid)
   omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
-  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)),zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
+  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)), A,zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
 end
 
 #Initialize taxes
@@ -216,7 +217,7 @@ function init_firmproblem( pa::Param ; guessvalue = false, firmvalueguess::Matri
 
   #guess firm value
   if !guessvalue
-    firmvalueguess = repmat(pa.omega.grid,1,pa.Nz);
+    firmvalueguess = pa.A*repmat(pa.omega.grid,1,pa.Nz);
   end
   firmvaluegrid  = copy(firmvalueguess);
   kpolicy    = similar(firmvaluegrid);

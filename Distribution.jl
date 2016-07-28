@@ -90,7 +90,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
     it+=1;
   end
   if it==maxit
-    error("Distribution did not converge after maximum number of iterations")
+    error("Distribution did not converge after maximum number of iterations. Max(exitrule) = ", maximum(pr.exitrule), " Min(exitrule) = ", minimum(pr.exitrule))
   end
 
 
@@ -239,8 +239,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     freq_equis     += !pr.positivedistributions[i_omega,i_z] ? eq.distr[i_omega,i_z]/mass2  : 0.0
 
     for i_zprime in 1:pa.Nz
-      omegaprime = omegaprimefun(firstKPrime,firstQPrime,i_zprime,eq,tau,pa);
-      i_omegaprime = closestindex(omegaprime,pa.omega.step)
+      omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
       secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
 
       # Dividend to capital ratio
@@ -259,7 +258,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
 
       # Tobin's Q
       mean_tobinsq += firstKPrime > 0.0 ?
-        (pr.firmvaluegrid[i_omegaprime,i_zprime]/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
+        ((pr.firmvaluegrid[i_omegaprime,i_zprime]+ firstQPrime )/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
 
     end
   end
@@ -272,8 +271,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
       ((firstQPrime/firstKPrime-mean_leverage)^2)*eq.distr[i_omega,i_z]/massCorrection : 0.0
 
     for i_zprime in 1:pa.Nz
-      omegaprime   = omegaprimefun(firstKPrime,firstQPrime,i_zprime,eq,tau,pa);
-      i_omegaprime = closestindex(omegaprime,pa.omega.step)
+      omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
       secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
       secondQPrime = pr.qpolicy[i_omegaprime,i_zprime]
 

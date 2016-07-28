@@ -34,9 +34,9 @@ end
 
 
 figure()
-d= plot(pa.omega.grid, pr.distributions[:,5] )
-k= plot(pa.omega.grid, pr.kpolicy[:,5] )
-q= plot(pa.omega.grid, pr.qpolicy[:,5] )
+d= plot(pa.omega.grid, pr.distributions[:,1] )
+k= plot(pa.omega.grid, pr.kpolicy[:,1] )
+q= plot(pa.omega.grid, pr.qpolicy[:,1] )
   xlabel("Net worth")
   title("Policy functions (at z=7)")
   legend("dkq", loc="best")

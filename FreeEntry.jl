@@ -2,7 +2,7 @@
 # It calls the value function iteration until the value function in
 # pr::FirmProblem is zero for entrants. It saves the wage in eq.w
 
-function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-4.0, verbose=true)
+function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-7.0, verbose=true)
   f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine,verbose);
 
   expvalentry= compute_expvalentry(pr,pa);
