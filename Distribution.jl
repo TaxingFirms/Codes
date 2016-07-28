@@ -64,9 +64,12 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
   #Entrants
   ie=zeros(Int64,pa.Nz);
   ve=zeros(Float64,pa.Nz);
+
   k=1;
   for i_z in 1:pa.Nz
-        ie[k]= find_dist_ind(1, i_z, pa.Nomega);
+        omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa)
+        omega0_ind = closestindex(omega0, pa.omega.step)
+        ie[k]= find_dist_ind(omega0_ind, i_z, pa.Nomega);
         ve[k]= E*pa.invariant_distr[i_z];
         k+=1;
   end
@@ -133,10 +136,11 @@ end
 function transitionrule(distr::Matrix,E::Real, pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa::Param)
 
   distrprime= zeros(pa.Nomega, pa.Nz);
-
   for i_z in 1:pa.Nz
     #First we consider entrants
-    distrprime[1,i_z]+=E*pa.invariant_distr[i_z];
+    omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa)
+    omega0_ind = closestindex(omega0, pa.omega.step);
+    distrprime[omega0_ind,i_z]+=E*pa.invariant_distr[i_z];
     #Non-exiting incumbents
     for i_omega in 1:pa.Nomega
       kprime=pr.kpolicy[i_omega,i_z];
@@ -170,8 +174,9 @@ function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes
           nextDistr[i_omegaprime,i_zprime] += pa.ztrans[i_zprime,i_z]*initialDistr[i_omega,i_z]
         end
       end # end i_z'
-
-      if i_omega == 1
+      omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa)
+      omega0_ind = closestindex(omega0, pa.omega.step);
+      if i_omega == omega0_ind;
         nextDistr[i_omega,i_z] += E*pa.invariant_distr[i_z]
       end
     end # end i_omega, i_z
@@ -200,12 +205,21 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   # so that it adds up to one, taking into account the ones we are cutting off
   # dividing by this makes the mass add up to one, but maintains relative proportions
   # of firms in each state
-  massCorrection = 0.0
-  mass2=0.0
+  massCorrection  = 0.0
+  mass2           =0.0
+  masslosses      =0.0
   for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
     firstKPrime = pr.kpolicy[i_omega,i_z]; # since we drop obs with k= 0, adjust for that as well.
     massCorrection += firstKPrime > 0.0 ? eq.distr[i_omega,i_z]:0.0;
     mass2 += eq.distr[i_omega,i_z];
+    for i_zprime in 1:pa.Nz
+      masslosses += profits(pa.zgrid[i_zprime],firstKPrime,eq,pa) < 0.0 && firstKPrime > 0.0 ? eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]:0.0;
+      prof=profits(pa.zgrid[i_zprime],firstKPrime,eq,pa);
+      if prof < 0.0
+      mss=  eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+      println(prof," " ,mss)
+    end
+    end
   end
 
   # Compute moments
@@ -222,6 +236,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   freq_equis        = 0.0
   mean_tobinsq      = 0.0
   autocov_profits2k = 0.0
+  losses2k          = 0.0
   capital= 0.0
 
   # First the means
@@ -239,26 +254,33 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     freq_equis     += !pr.positivedistributions[i_omega,i_z] ? eq.distr[i_omega,i_z]/mass2  : 0.0
 
     for i_zprime in 1:pa.Nz
-      omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
-      secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
+      #INCUMBENTS
+#      if !pr.exitrule[i_omega, i_z,i_zprime]
+        omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
+        secondKPrime = pr.kpolicy[i_omegaprime,i_zprime]
 
-      # Dividend to capital ratio
+        # Dividend to capital ratio
 
-      mean_dividends2k += pr.positivedistributions[i_omegaprime,i_zprime] && firstKPrime>0.0 ?
-        (pr.grossdividends[i_omegaprime,i_zprime]/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
+        mean_dividends2k += pr.positivedistributions[i_omegaprime,i_zprime] && firstKPrime>0.0 ?
+          (pr.grossdividends[i_omegaprime,i_zprime]/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection : 0.0
 
-      # Investment, make sure previous capital was not zero
-      mean_inv_rate += firstKPrime > 0.0 ?
-        ((secondKPrime-(1-pa.delta)*firstKPrime)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
-        0.0
+        # Investment, make sure previous capital was not zero
+        mean_inv_rate += firstKPrime > 0.0 ?
+          ((secondKPrime-(1-pa.delta)*firstKPrime)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :
+          0.0
 
-      # Profits
-      mean_profits2k +=firstKPrime > 0.0 ?
-       (profits(pa.zgrid[i_zprime],firstKPrime,eq,pa)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :0.0
+        # Profits
+        mean_profits2k +=firstKPrime > 0.0 ?
+         (profits(pa.zgrid[i_zprime],firstKPrime,eq,pa)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection :0.0
 
-      # Tobin's Q
-      mean_tobinsq += firstKPrime > 0.0 ?
-        ((pr.firmvaluegrid[i_omegaprime,i_zprime]+ firstQPrime )/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
+        #Losses
+        losses2k +=profits(pa.zgrid[i_zprime],firstKPrime,eq,pa) < 0.0 && firstKPrime > 0.0 ?
+         (profits(pa.zgrid[i_zprime],firstKPrime,eq,pa)/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/masslosses:0.0
+
+        # Tobin's Q
+        mean_tobinsq += firstKPrime > 0.0 ?
+          ((pr.firmvaluegrid[i_omegaprime,i_zprime]+ firstQPrime )/firstKPrime)*pa.ztrans[i_zprime,i_z]*eq.distr[i_omega,i_z]/massCorrection:0.0;
+#      end
 
     end
   end
@@ -312,6 +334,6 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k]
     println(DataFrame(names=namesMoments,aggVals=valueMoments))
   end
-
+println(losses2k, " ", mass2)
   resultingMoments
 end

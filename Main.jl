@@ -33,6 +33,7 @@ type Param
   theta::Float64 # Collateral
   kappa::Float64 #Liquidation cost
   e::Float64 # Entry cost
+  k0::Float64 #Capital of entrants
   collateral_factor::Float64 #theta*(1-delta)
   leverageratio::Float64 # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   A::Float64 # Scale
@@ -54,6 +55,7 @@ type Taxes
   c::Float64
   i::Float64
   g::Float64
+  l::Float64
 end
 
 
@@ -129,7 +131,7 @@ end
 # 0.PARAMETER DEFINITION
 
 # Initialize parameters
-function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
+function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.6 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
   #Guess H such that labor supply in deterministic steady sate =1
   K= aalphak/((bbeta^(-1.0) -1 + ddelta));
   s= ddelta*K; #Savings
@@ -179,12 +181,12 @@ function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalp
   Nomega=length(omegagrid)
   omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
-  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)), A,zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
+  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e, k0,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)), A,zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
 end
 
 #Initialize taxes
-function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15)
-  Taxes(ttaud, ttauc, ttaui, ttaug);
+function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15, ttaul::Float64 = 0.28)
+  Taxes(ttaud, ttauc, ttaui, ttaug,ttaul);
   end
 
 #Guess Prices
@@ -200,7 +202,7 @@ function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
   output = convert(Float64,NaN);
   laborsupply= convert(Float64,NaN);
   welfare = convert(Float64,NaN);
-  collections=Taxes(NaN,NaN,NaN,NaN);
+  collections=Taxes(NaN,NaN,NaN,NaN,NaN);
 
   aggregates= Aggregates(NaN,NaN,NaN,NaN,NaN,NaN,collections,NaN,NaN,NaN,NaN,NaN,NaN)
   moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)

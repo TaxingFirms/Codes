@@ -13,18 +13,24 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
   netdistributions=0.0;
   liquidations=0.0;
 
-  for i_z in 1:pa.Nz
+  for i_zprime in 1:pa.Nz
     #### First we consider entrants ###
+      z0       = pa.zgrid[i_zprime];
+      l0       = (z0*pa.alphal*pa.k0^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
-    netdistributions+=pr.distributions[1,i_z]*pa.invariant_distr[i_z]
+      debt        += 0.0*pa.invariant_distr[i_zprime];
+      labor       += l0*pa.invariant_distr[i_zprime];
+      omega0= omegaprimefun(pa.k0, 0.0, i_zprime, eq, tau, pa)
+      i_omega0 = closestindex(omega0, pa.omega.step);
+      netdistributions+=pr.distributions[i_omega0,i_zprime]*pa.invariant_distr[i_zprime];
+
 
     #### Next we consider incumbents ###
     for i_omega in 1:pa.Nomega
-      kprime=pr.kpolicy[i_omega,i_z];
-      qprime=pr.qpolicy[i_omega,i_z];
+      for i_z in 1:pa.Nz
+        kprime=pr.kpolicy[i_omega,i_z];
+        qprime=pr.qpolicy[i_omega,i_z];
 
-
-      for i_zprime in 1:pa.Nz
         #Non-exiting incumbents
         if !pr.exitrule[i_omega,i_z,i_zprime]
           zprime       = pa.zgrid[i_zprime];
@@ -79,9 +85,9 @@ end
 
 function mass_of_entrantsGHH!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distribution::Function; verbose=true)
   #Computes the mass of entrants such that the labor market clears,
-  verbose?distr1=distribution(1.0,pr, eq, tau,pa):distr1=distribution(1.0,pr, eq, tau,pa;verbose=false);
+  verbose ? distr1=distribution(1.0,pr, eq, tau,pa): distr1=distribution(1.0,pr, eq, tau,pa;verbose=false);
   bonds1, labor_d1, netdistributions1, liquidations1 = unit_entry(distr1, pr, eq, tau, pa);
-  labor_s= (eq.w/pa.H)^pa.psi
+  labor_s= ((1-tau.l)*eq.w/pa.H)^pa.psi
 
   E= labor_s/labor_d1;
   eq.distr = E*distr1;
@@ -98,7 +104,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 # Computes aggregates and moments once the model is completely solved.
   distr=eq.distr;
   taudtilde = 1-(1-tau.d)/(1-tau.g);
-
   ########## Initialize accumulators ###########
   # Aggregates
   capital=0.0;
@@ -162,8 +167,11 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   ###### COMPUTE VALUES THAT DEPEND ON CURRENT K
   for i_zprime in 1:pa.Nz
     #### First we consider entrants ###
-    netdistributions += pr.distributions[1,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
-    kprime=0.0;
+    omega0= omegaprimefun(pa.k0, 0.0, i_zprime, eq, tau, pa)
+    omega0_ind = closestindex(omega0, pa.omega.step);
+
+    netdistributions += pr.distributions[omega0_ind,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
+    kprime=pa.k0;
     qprime=0.0;
     zprime= pa.zgrid[i_zprime];
     lprime    = (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
@@ -172,8 +180,8 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     corptax  += tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime - pa.delta*kprime - eq.r*qprime - pa.f)*eq.E*pa.invariant_distr[i_zprime];
 
     if compute_moments
-      freq_eqis+=(1-pr.positivedistributions[1,i_zprime])*eq.E*pa.invariant_distr[i_zprime];
-      mean_eqis+= - pr.grossequityis[1,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
+      freq_eqis+=(1-pr.positivedistributions[omega0_ind,i_zprime])*eq.E*pa.invariant_distr[i_zprime];
+      mean_eqis+= - pr.grossequityis[omega0_ind,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
 
       #investment rate, leverage, etc are undefinied for entrants
     end
@@ -274,8 +282,9 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
   divtax= tau.d*grossdividends;
   inctax = tau.i*eq.r*debt;
+  labtax = tau.l*eq.w*labor;
 
-  G = divtax + corptax + inctax;
+  G = divtax + corptax + inctax +labtax;
   ######################################
 
 
@@ -284,8 +293,8 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   netdistributionscheck = sum(distr.*pr.distributions);
   debtcheck = sum(distr.*pr.qpolicy)
   capitalcheck= sum(distr.*pr.kpolicy)
-  labor_s = (eq.w/pa.H)^pa.psi;
-  consumption = eq.w*labor_s +  (1-tau.i)*eq.r*debt+ netdistributions +liquidations ;
+  labor_s = ((1-tau.l)*eq.w/pa.H)^pa.psi;
+  consumption = (1-tau.l)*eq.w*labor_s +  (1-tau.i)*eq.r*debt+ netdistributions +liquidations - eq.E*pa.k0;
 
   if abs(capital - capitalcheck) >10.0^-4.0 ||
       abs(debt - debtcheck) >10.0^-4.0 ||
@@ -297,7 +306,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     error("labor market didn't clear")
   end
 
-  if abs((gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)> pa.omega.step
+  if abs((gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)>10.0^-4.0
         println("goods market didn't clear by: ", (gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)
   end
 
@@ -339,7 +348,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
   ######## Save values #########
   welfare = (log(consumption) - pa.H* labor_s)/(1-pa.beta);
-  collections = Taxes(divtax,corptax,inctax,0);
+  collections = Taxes(divtax,corptax,inctax,0.0,labtax);
 
   eq.a=Aggregates(netdistributions, (1-tau.i)*eq.r*debt, consumption, gdp, labor, welfare, collections, debt, capital, investment, grossdividends, financialcosts, G);
 
