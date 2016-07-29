@@ -51,7 +51,9 @@ function compute_expvalentry(pr::FirmProblem, pa::Param)
 
   expvalentry=0;
   for i_z = 1:pa.Nz
-    expvalentry += pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - pa.e;
+    omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa);
+    omega0_ind = closestindex(omega0, pa.omega.step);
+    expvalentry += pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - ( pa.e  +  pa.k0);
   end
   expvalentry
 end
