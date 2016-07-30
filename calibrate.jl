@@ -4,9 +4,9 @@
 
 
 function computeDistance(initialParams)
-	# Moments are Avg Inv,SD Inv, Avg Lev, SD Lev, Avg Divs, SD Divs, Avg Profits, SD Profits, Avg Eq Iss,
+
 	# Freq Iss, AutoCovProfits
-	dataMoments = [.06,.08,.27,.38,.02,.10,.05,.30,.081,.65,.66]
+	dataMoments = [.063,0.097,0.068,0.105,0.077,0.256,0.509,0.13]
 
 	# Parameters to be calibrated are, in order
 	# Delta  - depreciation
@@ -16,11 +16,11 @@ function computeDistance(initialParams)
 	# llambda0 - fixed cost of issuance
 	# llambda1 - variable cost of issuance
 
-	println("Parameters: delta ",initialParams[1]," rhoz ", initialParams[2], " ssigmaz ", initialParams[3], " ttheta ",initialParams[4],
-		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6])
+	println("Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
+		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7]  )
 
-	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6]);
-	tau = init_taxes();
+	pa  = init_parameters(ddelta=initialParams[1], ttheta=initialParams[2],  rhoz=initialParams[3], ssigmaz=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6], ff=initialParams[7]  );
+	tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
 	pr,eq= SolveSteadyState!(tau,pa);
 
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)

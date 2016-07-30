@@ -131,12 +131,7 @@ end
 # 0.PARAMETER DEFINITION
 
 # Initialize parameters
-function init_parameters(;bbeta=0.98,ssigma=1.0,psi=1,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.6 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
-  #Guess H such that labor supply in deterministic steady sate =1
-  K= aalphak/((bbeta^(-1.0) -1 + ddelta));
-  s= ddelta*K; #Savings
-  c=1-s;
-  H=aalphal/c;
+function init_parameters(;bbeta::Float64=0.98,ssigma::Float64=1.0,psi::Float64=1,H::Float64=0.84,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.6 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
 
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
@@ -212,15 +207,9 @@ end
 
 
 #Initialize firm problem
-function init_firmproblem( pa::Param ; guessvalue = false, firmvalueguess::Matrix= ones(pa.Nomega,pa.Nz))
+function init_firmproblem( pa::Param ; firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz))
 
   #Nk, Nq, Nz, Nomega = pa.Nk, pa.Nq, pa.Nz, pa.Nomega
-
-
-  #guess firm value
-  if !guessvalue
-    firmvalueguess = pa.A*repmat(pa.omega.grid,1,pa.Nz);
-  end
   firmvaluegrid  = copy(firmvalueguess);
   kpolicy    = similar(firmvaluegrid);
   qpolicy    = similar(firmvaluegrid);

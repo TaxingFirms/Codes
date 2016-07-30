@@ -82,7 +82,7 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
   elseif discounted_interest <= 1
     #2.1 Capital below max leverage
     for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
-      for qprime in (kprime-omega):pa.qprime.step:pa.collateral_factor*kprime
+      for qprime in (kprime-omega): pa.qprime.step:pa.collateral_factor*kprime
         objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
         if objective > max
           max = objective;
@@ -109,7 +109,7 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
       qprimestar = qprime;
     end
     #2.3 Capital above maximum leverage, debt is always at constraint
-    for kprime in (omega*pa.leverageratio):pa.kprime.step:pa.kprime.ub
+    for kprime in (omega*pa.leverageratio): pa.kprime.step:pa.kprime.ub
       qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
       if objective > max

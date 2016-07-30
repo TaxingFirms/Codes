@@ -5,7 +5,7 @@
 function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function; tol = 10^-7.0, verbose=true)
   f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine,verbose);
 
-  expvalentry= compute_expvalentry(pr,pa);
+  expvalentry= compute_expvalentry(pr,pa,eq,tau);
   verbose && println(" Expected Value Entrants = ",expvalentry, " w = ",eq.w);
 
   #The folowing block is meant to speed up bisection a little.
@@ -40,20 +40,20 @@ function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa:
   eq.w=w;
 
   VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine, verbose = verbose);
-  expvalentry=compute_expvalentry(pr,pa);
+  expvalentry=compute_expvalentry(pr,pa,eq,tau);
   verbose && println("w= ",w, " expvalentry = ", expvalentry);
 
   return expvalentry
 end
 
-function compute_expvalentry(pr::FirmProblem, pa::Param)
+function compute_expvalentry(pr::FirmProblem, pa::Param, eq::Equilibrium, tau::Taxes)
   #Computes the expected value just once, without updating prices
 
-  expvalentry=0;
+  expvalentry=- ( pa.e  +  pa.k0);
   for i_z = 1:pa.Nz
     omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa);
     omega0_ind = closestindex(omega0, pa.omega.step);
-    expvalentry += pr.firmvaluegrid[1,i_z]*pa.invariant_distr[i_z] - ( pa.e  +  pa.k0);
+    expvalentry += pr.firmvaluegrid[omega0_ind,i_z]*pa.invariant_distr[i_z] ;
   end
   expvalentry
 end

@@ -214,11 +214,6 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     mass2 += eq.distr[i_omega,i_z];
     for i_zprime in 1:pa.Nz
       masslosses += profits(pa.zgrid[i_zprime],firstKPrime,eq,pa) < 0.0 && firstKPrime > 0.0 ? eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]:0.0;
-      prof=profits(pa.zgrid[i_zprime],firstKPrime,eq,pa);
-      if prof < 0.0
-      mss=  eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-      println(prof," " ,mss)
-    end
     end
   end
 
@@ -319,21 +314,25 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     end
   end
 
-  autocov_profits2k = autocov_profits2k/var_profits2k
+  autocov_profits2k = autocov_profits2k/var_profits2k;
+  turnover=eq.E/sum(eq.distr);
+  labor = eq.a.laborsupply;
 
   resultingMoments = Moments(mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
     mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k)
 
   if toPrint
 #    using DataFrames
-    namesMoments = ["Mean Investment","SD Investment","Mean Leverage","SD Leverage",
-    "Mean Dividends","SD Dividends","Mean Profits","SD Profits",
-    "Mean Equity Issuance","Frequency of Equity Issuance","Means Tobins Q","Autocovariance Profits"]
+    namesMoments = ["Mean Investment","Mean Leverage","Mean Profits","SD Profits",
+    "Mean Equity Issuance","Frequency of Equity Issuance","Autocovariance Profits",
+    "Turnover","Time At Work","SD Leverage","Mean Dividends","SD Dividends","SD Investment",
+    "Means Tobins Q"]
 
-    valueMoments = [mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
-    mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k]
+    valueMoments = [mean_inv_rate,mean_leverage,mean_profits2k,sqrt(var_profits2k),
+    mean_eqis/capital,freq_equis,autocov_profits2k,turnover,labor,sqrt(var_leverage),
+    sqrt(var_inv_rate),mean_dividends2k,sqrt(var_dividends2k),mean_tobinsq]
     println(DataFrame(names=namesMoments,aggVals=valueMoments))
   end
-println(losses2k, " ", mass2)
+
   resultingMoments
 end
