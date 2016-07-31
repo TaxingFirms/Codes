@@ -23,13 +23,23 @@ using DataFrames
 
 
 pa  = init_parameters( bbeta=(1+(1-0.29)*0.04)^-1.0, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.28,
- aalphal = 0.64, ff=0.0, llambda0= 0.04, llambda1= 0.08, ddelta= 0.09, ttheta=0.25,
- kappa=1.0, e=0.0, k0=0.3, rhoz= 0.7, ssigmaz= 0.15, Nz=11, Nk=80, Nq=40, Nomega=100, A = 0.76);
+ aalphal = 0.64, ff=0.02, llambda0= 0.04, llambda1= 0.08, ddelta= 0.09, ttheta=0.25,
+ kappa=1.0, e=0.0, k0=0.3, rhoz= 0.5, ssigmaz= 0.15, Nz=7, Nk=80, Nq=40, Nomega=100, A = 0.76);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28)
 
 @time pr,eq= SolveSteadyState(tau,pa);
 computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 
+
+for i=1:pa.Nz
+figure()
+d= plot(pa.omega.grid, pr.distributions[:,i] )
+k= plot(pa.omega.grid, pr.kpolicy[:,i] )
+q= plot(pa.omega.grid, pr.qpolicy[:,i] )
+  xlabel("Net worth")
+  title("Policy functions (at z=7)")
+  legend("dkq", loc="best")
+end
 
 
 

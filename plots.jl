@@ -32,15 +32,15 @@ for i_omega in 1:fp.Nomega, i_z in 1:fp.Nz
 end
 
 
-
+for i=1:pa.Nz
 figure()
-d= plot(pa.omega.grid, pr.distributions[:,1] )
-k= plot(pa.omega.grid, pr.kpolicy[:,1] )
-q= plot(pa.omega.grid, pr.qpolicy[:,1] )
+d= plot(pa.omega.grid, pr.distributions[:,11] )
+k= plot(pa.omega.grid, pr.kpolicy[:,11] )
+q= plot(pa.omega.grid, pr.qpolicy[:,11] )
   xlabel("Net worth")
   title("Policy functions (at z=7)")
   legend("dkq", loc="best")
-
+end
 
 
 figure()
