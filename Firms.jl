@@ -40,36 +40,36 @@ end
 
 #Maximization brute force
 function maximizationbf(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
-  max = -Inf;
+  mmax = -Inf;
   kprimestar::Real = NaN;
   qprimestar::Real = NaN;
 
   for kprime in pa.kprime.grid
     for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-      if objective > max
-        max = objective;
+      if objective > mmax
+        mmax = objective;
         kprimestar = kprime;
         qprimestar = qprime;
       end
     end
     qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
-    if objective > max
-      max = objective;
+    if objective > mmax
+      mmax = objective;
       kprimestar = kprime;
       qprimestar = qprime;
     end
   end
     extractpolicies?
-    (max, kprimestar, qprimestar):
-    max
+    (mmax, kprimestar, qprimestar):
+    mmax
 end
 
 
 # Maximization step
 function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
-  max = -Inf;
+  mmax = -Inf;
   kprimestar::Real = NaN;
   qprimestar::Real = NaN;
   taudtilde = 1-(1-tau.d)/(1-tau.g);
@@ -84,8 +84,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
       for qprime in (kprime-omega): pa.qprime.step:pa.collateral_factor*kprime
         objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
-        if objective > max
-          max = objective;
+        if objective > mmax
+          mmax = objective;
           kprimestar = kprime;
           qprimestar = qprime;
         end
@@ -93,8 +93,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
       #Evaluate at collateral (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-      if objective > max
-        max = objective;
+      if objective > mmax
+        mmax = objective;
         kprimestar = kprime;
         qprimestar = qprime;
       end
@@ -103,8 +103,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     kprime= omega*pa.leverageratio;
     qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-    if objective > max
-      max = objective;
+    if objective > mmax
+      mmax = objective;
       kprimestar = kprime;
       qprimestar = qprime;
     end
@@ -112,8 +112,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     for kprime in (omega*pa.leverageratio): pa.kprime.step:pa.kprime.ub
       qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-      if objective > max
-        max = objective;
+      if objective > mmax
+        mmax = objective;
         kprimestar = kprime;
         qprimestar = qprime;
       end
@@ -126,8 +126,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     for kprime in pa.kprime.lb:pa.kprime.step:(omega*pa.leverageratio)
       for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime;
         objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-        if objective > max
-          max = objective;
+        if objective > mmax
+          mmax = objective;
           kprimestar = kprime;
           qprimestar = qprime;
         end
@@ -135,8 +135,8 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
       #Evaluate at contraint (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-      if objective > max
-        max = objective;
+      if objective > mmax
+        mmax = objective;
         kprimestar = kprime;
         qprimestar = qprime;
       end
@@ -145,18 +145,18 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     kprime= omega*pa.leverageratio;
     qprime = pa.collateral_factor*kprime;
     objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-    if objective > max
-      max = objective;
+    if objective > mmax
+      mmax = objective;
       kprimestar = kprime;
       qprimestar = qprime;
     end
-    #3.3 Capital above max leverage
+    #3.3 Capital above mmax leverage
     for kprime in (omega*leverageratio):pa.kprime.step:pa.kprime.ub
       #3.3.1 Interior debt and equity
       for qprime in pa.qprime.lb:pa.qprime.step:pa.collateral_factor*kprime
         objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa)
-        if objective > max
-          max = objective;
+        if objective > mmax
+          mmax = objective;
           kprimestar = kprime;
           qprimestar = qprime;
         end
@@ -164,16 +164,16 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
       #3.3.2 Debt at contraint (may not be on the grid)
       qprime = pa.collateral_factor*kprime;
       objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
-      if objective > max
-        max = objective;
+      if objective > mmax
+        mmax = objective;
         kprimestar = kprime;
         qprimestar = qprime;
       end
     end
   end
   extractpolicies?
-    (max, kprimestar, qprimestar):
-    max
+    (mmax, kprimestar, qprimestar):
+    mmax
 end
 
 

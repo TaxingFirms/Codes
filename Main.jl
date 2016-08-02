@@ -16,7 +16,7 @@ immutable GridObject
   grid::AbstractArray #Grid
 end
 
-type Param
+immutable Param
   ##Household parameters
   beta::Float64 #Discount rate
   sigma::Float64  #Risk aversion/ ies
@@ -37,6 +37,8 @@ type Param
   collateral_factor::Float64 #theta*(1-delta)
   leverageratio::Float64 # 1/(1-theta*(1-delta)), leverage at colateral and no divindend
   A::Float64 # Scale
+  rhoz::Float64
+  sigmaz::Float64
   zgrid::Array{Float64,1}
   ztrans::Array{Float64,2}
   invariant_distr::Array{Float64,1} #Invariant distribution
@@ -131,7 +133,11 @@ end
 # 0.PARAMETER DEFINITION
 
 # Initialize parameters
-function init_parameters(;bbeta::Float64=0.98,ssigma::Float64=1.0,psi::Float64=1,H::Float64=0.84,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145, llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45, kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.6 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352, Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
+function init_parameters(;bbeta::Float64=0.98,ssigma::Float64=1.0,psi::Float64=1.0,
+  H::Float64=0.84,aalphak::Float64=0.3, aalphal::Float64 = 0.65, ff::Float64=0.0145,
+  llambda0::Float64= 0.08, llambda1::Float64= 0.028, ddelta::Float64= 0.14, ttheta::Float64=0.45,
+   kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.0 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.0352,
+   Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=0.76)
 
   mc = tauchen(Nz,rhoz,ssigmaz); # Process of firm productivity z
   logshocks = mc.state_values;
@@ -176,7 +182,7 @@ function init_parameters(;bbeta::Float64=0.98,ssigma::Float64=1.0,psi::Float64=1
   Nomega=length(omegagrid)
   omega=GridObject(omegaub, omegalb, omegastep,Nomega, omegagrid);
 
-  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e, k0,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)), A,zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
+  Param(bbeta, ssigma, H, psi, aalphak, aalphal, ff, llambda0, llambda1, ddelta, ttheta, kappa, e, k0,ttheta*(1-ddelta), 1/(1-ttheta*(1-ddelta)), A, rhoz, ssigmaz, zgrid, ztrans,invariant_dist,Nz,Nk,Nq,Nomega, omega, kprime, qprime);
 end
 
 #Initialize taxes
@@ -234,7 +240,7 @@ function omegaprimefun(kprime::Float64, qprime::Float64, i_zprime::Int64, eq::Eq
   zprime=pa.zgrid[i_zprime];
   lprime= (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
-  return (1-tau.c)*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime) + kprime - qprime +tau.c*pa.f
+  return (1-tau.c)*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime) + kprime - qprime
 end
 
 function profits(zprime::Float64, kprime::Float64, eq::Equilibrium, pa::Param)
@@ -242,8 +248,8 @@ function profits(zprime::Float64, kprime::Float64, eq::Equilibrium, pa::Param)
   zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.f;
 end
 
-function grossdistributions(omega::Real,kprime::Real,qprime::Real,pa::Param)
-  omega - kprime + qprime -pa.f
+function grossdistributions(omega::Real,kprime::Real,qprime::Real, tau::Taxes, pa::Param)
+  omega - kprime + qprime -pa.f*(1-tau.c)
 end
 
 #Predict future state

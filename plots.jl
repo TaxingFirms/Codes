@@ -34,14 +34,21 @@ end
 
 for i=1:pa.Nz
 figure()
-d= plot(pa.omega.grid, pr.distributions[:,11] )
-k= plot(pa.omega.grid, pr.kpolicy[:,11] )
-q= plot(pa.omega.grid, pr.qpolicy[:,11] )
+d= plot(pa.omega.grid, pr.distributions[:,i] )
+k= plot(pa.omega.grid, pr.kpolicy[:,i] )
+q= plot(pa.omega.grid, pr.qpolicy[:,i] )
   xlabel("Net worth")
-  title("Policy functions (at z=7)")
+  title("Policy functions at z=%f")
   legend("dkq", loc="best")
 end
 
+
+
+for i=1:pa.Nz
+ plot(pa.omega.grid, pr.firmvaluegrid[:,i] )
+  xlabel("Net worth")
+  title("Value function")
+end
 
 figure()
 subplot(121)
