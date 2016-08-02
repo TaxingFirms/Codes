@@ -21,15 +21,16 @@ using StatsFuns
 @everywhere include("TaxReforms.jl")
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
+include("Simulations.jl")
 
 
 pa  = init_parameters( bbeta=(1+(1-0.29)*0.04)^-1.0, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.28,
- aalphal = 0.64, ff=0.02, llambda0= 0.08, llambda1= 0.05, ddelta= 0.09, ttheta=0.25,
- kappa=1.0, e=0.0, k0=0.0, rhoz= 0.5, ssigmaz= 0.15, Nz=7, Nk=80, Nq=40, Nomega=100, A = 0.76);
+ aalphal = 0.64, ff=0.02, llambda0= 0.15, llambda1= 0.05, ddelta= 0.09, ttheta=0.25,
+ kappa=1.0, e=0.0, k0=0.3, rhoz= 0.5, ssigmaz= 0.15, Nz=7, Nk=80, Nq=40, Nomega=100, A = 0.76);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28)
 
-pa  = init_parameters();
-tau = init_taxes();
+#pa  = init_parameters();
+#tau = init_taxes();
 @time pr,eq= SolveSteadyState(tau,pa);
 computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 
@@ -92,12 +93,12 @@ using NLopt
 using Calculus
 
 function f(x::Vector,grad::Vector)
-	
-    g(y) =  try        
+
+    g(y) =  try
                 computeDistance(y)
             catch eexception
                 println(eexception)
-                100000000000.0                
+                100000000000.0
             end
 
 
