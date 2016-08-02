@@ -70,7 +70,14 @@ using NLopt
 using Calculus
 
 function f(x::Vector,grad::Vector)
-	g(y) = computeDistance(x)
+	
+    g(y) =  try        
+                computeDistance(y)
+            catch eexception
+                println(eexception)
+                100000000000.0                
+            end
+
 
 	if length(grad) > 0
 		grad[:] = Calculus.gradient(g,x)

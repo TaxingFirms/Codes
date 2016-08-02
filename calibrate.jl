@@ -26,13 +26,6 @@ function computeDistance(initialParams)
 	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
 	tau = init_taxes();
 
-	try
-		pr,eq= SolveSteadyState!(tau,pa);
-	catch y
-		println(y)
-		100000000000.0
-	end
-
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_inv_rate,moments.mean_leverage,
