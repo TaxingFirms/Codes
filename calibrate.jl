@@ -19,9 +19,19 @@ function computeDistance(initialParams)
 	println("Parameters: delta ",initialParams[1]," rhoz ", initialParams[2], " ssigmaz ", initialParams[3], " ttheta ",initialParams[4],
 		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6])
 
-	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6]);
+
+	# Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100
+	factorToBenchmark = .5
+	Nnz = round(Int64,factorToBenchmark*9); Nnk = round(Int64,factorToBenchmark*80); Nnq = round(Int64,factorToBenchmark*40); Nnomega = round(Int64,factorToBenchmark*100);
+	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
 	tau = init_taxes();
-	pr,eq= SolveSteadyState!(tau,pa);
+
+	try
+		pr,eq= SolveSteadyState!(tau,pa);
+	catch y
+		println(y)
+		100000000000.0
+	end
 
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 
