@@ -72,9 +72,9 @@ end
 
 
 
-function mass_of_entrants!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distribution::Function; verbose=true)
+function mass_of_entrants!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distr_routine::Function; verbose=true)
   #Computes the mass of entrants such that the labor market clears,
-  verbose?distr1=distribution(1.0,pr, eq, tau,pa):distr1=distribution(1.0,pr, eq, tau,pa;verbose=false);
+  verbose?distr1=distr_routine(1.0,pr, eq, tau,pa):distr1=distr_routine(1.0,pr, eq, tau,pa;verbose=false);
   bonds1, labor_d1, netdistributions1, liquidations1 = unit_entry(distr1, pr, eq, tau, pa);
 
   E=( pa.H*(labor_d1 + eq.w^(-1.0)*((1-tau.i)*eq.r*bonds1+ netdistributions1 +liquidations1) ) )^-1.0;
@@ -83,9 +83,9 @@ function mass_of_entrants!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Pa
 end
 
 
-function mass_of_entrantsGHH!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distribution::Function; verbose=true)
+function mass_of_entrantsGHH!( pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, distr_routine::Function; verbose=true)
   #Computes the mass of entrants such that the labor market clears,
-  verbose ? distr1=distribution(1.0,pr, eq, tau,pa): distr1=distribution(1.0,pr, eq, tau,pa;verbose=false);
+  verbose ? distr1=distr_routine(1.0,pr, eq, tau,pa): distr1=distr_routine(1.0,pr, eq, tau,pa;verbose=false);
   bonds1, labor_d1, netdistributions1, liquidations1 = unit_entry(distr1, pr, eq, tau, pa);
   labor_s= ((1-tau.l)*eq.w/pa.H)^pa.psi
 

@@ -68,7 +68,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
   k=1;
   for i_z in 1:pa.Nz
         omega0= omegaprimefun(pa.k0, 0.0, i_z, eq, tau, pa)
-        omega0_ind = closestindex(omega0, pa.omega.step)
+        omega0_ind = closestindex(omega0, pa.omega.step);
         ie[k]= find_dist_ind(omega0_ind, i_z, pa.Nomega);
         ve[k]= E*pa.invariant_distr[i_z];
         k+=1;
@@ -82,7 +82,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
 
   distr_vectorized=deepcopy(distrguess);
   dist=Inf;
-  it=1; maxit = 10.0^5.0;
+  it=1; maxit = 10.0^4.0;
   while dist >tol && it<maxit
     verbose && println("it = ",it," dist = ", dist)
     #println(it)
@@ -93,7 +93,7 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
     it+=1;
   end
   if it==maxit
-    error("Distribution did not converge after maximum number of iterations. Max(exitrule) = ", maximum(pr.exitrule), " Min(exitrule) = ", minimum(pr.exitrule))
+    error("Distribution did not converge after maximum number of iterations. Max(exitrule) = ", maximum(pr.exitrule), " Min(exitrule) = ", minimum(pr.exitrule), "Determinant of transition matrix = ", det(transmat'))
   end
 
 
@@ -115,7 +115,7 @@ function stationarydist_iterate( E::Float64, pr::FirmProblem, eq::Equilibrium, t
 
   distr=deepcopy(distrguess);
   dist=Inf;
-  it=1; maxit = 10.0^5.0;
+  it=1; maxit = 10.0^3.0;
   while dist >tol && it<maxit
     println("it = ",it," dist = ", dist)
     distrprime = transitionrule(distr,E,pr,eq,tau,pa)
