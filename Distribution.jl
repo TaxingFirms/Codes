@@ -90,15 +90,16 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
     dist= norm(distrprime -distr_vectorized);
 
     distr_vectorized=deepcopy(distrprime);
-      distr=reshape(distr_vectorized, (pa.Nomega,pa.Nz))
-      probexit = sum(distr.*pr.exitprobability)
-      if probexit ==0
+      distrtest=reshape(transmat'*distr_vectorized, (pa.Nomega,pa.Nz))
+      massexit = sum(distrtest.*pr.exitprobability)
+      verbose && println("Mass of exit = ", massexit)
+      if massexit ==0
         error("No firm wants to exit")
       end
     it+=1;
   end
   if it==maxit
-    error("Distribution did not converge after maximum number of iterations. Max(exitrule) = ", maximum(pr.exitrule), " Min(exitrule) = ", minimum(pr.exitrule), "Determinant of transition matrix = ", det(transmat'))
+    error("Distribution did not converge after maximum number of iterations. Max(exitrule) = ", maximum(pr.exitrule), " Min(exitrule) = ", minimum(pr.exitrule), " Determinant of transition matrix = ", det(transmat'))
   end
 
 

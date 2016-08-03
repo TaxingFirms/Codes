@@ -39,7 +39,7 @@ function expvalentry!(w::Real,pr::FirmProblem, eq::Equilibrium, tau:: Taxes, pa:
   #Computes the interest rate consistent with free entry.
   eq.w=w;
 
-  VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine, verbose = verbose);
+  VFIfunction(pr,eq,tau,pa; maxroutine=maxroutine, verbose = verbose);
   expvalentry=compute_expvalentry(pr,pa,eq,tau);
   verbose && println("w= ",w, " expvalentry = ", expvalentry);
 

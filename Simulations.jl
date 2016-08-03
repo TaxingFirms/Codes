@@ -1,4 +1,6 @@
 function simulation(S::Int64, T::Int64,pr::FirmProblem,pa::Param; seed::Int64 =1234)
+  #seed =1234; S=5; T=100;
+
   #Interpolate policy functions
   kprimefun = map(x->CoordInterpGrid(pa.omega.grid,pr.kpolicy[:,x],BCnearest, InterpLinear),1:pa.Nz);
   qprimefun = map(x->CoordInterpGrid(pa.omega.grid,pr.qpolicy[:,x],BCnearest, InterpLinear),1:pa.Nz);
