@@ -66,11 +66,6 @@ save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
 ##
 
 
-#################
-# Transitions
-#################
-
-
 
 
 #################
@@ -92,12 +87,12 @@ using NLopt
 using Calculus
 
 function f(x::Vector,grad::Vector)
-	
-    g(y) =  try        
+
+    g(y) =  try
                 computeDistance(y)
             catch eexception
                 println(eexception)
-                100000000000.0                
+                100000000000.0
             end
 
 
