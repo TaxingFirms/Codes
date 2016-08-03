@@ -302,13 +302,13 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maximizationroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false, verbose=true )
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maxroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false, verbose=true )
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
   while dist > tol
     verbose && println("it=", it);
-    firmbellmanParallelOmega!(pr,eq,tau,pa,maximizationroutine);
+    firmbellmanParallelOmega!(pr,eq,tau,pa,maxroutine);
     dif = pr.firmvalueguess - pr.firmvaluegrid;
     dist= norm(dif, Inf);
     verbose && println("it=", it, "   dist=", dist);
