@@ -33,9 +33,9 @@ end
 function objectivefun(kprime::Real, qprime::Real, omega::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
   taudtilde = 1-(1-tau.d)/(1-tau.g);
-  grossdistributions(omega,kprime,qprime,pa)>=0 ?
-    (1-taudtilde)*grossdistributions(omega,kprime,qprime,pa) + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa):
-    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0 + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa);
+  grossdistributions(omega,kprime,qprime,tau,pa)>=0 ?
+    (1-taudtilde)*grossdistributions(omega,kprime,qprime,tau,pa) + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa):
+    (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,tau,pa) - pa.lambda0 + betatilde*continuation(kprime, qprime, i_z, pr, eq, tau, pa);
 end
 
 #Maximization brute force
@@ -288,7 +288,7 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 
     # For every state
     input = [modelStateOmega(i_omega,pr,eq,tau,pa,maxroutine) for i_omega in 1:pa.Nomega];
-    resultVector = pmap(maximizeParallelOmega,input);
+    resultVector = map(maximizeParallelOmega,input);
 
     for i in 1:length(resultVector)
       # three dimensional linear indexing
@@ -345,14 +345,14 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
       qprime= pr.qpolicy[i_omega, i_z];
 
 
-      if grossdistributions(omega,kprime,qprime,pa) >=0
+      if grossdistributions(omega,kprime,qprime,tau,pa) >=0
         pr.positivedistributions[i_omega, i_z]= true;
-        pr.distributions[i_omega, i_z]= (1-tau.d)*grossdistributions(omega,kprime,qprime,pa);
-        pr.grossdividends[i_omega, i_z]= grossdistributions(omega,kprime,qprime,pa);
+        pr.distributions[i_omega, i_z]= (1-tau.d)*grossdistributions(omega,kprime,qprime,tau,pa);
+        pr.grossdividends[i_omega, i_z]= grossdistributions(omega,kprime,qprime,tau,pa);
       else
-        pr.distributions[i_omega, i_z]= (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,pa) - pa.lambda0;
-        pr.financialcosts[i_omega, i_z]= pa.lambda1*grossdistributions(omega,kprime,qprime,pa) -pa.lambda0;
-        pr.grossequityis[i_omega, i_z]= grossdistributions(omega,kprime,qprime,pa);
+        pr.distributions[i_omega, i_z]= (1+pa.lambda1)*grossdistributions(omega,kprime,qprime,tau,pa) - pa.lambda0;
+        pr.financialcosts[i_omega, i_z]= pa.lambda1*grossdistributions(omega,kprime,qprime,tau,pa) -pa.lambda0;
+        pr.grossequityis[i_omega, i_z]= grossdistributions(omega,kprime,qprime,tau,pa);
       end
 
 
