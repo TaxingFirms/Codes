@@ -34,7 +34,7 @@ function simulation(S::Int64, T::Int64,pr::FirmProblem,pa::Param; seed::Int64 =1
       pr.exitrule[i_omega, z_history_ind[i_t-1,i_s],z_history_ind[i_t,i_s]]&& break
     end
   end
-
+return capital, debt, networth, dividends, investment, z_history_ind
 end
 
 
