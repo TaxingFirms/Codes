@@ -288,7 +288,7 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 
     # For every state
     input = [modelStateOmega(i_omega,pr,eq,tau,pa,maxroutine) for i_omega in 1:pa.Nomega];
-    resultVector = map(maximizeParallelOmega,input);
+    resultVector = pmap(maximizeParallelOmega,input);
 
     for i in 1:length(resultVector)
       # three dimensional linear indexing

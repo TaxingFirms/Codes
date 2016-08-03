@@ -2,9 +2,6 @@
 # Modify ~/.juliarc.jl and add the following line:
 # push!(LOAD_PATH, "/Path/To/My/Module/")
 
-
-@everywhere cd("C:/Users/m1dsw00.BOARD/Codes")
-
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero
 using QuantEcon:tauchen
@@ -25,8 +22,8 @@ include("Simulations.jl")
 
 
 pa  = init_parameters( bbeta=(1+(1-0.29)*0.04)^-1.0, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.3,
- aalphal = 0.65, ff=0.04, llambda0= 0.5, llambda1= 0.08, ddelta= 0.09, ttheta=0.25,
- kappa=1.0, e=0.0, k0=0.3, rhoz= 0.5, ssigmaz= 0.15, Nz=9, Nk=80, Nq=40, Nomega=100, A = 0.76);
+ aalphal = 0.65, ff=0.02, llambda0= 0.5, llambda1= 0.08, ddelta= 0.09, ttheta=0.25,
+ kappa=1.0, e=0.0, k0=0.3, rhoz= 0.7, ssigmaz= 0.13, Nz=9, Nk=80, Nq=40, Nomega=100, A = 0.76);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28)
 
 #pa  = init_parameters();
