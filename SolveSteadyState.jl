@@ -7,7 +7,7 @@ function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65,
   pr  = init_firmproblem(pa);
 
   #Compute the model on first time
-  VFIfunction(pr,eq,tau,pa; maximizationroutine=maxroutine , verbose = verbose); #pr is updated, computes Value Function
+  VFIfunction(pr,eq,tau,pa; maxroutine=maxroutine , verbose = verbose); #pr is updated, computes Value Function
 
   #Compute wage such that free entry condition holds
   w=free_entry!(eq, pr, tau, pa, VFIfunction, maxroutine ; verbose = verbose)

@@ -87,9 +87,14 @@ function stationarydist(E::Real, pr::FirmProblem, eq::Equilibrium, tau::Taxes, p
     verbose && println("it = ",it," dist = ", dist)
     #println(it)
     distrprime= transmat'*distr_vectorized +entrants;
-
     dist= norm(distrprime -distr_vectorized);
+
     distr_vectorized=deepcopy(distrprime);
+      distr=reshape(distr_vectorized, (pa.Nomega,pa.Nz))
+      probexit = sum(distr.*pr.exitprobability)
+      if probexit ==0
+        error("No firm wants to exit")
+      end
     it+=1;
   end
   if it==maxit
