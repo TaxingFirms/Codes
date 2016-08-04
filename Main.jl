@@ -145,7 +145,10 @@ function init_parameters(;bbeta::Float64=0.98,ssigma::Float64=1.0,psi::Float64=1
   trans = mc.p;
   invariant=trans^100;
   invariant_dist=collect(invariant[1,:]);
-  zgrid = A*shocks;
+  zgrid = A/exp(0.5*ssigmaz^2.0/(1-rhoz^2.0))*shocks;
+
+  meanshocks=invariant_dist'*zgrid;
+  abs(meanshocks[1] - A) > 10^-2.0 && error("average shock is not A but ",meanshocks[1] )
   ztrans=trans';
 
   #construct grid for capital
