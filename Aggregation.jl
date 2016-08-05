@@ -339,7 +339,10 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     cov_profits2k= (scov_profits2k - mean_profits2k_shifted*mean_profits2ksecond_shifted / mass_incumbents)/mass_incumbents;
     correl_profits2k = cov_profits2k/var_profits2k;
 
-    eq.m = Moments(mean_inv_rate, sd_inv_rate, mean_leverage, sd_leverage, mean_dividends2k, sd_dividends2k, mean_profits2k, sd_profits2k, mean_eqis2k, freq_eqis, mean_tobinsq, correl_profits2k)
+    turnover=eq.E/sum(eq.distr);
+    labor = eq.a.laborsupply;
+
+    eq.m = Moments(mean_inv_rate, sd_inv_rate, mean_leverage, sd_leverage, mean_dividends2k, sd_dividends2k, mean_profits2k, sd_profits2k, mean_eqis2k, freq_eqis, mean_tobinsq, correl_profits2k,turnover,labor)
   end
   ##############################
 

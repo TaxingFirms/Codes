@@ -325,16 +325,16 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   labor = eq.a.laborsupply;
 
   resultingMoments = Moments(mean_inv_rate,sqrt(var_inv_rate),mean_leverage,sqrt(var_leverage),mean_dividends2k,sqrt(var_dividends2k),
-    mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k)
+    mean_profits2k,sqrt(var_profits2k),mean_eqis/capital,freq_equis,mean_tobinsq,autocov_profits2k,turnover, labor)
 
   if toPrint
 #    using DataFrames
-    namesMoments = ["Mean Investment","Mean Leverage","Mean Profits","SD Profits",
+    namesMoments = ["Mean Investment","SD Profits","Mean Leverage","Mean Profits",
     "Mean Equity Issuance","Frequency of Equity Issuance","Autocovariance Profits",
-    "Turnover","Time At Work","SD Leverage","Mean Dividends","SD Dividends","SD Investment",
+    "Turnover","Time At Work","SD Leverage","SD Investment","Mean Dividends","SD Dividends",
     "Means Tobins Q"]
 
-    valueMoments = [mean_inv_rate,mean_leverage,mean_profits2k,sqrt(var_profits2k),
+    valueMoments = [mean_inv_rate,sqrt(var_profits2k),mean_leverage,mean_profits2k,
     mean_eqis/capital,freq_equis,autocov_profits2k,turnover,labor,sqrt(var_leverage),
     sqrt(var_inv_rate),mean_dividends2k,sqrt(var_dividends2k),mean_tobinsq]
     println(DataFrame(names=namesMoments,aggVals=valueMoments))

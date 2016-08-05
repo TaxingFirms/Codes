@@ -19,20 +19,25 @@ using StatsFuns
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
 include("Simulations.jl")
+include("Magnitudes.jl")
 
+#pa  = init_parameters( bbeta=0.98, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.3,
+ #aalphal = 0.65, ff=0.014, llambda0= 0.02, llambda1= 0.04, ddelta= 0.012, ttheta=0.42,
+ #kappa=1.0, e=0.0, k0=0.00, rhoz= 0.76, ssigmaz= 0.1, Nz=11, Nk=80, Nq=40, Nomega=100, A = 0.65);
+#tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
 
-pa  = init_parameters( bbeta=(1+(1-0.29)*0.04)^-1.0, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.3,
- aalphal = 0.65, ff=0.02, llambda0= 0.08, llambda1= 0.06, ddelta= 0.095, ttheta=0.368,
- kappa=1.0, e=0.0, k0=0.0, rhoz= 0.7, ssigmaz= 0.03, Nz=9, Nk=80, Nq=40, Nomega=100, A = 1.0);
-tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28)
+# Calibration Board presentation
+pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.12, ttheta = 0.45);
+tau = init_taxes();
 
-#pa  = init_parameters();
-#tau = init_taxes();
-@time pr,eq= SolveSteadyState(tau,pa);
-computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
-capital, debt, networth, dividends, investment, z_history_ind = simulation(10, 100,pr,pa; seed=1234);
+capital_unc, capital_equity, profits_unc, profits_equity =magnitudes(tau, pa);
+
+@time pr,eq= SolveSteadyState(tau,pa; wguess=0.55);
+moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
+capital, debt, networth, dividends, investment, z_history_ind = simulation(10, 50,pr,pa; seed=1234);
 figure()
-plot(capital)
+plot(debt)
+capital_unc, capital_equity, profits_unc, profits_equity = magnitudes(tau, pa; r= eq.r, w=eq.w);
 
 for i=1:pa.Nz
 figure()
@@ -40,12 +45,9 @@ d= plot(pa.omega.grid, pr.distributions[:,i] )
 k= plot(pa.omega.grid, pr.kpolicy[:,i] )
 q= plot(pa.omega.grid, pr.qpolicy[:,i] )
   xlabel("Net worth")
-  title("Policy functions (at z=7)")
+  title("Policy functions")
   legend("dkq", loc="best")
 end
-
-
-
 
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
@@ -65,7 +67,8 @@ save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
 ##save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
 ##
 
-
+("Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
+  " llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7], "H", initialParams[8]
 
 
 #################
@@ -73,12 +76,12 @@ save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
 #################
 
 # Optimization
-#         delta     rhoz    sigmaz   theta   lambda0   lambda1
-LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001 ]
-#         delta     rhoz    sigmaz   theta
-UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03  ]
+#         delta   theta   rhoz    sigmaz   lambda0   lambda1    f       H
+LB  = [    .05,      .1,   .4,      .01 ,   .01,       .001     0.001   0.001]
+#         delta   theta   rhoz    sigmaz   lambda0   lambda1    f       H
+UB  = [    .15,     .6,   .95 ,     .2,    1.0,         .06     5.0    5.0 ]
 
-initialGuess = [0.14,0.76,0.0352,.45,.08,.028]
+initialGuess = [0.12,0.3,0.7,0.041,0.02,0.04,0.15,1.3]
 count        = 0
 
 

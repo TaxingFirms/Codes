@@ -95,6 +95,8 @@ type Moments
   freq_equis2k::Float64
   mean_tobinsq::Float64
   autocov_profits2k::Float64
+  turnover::Float64
+  labor::Float64
 end
 
 type Aggregates
@@ -209,7 +211,7 @@ function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
   collections=Taxes(NaN,NaN,NaN,NaN,NaN);
 
   aggregates= Aggregates(NaN,NaN,NaN,NaN,NaN,NaN,collections,NaN,NaN,NaN,NaN,NaN,NaN)
-  moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)
+  moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)
 
   Equilibrium(r,w,distr,E,aggregates,moments);
 end
