@@ -21,33 +21,14 @@ using StatsFuns
 include("Simulations.jl")
 include("Magnitudes.jl")
 
-#pa  = init_parameters( bbeta=0.98, ssigma=1.0,psi=0.55, H=3.47, aalphak=0.3,
- #aalphal = 0.65, ff=0.014, llambda0= 0.02, llambda1= 0.04, ddelta= 0.012, ttheta=0.42,
- #kappa=1.0, e=0.0, k0=0.00, rhoz= 0.76, ssigmaz= 0.1, Nz=11, Nk=80, Nq=40, Nomega=100, A = 0.65);
-#tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
 
-# Calibration Board presentation
-pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.12, ttheta = 0.45);
-tau = init_taxes();
-
-capital_unc, capital_equity, profits_unc, profits_equity =magnitudes(tau, pa);
-
-@time pr,eq= SolveSteadyState(tau,pa; wguess=0.55);
+pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.12, ttheta = 0.25, rhoz= 0.7, ssigmaz= 0.041, A=0.76);
+tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
+@time pr,eq= SolveSteadyState(tau,pa;wguess=0.55);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
-capital, debt, networth, dividends, investment, z_history_ind = simulation(10, 50,pr,pa; seed=1234);
-figure()
-plot(debt)
-capital_unc, capital_equity, profits_unc, profits_equity = magnitudes(tau, pa; r= eq.r, w=eq.w);
-
-for i=1:pa.Nz
-figure()
-d= plot(pa.omega.grid, pr.distributions[:,i] )
-k= plot(pa.omega.grid, pr.kpolicy[:,i] )
-q= plot(pa.omega.grid, pr.qpolicy[:,i] )
-  xlabel("Net worth")
-  title("Policy functions")
-  legend("dkq", loc="best")
-end
+capital, debt, networth, dividends, investment, z_history_ind = simulation(500, 50,pr,pa; seed=1234);
+#capital_unc, capital_equity, profits_unc, profits_equity = magnitudes(tau, pa; r= eq.r, w=eq.w);
+capital500 = sum(capital,2)
 
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
@@ -77,9 +58,9 @@ save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
 
 # Optimization
 #         delta   theta   rhoz    sigmaz   lambda0   lambda1    f       H
-LB  = [    .05,      .1,   .4,      .01 ,   .01,       .001     0.001   0.001]
+LB  = [    .09,      .2,   .55,      .03 ,   .01,       .001     0.001   0.001]
 #         delta   theta   rhoz    sigmaz   lambda0   lambda1    f       H
-UB  = [    .15,     .6,   .95 ,     .2,    1.0,         .06     5.0    5.0 ]
+UB  = [    .11,     .4,   .75 ,     .15,    1.0,         .06     5.0    5.0 ]
 
 initialGuess = [0.12,0.3,0.7,0.041,0.02,0.04,0.15,1.3]
 count        = 0

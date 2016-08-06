@@ -96,3 +96,18 @@ function generate_thresholds(pa::Param)
   end
 return thresholds_invariant, thresholds_conditional
 end
+
+function conditional_average(var::Array{Float64,2})
+  T,S=size(var);
+  sum=zeros(Float64,T);
+  count=zeros(Float64,T);
+
+  for i_s=1:S
+    for i_t=1:T
+      sum[i_t] += var[i_t,i_s];
+      count[i_t] +=  var[i_t,i_s]>0.0?1:0;
+    end
+  end
+
+  sum./count
+end
