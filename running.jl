@@ -21,14 +21,14 @@ using StatsFuns
 include("Simulations.jl")
 include("Magnitudes.jl")
 
-
-pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.12, ttheta = 0.25, rhoz= 0.7, ssigmaz= 0.041, A=0.76);
+pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.14, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.045);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.55);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
-capital, debt, networth, dividends, investment, z_history_ind = simulation(500, 50,pr,pa; seed=1234);
+capital, debt, networth, dividends, investment, z_history_ind = simulation(1000, 50,pr,pa; seed=1234);
 #capital_unc, capital_equity, profits_unc, profits_equity = magnitudes(tau, pa; r= eq.r, w=eq.w);
-capital500 = sum(capital,2)
+capital500 = conditional_average(capital)
+lncap = log(capital500)
 
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");

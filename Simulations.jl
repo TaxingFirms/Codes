@@ -22,12 +22,21 @@ function simulation(S::Int64, T::Int64,pr::FirmProblem,pa::Param; seed::Int64 =1
     dividends[1,i_s]= grossdividendfun[z_history_ind[1,i_s]][networth[1,i_s]] + grossequitfun[z_history_ind[1,i_s]][networth[1,i_s]];
     investment[1,i_s] = kprimefun[z_history_ind[1,i_s]][networth[1,i_s]] - (1-pa.delta)*capital[1,i_s];
     for i_t=2:T
-
       capital[i_t,i_s]= kprimefun[z_history_ind[i_t-1,i_s]][networth[i_t-1,i_s]];
       debt[i_t,i_s]=qprimefun[z_history_ind[i_t-1,i_s]][networth[i_t-1,i_s]];
 
       omega= omegaprimefun(capital[i_t,i_s], debt[i_t,i_s], z_history_ind[i_t,i_s], eq, tau, pa);
       i_omega = closestindex(omega, pa.omega.step);
+        if i_omega<1 || i_omega>pa.Nomega
+          if i_omega==pa.Nomega || i_omega < (pa.Nomega + 3)
+            i_omega =pa.Nomega
+          elseif i_omega==1 || i_omega > -3
+            i_omega =1;
+          else
+            error("omega' out of the grid ")
+          end
+        end
+
       networth[i_t,i_s]=omega;
       dividends[i_t,i_s]= grossdividendfun[z_history_ind[i_t,i_s]][networth[i_t,i_s]] + grossequitfun[z_history_ind[i_t,i_s]][networth[i_t,i_s]];
       investment[i_t,i_s] = kprimefun[z_history_ind[i_t,i_s]][networth[i_t,i_s]] - (1-pa.delta)*capital[i_t,i_s];
