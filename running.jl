@@ -25,14 +25,10 @@ pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
-
-
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-@time pr2,eq2,tau2 = taxreform2(0.3, eq, tau, pa;update=0.0);
-save("Counterfactual2.jld","pr",pr2,"eq",eq2,"tau",tau2,"pa",pa);
-#pr2,eq2,tau2,pa=load("Counterfactual2.jld", "pr","eq","tau","pa");
+include("runReforms.jl")
 
 @time pr3,eq3,tau3 = taxreform3(0.3, eq, tau, pa; tol=10.0^-4.0, update = 0.98);
 save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);

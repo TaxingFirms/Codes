@@ -13,7 +13,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
 
   x= (tauc - tau.c)*C/(D);
-  taunew = Taxes(tau.d-x,tauc,tau.i,tau.g);
+  taunew = Taxes(tau.d-x,tauc,tau.i,tau.g,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
   pr1,eq1=SolveSteadyState(taunew,pa;  wguess = wguess, verbose=false);
@@ -26,7 +26,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     D= eq1.a.collections.d / tau.d;
     ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D)
-    taunew = Taxes(ntaud,tau.c,tau.i,tau.g);
+    taunew = Taxes(ntaud,tau.c,tau.i,tau.g,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     pr1,eq1= SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
@@ -51,7 +51,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   wguess= eq.w;
 
   x= (tauc - tau.c)*C/D;
-  taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x);
+  taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -65,7 +65,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     D= eq1.a.collections.d / tau.d;
     ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
-    taunew = Taxes(ntau,tau.c,tau.i,ntau);
+    taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
@@ -89,7 +89,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   wguess= eq.w;
 
   tauind= (originalG - tauc*C)/(D + I);
-  taunew = Taxes(tauind,tauc,tauind,tauind);
+  taunew = Taxes(tauind,tauc,tauind,tauind,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -105,7 +105,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     tauind= (originalG - tauc*C)/(D + I);
     ntauind= update*tau.d + (1-update)*tauind;
 
-    taunew = Taxes(ntauind,tauc,ntauind,ntauind);
+    taunew = Taxes(ntauind,tauc,ntauind,ntauind,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
