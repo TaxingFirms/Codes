@@ -245,7 +245,7 @@ function omegaprimefun(kprime::Float64, qprime::Float64, i_zprime::Int64, eq::Eq
   zprime=pa.zgrid[i_zprime];
   lprime= (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
 
-  return (1-tau.c)*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime) + kprime - qprime
+  return zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime + (1- pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime -pa.f,0.0)
 end
 
 function profits(zprime::Float64, kprime::Float64, eq::Equilibrium, pa::Param)
@@ -254,7 +254,7 @@ function profits(zprime::Float64, kprime::Float64, eq::Equilibrium, pa::Param)
 end
 
 function grossdistributions(omega::Real,kprime::Real,qprime::Real, tau::Taxes, pa::Param)
-  omega - kprime + qprime -pa.f*(1-tau.c)
+  omega - kprime + qprime -pa.f
 end
 
 #Predict future state

@@ -115,6 +115,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   liquidationcosts=0.0;
   netdistributions=0.0;
 
+
   #Moments
   mass_incumbents=0.0;
   if compute_moments
@@ -171,13 +172,13 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     omega0_ind = closestindex(omega0, pa.omega.step);
 
     netdistributions += pr.distributions[omega0_ind,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
-    kprime=pa.k0;
-    qprime=0.0;
-    zprime= pa.zgrid[i_zprime];
-    lprime    = (zprime*pa.alphal*kprime^pa.alphak / eq.w)^(1/(1-pa.alphal));
-    labor    += lprime*eq.E*pa.invariant_distr[i_zprime];
-    gdp      += (zprime*kprime^pa.alphak*lprime^pa.alphal - pa.f)*eq.E*pa.invariant_distr[i_zprime];
-    corptax  += tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime - pa.delta*kprime - eq.r*qprime - pa.f)*eq.E*pa.invariant_distr[i_zprime];
+    k0=pa.k0;
+    q0=0.0;
+    z0 = pa.zgrid[i_zprime];
+    l0    = (z0*pa.alphal*k0^pa.alphak / eq.w)^(1/(1-pa.alphal));
+    labor    += l0*eq.E*pa.invariant_distr[i_zprime];
+    gdp      += (z0*k0^pa.alphak*l0^pa.alphal - pa.f)*eq.E*pa.invariant_distr[i_zprime];
+    corptax  += tau.c*max(z0*k0^pa.alphak*l0^pa.alphal - eq.w*l0 - pa.delta*k0 - eq.r*q0 - pa.f,0.0)*eq.E*pa.invariant_distr[i_zprime];
 
     if compute_moments
       freq_eqis+=(1-pr.positivedistributions[omega0_ind,i_zprime])*eq.E*pa.invariant_distr[i_zprime];
@@ -205,7 +206,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
           labor     += lprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           gdp       += (zprime*kprime^pa.alphak*lprime^pa.alphal - pa.f)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          corptax   += tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime - pa.f)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          corptax   += tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime - pa.f,0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
           netdistributions+=pr.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
