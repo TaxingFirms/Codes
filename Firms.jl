@@ -177,7 +177,7 @@ function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
 end
 
 
-function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-3, maxit=5000, mp=false, maximizationroutine=maximizationstep)
+function firmVFIParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; tol=10.0^-5, maxit=5000, mp=false, maximizationroutine=maximizationstep)
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;
@@ -206,12 +206,12 @@ end
 
 
 
-function firmbellmanParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, maximizationroutine::Function)
+function firmbellmanParallel!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param, maxroutine::Function)
 
   #Update value function
 
     # For every state
-    input = [modelState(z,pr,eq,tau,pa, maximizationroutine) for z in 1:pa.Nz];
+    input = [modelState(z,pr,eq,tau,pa, maxroutine) for z in 1:pa.Nz];
     resultVector = pmap(maximizeParallel,input)
 
     for i in 1:length(resultVector)
@@ -302,7 +302,7 @@ function firmbellmanParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes,
 end
 
 
-function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maxroutine::Function=maximizationstep, tol=10.0^-3, maxit=5000, mp=false, verbose=true )
+function firmVFIParallelOmega!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; maxroutine::Function=maximizationstep, tol=10.0^-5, maxit=5000, mp=false, verbose=true )
   dist=Inf;
   dif=similar(pr.firmvalueguess);
   it=1;

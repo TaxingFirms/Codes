@@ -8,7 +8,7 @@ function magnitudes(tau::Taxes, pa::Param; r::Float64 = (pa.beta^(-1.0) -1.0)/(1
   ppsi =  w^(-pa.alphal/(1-pa.alphal))*(pa.alphal^(pa.alphal/(1-pa.alphal)) - pa.alphal^(1/(1-pa.alphal)));
   betatilde = (1.0 + (1.0-tau.i)/(1.0-tau.g)*r )^(-1.0);
 
-  userscost = (betatilde^-1.0-1.0)/(1.0-tau.c)+pa.delta;
+  userscost = (betatilde^-1.0-1.0+(1-pa.allowance*tau.c)*pa.delta)/(1.0-tau.c);
   capital_unc = Array(Float64,(pa.Nz,));
 
   for i_z=1:pa.Nz
@@ -19,7 +19,7 @@ function magnitudes(tau::Taxes, pa::Param; r::Float64 = (pa.beta^(-1.0) -1.0)/(1
 
   #conditional on issuing equity, users's cost becomes.
 
-  userscost2 = ((1.0+pa.lambda1)/betatilde -1.0)/(1.0-tau.c)+pa.delta;
+  userscost2 = ((1.0+pa.lambda1)/betatilde -1.0 +(1-pa.allowance*tau.c)*pa.delta)/(1.0-tau.c);
   capital_equity = Array(Float64,(pa.Nz,));
 
   for i_z=1:pa.Nz

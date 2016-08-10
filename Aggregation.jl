@@ -12,6 +12,7 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
   labor=0.0;
   netdistributions=0.0;
   liquidations=0.0;
+  liquidationtax = 0.0;
 
   for i_zprime in 1:pa.Nz
     #### First we consider entrants ###
@@ -104,6 +105,9 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 # Computes aggregates and moments once the model is completely solved.
   distr=eq.distr;
   taudtilde = 1-(1-tau.d)/(1-tau.g);
+  kprimefun = map(x->CoordInterpGrid(pa.omega.grid,pr.kpolicy[:,x],BCnearest, InterpLinear),1:pa.Nz);
+  qprimefun = map(x->CoordInterpGrid(pa.omega.grid,pr.qpolicy[:,x],BCnearest, InterpLinear),1:pa.Nz);
+
   ########## Initialize accumulators ###########
   # Aggregates
   capital=0.0;
@@ -113,7 +117,9 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   corptax=0.0;
   liquidations=0.0;
   liquidationcosts=0.0;
+  liquidationtax=0.0;
   netdistributions=0.0;
+  divs=0.0;
 
 
   #Moments
@@ -172,13 +178,14 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     omega0_ind = closestindex(omega0, pa.omega.step);
 
     netdistributions += pr.distributions[omega0_ind,i_zprime]*eq.E*pa.invariant_distr[i_zprime];
+    divs += max(omega0 -pa.f - pr.kpolicy[omega0_ind,i_zprime] + pr.qpolicy[omega0_ind,i_zprime] ,0.0)*eq.E*pa.invariant_distr[i_zprime];
     k0=pa.k0;
     q0=0.0;
     z0 = pa.zgrid[i_zprime];
     l0    = (z0*pa.alphal*k0^pa.alphak / eq.w)^(1/(1-pa.alphal));
     labor    += l0*eq.E*pa.invariant_distr[i_zprime];
     gdp      += (z0*k0^pa.alphak*l0^pa.alphal - pa.f)*eq.E*pa.invariant_distr[i_zprime];
-    corptax  += tau.c*max(z0*k0^pa.alphak*l0^pa.alphal - eq.w*l0 - pa.delta*k0 - eq.r*q0 - pa.f,0.0)*eq.E*pa.invariant_distr[i_zprime];
+    corptax  += tau.c*max(z0*k0^pa.alphak*l0^pa.alphal - eq.w*l0 - pa.allowance*pa.delta*k0 - eq.r*q0 - pa.f,0.0)*eq.E*pa.invariant_distr[i_zprime];
 
     if compute_moments
       freq_eqis+=(1-pr.positivedistributions[omega0_ind,i_zprime])*eq.E*pa.invariant_distr[i_zprime];
@@ -206,10 +213,17 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
           labor     += lprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           gdp       += (zprime*kprime^pa.alphak*lprime^pa.alphal - pa.f)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          corptax   += tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.delta*kprime - eq.r*qprime - pa.f,0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          corptax   += tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
+
+          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)
+
+          divs += max(omegaprimecheck -pa.f - kprimefun[i_zprime][omegaprimecheck] + qprimefun[i_zprime][omegaprimecheck] , 0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          divscheck = omegaprime - pa.f - pr.kpolicy[i_omegaprime,i_zprime] + pr.qpolicy[i_omegaprime,i_zprime] ;
           netdistributions+=pr.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          corptaxbase =  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f;
+
 
           if compute_moments
             freq_eqis+=(1-pr.positivedistributions[i_omegaprime,i_zprime])*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
@@ -263,6 +277,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
         else
           liquidationcosts += (1-pa.kappa)*(1-pa.delta)*kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
           liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          liquidationtax+= taudtilde*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
           capital += kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
@@ -285,7 +300,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   inctax = tau.i*eq.r*debt;
   labtax = tau.l*eq.w*labor;
 
-  G = divtax + corptax + inctax +labtax;
+  G = divtax + corptax + inctax +labtax + liquidationtax;
   ######################################
 
 
@@ -300,6 +315,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   if abs(capital - capitalcheck) >10.0^-4.0 ||
       abs(debt - debtcheck) >10.0^-4.0 ||
       abs(netdistributions - netdistributionscheck) >10.0^-4.0
+      # || abs(divs - grossdividends) >10.0^-3.0
     error("Consistency problem")
   end
 
@@ -351,7 +367,9 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
 
   ######## Save values #########
-  welfare = (log(consumption) - pa.H* labor_s)/(1-pa.beta);
+  welfare = pa.sigma==1 ?
+    (log(consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi) ) ) /(1-pa.beta):
+    (1/(1-pa.sigma)*(consumption - (pa.H/1+pa.psi)* labor_s^(1+pa.psi) )^(1-pa.sigma) ) /(1-pa.beta);
   collections = Taxes(divtax,corptax,inctax,0.0,labtax);
 
   eq.a=Aggregates(netdistributions, (1-tau.i)*eq.r*debt, consumption, gdp, labor, welfare, collections, debt, capital, investment, grossdividends, financialcosts, G);
