@@ -1,7 +1,7 @@
 #Variables of interest are GDP, Welfare, TFP, Consumption and Labor.
 
 
-function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
+function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c
@@ -20,8 +20,8 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   newG=eq1.a.G;
 
 
-  while abs(originalG -newG)>tol
-    println("originalG - newG ", originalG -newG)
+  while abs((originalG - newG)/originalG)>tol
+    println("(originalG - newG)/originalG ", (originalG - newG)/originalG)
     tau=deepcopy(taunew);
 
     D= eq1.a.collections.d / tau.d;
@@ -32,7 +32,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     pr1,eq1= SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
     newG=eq1.a.G;
   end
-  println("originalG - newG ", originalG -newG)
+  println("(originalG - newG)/originalG",(originalG - newG)/originalG)
  return pr1, eq1, taunew
 end
 
@@ -40,7 +40,7 @@ end
 
 
 
-function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0)
+function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c #corporate base
@@ -62,8 +62,8 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
     newG=eq1.a.G;
 
-    while abs(originalG -newG)>tol
-      println("originalG - newG ", originalG -newG)
+    while abs((originalG - newG)/originalG)>tol
+      println("(originalG - newG)/originalG", (originalG - newG)/originalG)
       tau=deepcopy(taunew);
 
       D= eq1.a.collections.d / tau.d;
@@ -74,7 +74,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
       pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
       newG=eq1.a.G;
     end
-    println("originalG - newG ", originalG -newG)
+    println("(originalG - newG)/originalG",(originalG - newG)/originalG)
     return pr1, eq1, taunew
   end
 end
@@ -82,7 +82,7 @@ end
 
 
 
-function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-6.0, verbose =false)
+function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0, verbose =false)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base
@@ -101,8 +101,8 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose)
   newG=eq1.a.G;
 
-  while abs(originalG -newG)>tol
-    println("originalG - newG ", originalG -newG)
+  while abs((originalG - newG)/originalG)>tol
+    println("(originalG - newG)/originalG",(originalG - newG)/originalG)
     tau=deepcopy(taunew);
 
     D= eq1.a.collections.d / tau.d;
@@ -115,6 +115,6 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
     newG=eq1.a.G;
   end
-  println("originalG - newG ", originalG -newG)
+  println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
   return pr1, eq1, taunew
 end

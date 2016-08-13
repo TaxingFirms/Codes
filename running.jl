@@ -29,6 +29,7 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
  capital, debt, networth, dividends, investment, z_history_ind = simulation(50,50,pr,pa);
+using PyPlot
 figure()
 plot(capital)
 figure()
