@@ -77,8 +77,5 @@ pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64,
 comment:"I am happy enough with this calibration"
 
 #Try to match tax base ratio
-pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.7, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.0, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
 comment:"can't match the tax base, even with 0.0 allowance"
-
-#Ask what does A do
-pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.7, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=2.33);
