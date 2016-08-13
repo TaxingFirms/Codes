@@ -69,12 +69,12 @@ imshow(regions,aspect="auto",extent=(fp.zgrid[1],fp.zgrid[end],pr.omega.ub,0))
 #######
 
 # Simple
-oneDimension = squeeze(sum(p.distr,2),2)
+oneDimension = squeeze(sum(eq.distr,2),2)
 figure()
-plot(omegagrid,p.distr[:,2],"r--",linewidth=2.0,label="z low")
+plot(pa.omega.grid,eq.distr[:,2],"r--",linewidth=2.0,label="z low")
 xlim(0,2)
-plot(omegagrid,p.distr[:,5],"g+-",linewidth=2.0,label="z mid")
-plot(omegagrid,p.distr[:,8],"b",linewidth=2.0,label="z high")
+plot(pa.omega.grid,eq.distr[:,5],"g+-",linewidth=2.0,label="z mid")
+plot(pa.omega.grid,eq.distr[:,8],"b",linewidth=2.0,label="z high")
 legend()
 xlabel("Firm Net Worth")
 ylabel("Firm Mass")

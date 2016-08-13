@@ -1,14 +1,14 @@
-dataMoments = [.063,0.105,0.211,0.091,0.256,0.509,0.13,0.33];
+dataMoments = [.063,0.105,0.211,0.091,0.256,0.509,0.13,0.33,3.36];
 namesMoments = ["Mean Investment","SD Profits","Mean Leverage",
 "Mean Equity Issuance","Frequency of Equity Issuance","Autocovariance Profits",
-"Turnover","Time At Work"];
+"Turnover","Time At Work","Tax Base Ratio"];
 ################################################################################
 #Copy after changing params
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.68);
+@time pr,eq= SolveSteadyState(tau,pa;wguess=0.65, VFItol=10.0^-3.0,verbose=false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
  moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
-moments.turnover, moments.labor];
+moments.turnover, moments.labor,(eq.a.collections.c/tau.c)/(eq.a.collections.d/tau.d)];
 relErrors=(currentMomentsMatch - dataMoments)./dataMoments;
 println(DataFrame(names=namesMoments,moments= currentMomentsMatch, errors=relErrors))
 
@@ -49,3 +49,36 @@ pa  = init_parameters( H=1.3, ff= 0.05, llambda0=0.02, llambda1= 0.04, ddelta = 
 comment:"Moments are very nice: but growing out of constraints mechanism is not present. Wage =0.67, Which helps with ave profits "
 
 pa  = init_parameters( H=1.5, ff= 0.01, llambda0=0.06, llambda1= 0.04, ddelta = 0.095, ttheta = 0.25,rhoz= 0.76, ssigmaz= 0.09, e=0.08);
+
+
+
+pa  = init_parameters( H=1.32, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.05, llambda1= 0.06, ddelta = 0.12, allowance=0.2, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.085, e=0.1, A=1.0);
+tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
+comment:"Turnover is very low "
+
+#First fix leverage and H
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.05, llambda1= 0.06, ddelta = 0.12, allowance=0.2, ttheta = 0.25,rhoz= 0.76, ssigmaz= 0.085, e=0.1, A=1.0);
+comment:"Turnover is very low. I need more small firm.  "
+
+#Increase lambda0, lambda1
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.08, llambda1= 0.08, ddelta = 0.12, allowance=0.2, ttheta = 0.25,rhoz= 0.76, ssigmaz= 0.085, e=0.1, A=1.0);
+comment:"lambda0 desn't do much. lambda1 actually decreases turnover "
+
+#Forget about turnover
+comment:"I need a new moment to match f"
+#and try to match equity isuuances
+
+#THIS IS THE BEST CALIBRATION.
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.02, llambda1= 0.04, ddelta = 0.12, allowance=0.2, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
+comment:"Frecuency of equity issuances is slightly low. Everything else looks very nice (except for tax base ratio)"
+
+#decrease lambda0
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.2, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
+comment:"I am happy enough with this calibration"
+
+#Try to match tax base ratio
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.7, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
+comment:"can't match the tax base, even with 0.0 allowance"
+
+#Ask what does A do
+pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.7, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=2.33);

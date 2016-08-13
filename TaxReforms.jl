@@ -51,28 +51,32 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   wguess= eq.w;
 
   x= (tauc - tau.c)*C/D;
-  taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
-  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
-
-  #Initiate prices and firm problem, and ultimately, the counterfactual object.
-
-  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
-  newG=eq1.a.G;
-
-  while abs(originalG -newG)>tol
-    println("originalG - newG ", originalG -newG)
-    tau=deepcopy(taunew);
-
-    D= eq1.a.collections.d / tau.d;
-    ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
-    taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
+  if (tauc)*(1-tau.g-x)>(1-tau.i)
+    println("No equilibrium under current taxes")
+  else
+    taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+    #Initiate prices and firm problem, and ultimately, the counterfactual object.
+
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
     newG=eq1.a.G;
+
+    while abs(originalG -newG)>tol
+      println("originalG - newG ", originalG -newG)
+      tau=deepcopy(taunew);
+
+      D= eq1.a.collections.d / tau.d;
+      ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
+      taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
+      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+      pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+      newG=eq1.a.G;
+    end
+    println("originalG - newG ", originalG -newG)
+    return pr1, eq1, taunew
   end
-  println("originalG - newG ", originalG -newG)
-  return pr1, eq1, taunew
 end
 
 

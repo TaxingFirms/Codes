@@ -22,12 +22,19 @@ include("Simulations.jl")
 include("Magnitudes.jl")
 
 #pa  = init_parameters( H=1.7, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.14, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.045, A=1.0);
-pa  = init_parameters( H=1.3, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.14, allowance=0.6, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.045);
+pa  = init_parameters( H=1.32, bbeta=0.972, ff= 0.1, aalphak=0.23, aalphal=0.64, llambda0=0.05, llambda1= 0.06, ddelta = 0.12, allowance=0.2, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.085, e=0.2);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0);
+@time pr,eq= SolveSteadyState(tau,pa;wguess=0.44, VFItol=10.0^-3.0,verbose=false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+ capital, debt, networth, dividends, investment, z_history_ind = simulation(50,50,pr,pa);
+figure()
+plot(capital)
+figure()
+plot(debt)
+figure()
+plot(dividends)
 
 include("runReforms.jl")
 
