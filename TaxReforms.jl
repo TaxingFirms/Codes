@@ -1,7 +1,7 @@
 #Variables of interest are GDP, Welfare, TFP, Consumption and Labor.
 
 
-function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0)
+function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c
@@ -16,7 +16,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-  pr1,eq1=SolveSteadyState(taunew,pa;  wguess = wguess, verbose=false);
+  pr1,eq1=SolveSteadyState(taunew,pa;  wguess = wguess,maxroutine=maxroutine, verbose=false);
   newG=eq1.a.G;
 
 
@@ -29,7 +29,7 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     taunew = Taxes(ntaud,tau.c,tau.i,tau.g,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1= SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+    pr1,eq1= SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false);
     newG=eq1.a.G;
   end
   println("(originalG - newG)/originalG",(originalG - newG)/originalG)
@@ -40,7 +40,7 @@ end
 
 
 
-function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0)
+function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c #corporate base
@@ -59,7 +59,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false)
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false)
     newG=eq1.a.G;
 
     while abs((originalG - newG)/originalG)>tol
@@ -68,10 +68,15 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
       D= eq1.a.collections.d / tau.d;
       ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
+
+      if (tau.c)*(1-ntau-x)>(1-tau.i)
+        println("No equilibrium under current taxes")
+        break
+      end
       taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
       println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-      pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+      pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false);
       newG=eq1.a.G;
     end
     println("(originalG - newG)/originalG",(originalG - newG)/originalG)
@@ -82,7 +87,7 @@ end
 
 
 
-function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update =0.7, tol =10.0^-2.0, verbose =false)
+function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine, verbose::Bool =false)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base
@@ -98,7 +103,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
-  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose)
+  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=verbose)
   newG=eq1.a.G;
 
   while abs((originalG - newG)/originalG)>tol
@@ -112,7 +117,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     taunew = Taxes(ntauind,tauc,ntauind,ntauind,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=false);
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false);
     newG=eq1.a.G;
   end
   println("(originalG - newG)/originalG ",(originalG - newG)/originalG)

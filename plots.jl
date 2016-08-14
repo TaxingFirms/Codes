@@ -32,24 +32,6 @@ for i_omega in 1:fp.Nomega, i_z in 1:fp.Nz
 end
 
 
-for i=1:pa.Nz
-figure()
-d= plot(pa.omega.grid, pr.distributions[:,i] )
-k= plot(pa.omega.grid, pr.kpolicy[:,i] )
-q= plot(pa.omega.grid, pr.qpolicy[:,i] )
-  xlabel("Net worth")
-  title("Policy functions at z=%f")
-  legend("dkq", loc="best")
-end
-
-
-
-for i=1:pa.Nz
- plot(pa.omega.grid, pr.firmvaluegrid[:,i] )
-  xlabel("Net worth")
-  title("Value function")
-end
-
 figure()
 subplot(121)
 imshow(res.exitprobability,aspect="auto",extent=(fp.zgrid[1],fp.zgrid[end],pr.omega.ub,0))

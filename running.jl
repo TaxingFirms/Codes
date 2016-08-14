@@ -20,22 +20,20 @@ using StatsFuns
 @everywhere include("Transitions.jl")
 include("Simulations.jl")
 include("Magnitudes.jl")
+include("PlotFunctions.jl")
 
-#pa  = init_parameters( H=1.7, ff= 0.15, llambda0=0.02, llambda1= 0.04, ddelta = 0.14, ttheta = 0.3,rhoz= 0.76, ssigmaz= 0.045, A=1.0);
-pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.009, llambda1= 0.04, ddelta = 0.11, allowance=0.0, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
+#See August13jl for parameter selection
+pa =init_parameters( H=1.65, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.0075, llambda1= 0.04, ddelta = 0.12,
+                      allowance=0.86, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.1, e=0.0, A=1.0);
 tau = init_taxes(ttaud =0.12, ttauc= 0.35, ttaui= 0.29, ttaug= 0.12, ttaul=0.28);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.65, VFItol=10.0^-3.0,verbose=false);
+@time pr,eq= SolveSteadyState(tau,pa;wguess=0.72, VFItol=10.0^-3.0, maxroutine=maximizationbf, verbose=false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
- capital, debt, networth, dividends, investment, z_history_ind = simulation(50,50,pr,pa);
-using PyPlot
-figure()
-plot(capital)
-figure()
-plot(debt)
-figure()
-plot(dividends)
+
+rpr,req,rtau = taxreform2(0.3, eq, tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationbf);
+moments=computeMomentsCutoff(req.E,rpr,req,rtau,pa,cutoffCapital=0.0);
+plotpolicies(rpr, pa)
 
 include("runReforms.jl")
 
