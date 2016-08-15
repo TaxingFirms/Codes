@@ -16,18 +16,18 @@ ref=Array(Economy,(Nrb+Nra+1,));
 ref[1]=Economy(pr,eq,tau,0.0);
 
 for j=1:Nrb
-    rpr,req,rtau = taxreform2(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationbf);
+    rpr,req,rtau = taxreform2(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-2.0,update=0.7,momentsprint=true);
     cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w/pa.H)^(1+pa.psi) - (eq.w/pa.H)^(1+pa.psi) );
     ref[j+1]=Economy(rpr,req,rtau,cev);
     save("CounterfactualBoth.jld","ref",ref,"pa",pa);
 end
 
 
-rpr,req,rtau = taxreform2(taxesa[1], ref[1].eq, ref[1].tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationbf);
+rpr,req,rtau = taxreform2(taxesa[1], ref[1].eq, ref[1].tau, pa; tol=10.0^-2.0,update=0.7,momentsprint=true);
 ref[Nra+1]=Economy(rpr,req,rtau);
 
 for j=2:Nra
-    rpr,req,rtau = taxreform2(taxesa[j], ref[j-1].eq, ref[j-1].tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationbf);
+    rpr,req,rtau = taxreform2(taxesa[j], ref[j-1].eq, ref[j-1].tau, pa; tol=10.0^-2.0,update=0.7,momentsprint=true);
     ref[Nra+j]=Economy(rpr,req,rtau);
 end
 

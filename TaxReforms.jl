@@ -1,7 +1,7 @@
 #Variables of interest are GDP, Welfare, TFP, Consumption and Labor.
 
 
-function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine)
+function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maximizationfast)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c
@@ -40,7 +40,9 @@ end
 
 
 
-function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine)
+function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param;
+  update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maximizationfast,
+  momentsprint::Bool=false)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c #corporate base
@@ -60,6 +62,9 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
 
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false)
+    if momentsprint
+      moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
+    end
     newG=eq1.a.G;
 
     while abs((originalG - newG)/originalG)>tol
@@ -87,7 +92,7 @@ end
 
 
 
-function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maxroutine, verbose::Bool =false)
+function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, maxroutine::Function=maximizationfast, verbose::Bool =false)
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base
@@ -97,7 +102,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   originalG=eq.a.G;
   wguess= eq.w;
 
-  tauind= (originalG - tauc*C)/(D + I);
+  tauind= (originalG - tauc*C - eq.a.collections.l)/(D + I);
   taunew = Taxes(tauind,tauc,tauind,tauind,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
@@ -111,7 +116,7 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     tau=deepcopy(taunew);
 
     D= eq1.a.collections.d / tau.d;
-    tauind= (originalG - tauc*C)/(D + I);
+    tauind= (originalG - tauc*C - eq1.a.collections.l)/(D + I);
     ntauind= update*tau.d + (1-update)*tauind;
 
     taunew = Taxes(ntauind,tauc,ntauind,ntauind,tau.l);

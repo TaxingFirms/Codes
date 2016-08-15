@@ -67,6 +67,54 @@ function maximizationbf(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem,
 end
 
 
+function maximizationfast(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
+  mmax = -Inf;
+  kprimestar::Real = NaN;
+  qprimestar::Real = NaN;
+
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+  discounted_interest = betatilde*(1+(1-tau.c)*eq.r);
+
+  if discounted_interest > 1
+    error("Maximization fast is only suited for impatient firms")
+  end
+
+  for kprime in pa.kprime.grid
+    if kprime<omega*pa.leverageratio
+      lowerbound=kprime-omega;
+      aproxindex= (lowerbound-pa.qprime.lb)/pa.qprime.step;
+      index = trunc(Int64,aproxindex) +1;
+      for qprime in pa.kprime.grid[index]:pa.qprime.step:pa.collateral_factor*kprime
+        objective = objectivefun(kprime, qprime, omega, i_z, pr, eq, tau, pa);
+        if objective > mmax
+          mmax = objective;
+          kprimestar = kprime;
+          qprimestar = qprime;
+        end
+      end
+      qprime = pa.collateral_factor*kprime;
+      objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
+      if objective > mmax
+        mmax = objective;
+        kprimestar = kprime;
+        qprimestar = qprime;
+      end
+    else
+      qprime = pa.collateral_factor*kprime;
+      objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
+      if objective > mmax
+        mmax = objective;
+        kprimestar = kprime;
+        qprimestar = qprime;
+      end
+    end
+  end
+    extractpolicies?
+    (mmax, kprimestar, qprimestar):
+    mmax
+end
+
+
 # Maximization step
 function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
   mmax = -Inf;
