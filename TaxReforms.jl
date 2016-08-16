@@ -67,6 +67,7 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     newG=eq1.a.G;
     newfirmvalueguess=copy(pr1.firmvaluegrid);
+    newwguess=eq1.w;
 
     while abs((originalG - newG)/originalG)>tol
         println("(originalG - newG)/originalG", (originalG - newG)/originalG)
@@ -81,9 +82,10 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
         taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
         println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose, firmvalueguess = newfirmvalueguess);
+        pr1,eq1=SolveSteadyState(taunew,pa; wguess = newwguess, verbose=verbose, firmvalueguess = newfirmvalueguess);
         newG=eq1.a.G;
         newfirmvalueguess=copy(pr1.firmvaluegrid);
+        newwguess=eq1.w;
         println("(originalG - newG)/originalG",(originalG - newG)/originalG)
         return pr1, eq1, taunew
     end

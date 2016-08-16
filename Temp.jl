@@ -33,10 +33,11 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 initialguess=copy(pr.firmvaluegrid);
 pr1, eq1, taunew =taxreform2(0.3, eq, tau, pa; momentsprint=true, verbose=true, firmvalueguess=initialguess);
+moments1=computeMomentsCutoff(eq1.E,pr1,eq1,taunew,pa,cutoffCapital=0.0);
 
 
+taxesb=[0.3 0.25 0.2 0.15 0.1 0.05 0.0];
 
+Reform2Vector("BenchmarkReforms2Below.jld", taxesb, pr, eq, tau, pa)
 
-pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
-
-ref,pa=load("CounterfactualBoth.jld", "ref","pa")
+taxesa=[0.4 0.45 0.5];
