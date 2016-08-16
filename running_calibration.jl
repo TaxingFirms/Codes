@@ -23,11 +23,11 @@ using StatsFuns
 
 # Optimization
 #         delta     rhoz    sigmaz   theta   lambda0   lambda1
-LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001, .005, .5 ]
+LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001, .005]
 #         delta     rhoz    sigmaz   theta
-UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03, .06, 1.5 ]
+UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03, .06]
 
-initialGuess = [0.14,0.76,0.0352,.45,.08,.028,.0145,0.84]
+initialGuess = [0.14,0.76,0.0352,.45,.08,.028,.0145]
 count        = 0
 
 
@@ -36,20 +36,13 @@ using NLopt
 using Calculus
 
 function f(x::Vector,grad::Vector)
-	println("hello1")
     g(y) =  try   
-                println("hello2")
-                println(y)
-                println(length(y))     
                 computeDistance(y)
             catch eexception
-                println("hello3")
                 if isa(eexception,ErrorException)
-                    println("hello4")
                     println(eexception)
                     100000000000.0               
                 else
-                    println("hello5")
                     println(eexception)
                     throw(eexception)
                 end
@@ -62,7 +55,7 @@ function f(x::Vector,grad::Vector)
 	answer = g(x)
 	global count
     count::Int += 1
-    println("f_$count($x)=$answer")
+    println("f",count,"  [",x, "] = ",answer)
     answer
 end
 
