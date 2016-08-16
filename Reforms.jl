@@ -24,6 +24,6 @@ function Reform2Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
     end
-
+    ref
 end
 

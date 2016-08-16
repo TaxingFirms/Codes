@@ -44,7 +44,7 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 taxesb=[0.3 0.25 0.2 0.15 0.1 0.05 0.0];
 taxesa=[0.4 0.45 0.5];
 
-Reform2Vector("BenchmarkReforms2.jld", taxesb, pr, eq, tau, pa)
+ref=Reform2Vector("BenchmarkReforms2.jld", taxesb, pr, eq, tau, pa)
 
 
 
