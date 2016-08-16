@@ -31,8 +31,8 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 
-
-pr1, eq1, taunew =taxreform2(0.3, eq, tau, pa; momentsprint=true, verbose=true)
+initialguess=copy(pr.firmvaluegrid);
+pr1, eq1, taunew =taxreform2(0.3, eq, tau, pa; momentsprint=true, verbose=true, firmvalueguess=initialguess);
 
 
 

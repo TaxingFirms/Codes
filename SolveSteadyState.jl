@@ -1,10 +1,10 @@
 function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.0^-3.0,
   VFIfunction::Function = firmVFIParallelOmega!, distr_routine::Function = stationarydist,
-     maxroutine::Function=maximizationfast ,verbose::Bool=true )
+     maxroutine::Function=maximizationfast ,verbose::Bool=true, firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 
 # wguess=0.72; VFItol =10.0^-3.0; VFIfunction=firmVFIParallelOmega!; distr_routine = stationarydist; maxroutine=maximizationstep; verbose=true;
   eq = init_equilibirium(wguess,tau,pa);
-  pr  = init_firmproblem(pa);
+  pr  = init_firmproblem(pa, firmvalueguess= firmvalueguess);
 
   #Compute the model on first time
   VFIfunction(pr,eq,tau,pa; maxroutine=maxroutine , verbose = verbose, tol = VFItol ); #pr is updated, computes Value Function

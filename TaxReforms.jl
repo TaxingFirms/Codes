@@ -40,7 +40,7 @@ end
 
 
 
-function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, momentsprint::Bool=false, verbose::Bool=false)
+function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-2.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 
     #Compute tax base for "revenue neutral" reforms
     C = eq.a.collections.c / tau.c #corporate base
@@ -60,12 +60,13 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose)
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose, firmvalueguess = firmvalueguess)
     if momentsprint
         moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
     end
 
     newG=eq1.a.G;
+    newfirmvalueguess=copy(pr1.firmvaluegrid);
 
     while abs((originalG - newG)/originalG)>tol
         println("(originalG - newG)/originalG", (originalG - newG)/originalG)
@@ -80,8 +81,9 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
         taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
         println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose);
+        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose, firmvalueguess = newfirmvalueguess);
         newG=eq1.a.G;
+        newfirmvalueguess=copy(pr1.firmvaluegrid);
         println("(originalG - newG)/originalG",(originalG - newG)/originalG)
         return pr1, eq1, taunew
     end
