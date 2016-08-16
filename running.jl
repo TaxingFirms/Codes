@@ -31,23 +31,23 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-include("runReforms.jl")
-
-rpr,req,rtau = taxreform3(0.3, eq, tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationfast);
-moments=computeMomentsCutoff(req.E,rpr,req,rtau,pa,cutoffCapital=0.0);
+include("Reforms.jl")
 
 
 
-@time pr3,eq3,tau3 = taxreform3(0.3, eq, tau, pa; tol=10.0^-4.0, update = 0.98);
-save("Counterfactual3.jld","pr",pr3,"eq",eq3,"tau",tau3,"pa",pa);
+#taxesb=[0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01];
+taxesb=[0.3 0.25 0.2 0.15 0.1 0.05 0.0];
+taxesa=[0.4 0.45 0.5];
 
-@time pr4,eq4,tau4 = taxreform3(0.0, eq, tau, pa);
-save("Counterfactual4.jld","pr",pr4,"eq",eq4,"tau",tau4,"pa",pa);
+Reform2Vector("BenchmarkReforms2.jld", taxesb, pr, eq, tau, pa)
 
-#NOT WORKING
-##@time pr1,eq1,tau1 = taxreform1(0.3, eq, tau, pa);
-##save("Counterfactual1.jld","pr",pr1,"eq",eq1,"tau",tau1,"pa",pa);
-##
+
+
+
+
+
+
+
 
 ("Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
   " llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7], "H", initialParams[8]
