@@ -3,10 +3,15 @@
 # push!(LOAD_PATH, "/Path/To/My/Module/")
 
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
+
 @everywhere using Roots:fzero
+
 using QuantEcon:tauchen
+
 using JLD
+
 using DataFrames
+
 using StatsFuns
 
 @everywhere include("Main.jl")
@@ -20,7 +25,7 @@ using StatsFuns
 @everywhere include("Transitions.jl")
 include("Simulations.jl")
 include("Magnitudes.jl")
-include("PlotFunctions.jl")
+include("Reforms.jl")
 
 #See August13jl for parameter selection
 pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.004, llambda1= 0.04, ddelta = 0.13,
@@ -31,7 +36,7 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-include("Reforms.jl")
+
 
 
 

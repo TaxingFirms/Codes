@@ -1,4 +1,4 @@
-function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.0^-6.0,
+function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.0^-3.0,
   VFIfunction::Function = firmVFIParallelOmega!, distr_routine::Function = stationarydist,
      maxroutine::Function=maximizationfast ,verbose::Bool=true )
 
