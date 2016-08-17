@@ -66,3 +66,24 @@ comment:"I am happy enough with this calibration"
 #Try to match tax base ratio
 pa  = init_parameters( H=1.4, bbeta=0.972, ff= 0.15, aalphak=0.23, aalphal=0.64, llambda0=0.01, llambda1= 0.04, ddelta = 0.12, allowance=0.0, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.085, e=0.0, A=1.0);
 comment:"can't match the tax base, even with 0.0 allowance"
+
+
+#TRY TO GO BACK TO COMPLETE ALLOWANCE
+pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.004, llambda1= 0.04, ddelta = 0.13,
+                      allowance=1.00, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.09, e=0.0, A=1.0);
+comment:"invetmenst is too high. decrease delta"
+
+#decrease delta
+pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.004, llambda1= 0.04, ddelta = 0.11,
+                      allowance=1.00, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.09, e=0.0, A=1.0);
+comment:"pretty good. investment a bit high"
+
+#decrease delta
+pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.004, llambda1= 0.04, ddelta = 0.1,
+                      allowance=1.00, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.09, e=0.0, A=1.0);
+comment:"investment is good. Too high average equity issuances"
+
+#increase lambda0
+pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.006, llambda1= 0.04, ddelta = 0.1,
+                      allowance=1.00, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.09, e=0.0, A=1.0);
+comment:"FINAL PARAMETERS FOR EXERCISES"
