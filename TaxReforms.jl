@@ -55,23 +55,20 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     x= (tauc - tau.c)*C/D;
 
-    # if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
-    #     error("No equilibrium under current taxes")
-    # end
+    if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
+         error("No equilibrium under current taxes")
+    end
 
     taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose, firmvalueguess = firmvalueguess);
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose);
     if momentsprint
         moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
     end
 
     newG=eq1.a.G;
-    newfirmvalueguess=copy(pr1.firmvaluegrid);
-    newwguess=eq1.w;
-
     while abs((originalG - newG)/originalG)>tol
         println("(originalG - newG)/originalG ", (originalG - newG)/originalG)
         tauprime=deepcopy(taunew);
@@ -79,20 +76,20 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
         D= eq1.a.collections.d / tauprime.d;
         ntau= update*tauprime.d + (1-update)*(tauprime.d + (originalG -newG)/D);
 
-    #    if (1-tauprime.c)*(1-ntau)>(1-tau.i)
-    #        error("No equilibrium under current taxes")
-    #    end
+        if (1-tauprime.c)*(1-ntau)>(1-tau.i)
+            error("No equilibrium under current taxes")
+        end
         taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tau.l);
         println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-        pr1,eq1=SolveSteadyState(taunew,pa; wguess = newwguess, verbose=verbose, firmvalueguess = newfirmvalueguess);
+        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, verbose=verbose);
+        if momentsprint
+            moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+        end
         newG=eq1.a.G;
-        newfirmvalueguess=copy(pr1.firmvaluegrid);
-        newwguess=eq1.w;
-        println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
-        println(abs((originalG - newG)/originalG)>tol)
-        return pr1, eq1, taunew
     end
+  println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
+  return pr1, eq1, taunew
 end
 
 
@@ -116,18 +113,21 @@ function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=verbose)
   newG=eq1.a.G;
 
-  while abs((originalG - newG)/originalG)>tol
-    println("(originalG - newG)/originalG",(originalG - newG)/originalG)
-    tau=deepcopy(taunew);
+  newfirmvalueguess=copy(pr1.firmvaluegrid);
+  newwguess=eq1.w;
 
-    D= eq1.a.collections.d / tau.d;
+  while abs((originalG - newG)/originalG)>tol
+    println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
+    tauprime=deepcopy(taunew);
+
+    D= eq1.a.collections.d / tauprime.d;
     tauind= (originalG - tauc*C - eq1.a.collections.l)/(D + I);
-    ntauind= update*tau.d + (1-update)*tauind;
+    ntauind= update*tauprime.d + (1-update)*tauind;
 
     taunew = Taxes(ntauind,tauc,ntauind,ntauind,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false);
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false, firmvalueguess = newfirmvalueguess);
     newG=eq1.a.G;
   end
   println("(originalG - newG)/originalG ",(originalG - newG)/originalG)

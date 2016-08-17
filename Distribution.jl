@@ -197,7 +197,7 @@ function distributionStupid(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes
 
 end
 
-function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; cutoffCapital::Float64=0.0, toPrint::Bool=true)
+function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; cutoffCapital::Float64=0.0, toPrint::Bool=false)
 
   indexCutoff = 1
   for i in 1:pa.Nomega
