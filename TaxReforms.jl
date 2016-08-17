@@ -55,9 +55,9 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
     x= (tauc - tau.c)*C/D;
 
-    if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
-        error("No equilibrium under current taxes")
-    end
+    # if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
+    #     error("No equilibrium under current taxes")
+    # end
 
     taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
