@@ -32,7 +32,7 @@ function computeDistance(initialParams)
 	moments.mean_profits2k, moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
 	moments.turnover, moments.labor]
 
-	sum((currentMomentsMatch-dataMoments).^2)
+	sum((currentMomentsMatch-dataMoments).^2.0)
 end
 
 
