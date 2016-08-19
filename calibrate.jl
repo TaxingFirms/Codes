@@ -32,5 +32,5 @@ function computeDistance(initialParams)
 	moments.sd_leverage,moments.mean_dividends2k,moments.sd_dividends2k,moments.mean_profits2k,
 	moments.sd_profits2k,moments.mean_eqis2k,moments.freq_equis2k,moments.autocov_profits2k]
 
-	sum((currentMomentsMatch-dataMoments).^2)
+	sum((currentMomentsMatch-dataMoments).^2.0)
 end
