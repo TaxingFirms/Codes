@@ -23,11 +23,11 @@ using StatsFuns
 
 # Optimization
 #         delta     rhoz    sigmaz   theta   lambda0   lambda1
-LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001, .005]
+LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001]
 #         delta     rhoz    sigmaz   theta
-UB  = [     .15,     .95,   .50 ,     .8,    .15,         .03, .06]
+UB  = [     .15,     .95,   .50 ,     .8,    .15,         .09]
 
-initialGuess = [0.14,0.76,0.0352,.45,.08,.028,.0145]
+initialGuess = [0.14,0.76,0.0352,.45,.08,.028]
 count        = 0
 
 
