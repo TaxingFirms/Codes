@@ -25,7 +25,7 @@ function computeDistance(initialParams)
 	Nnz = round(Int64,factorToBenchmark*9); Nnk = round(Int64,factorToBenchmark*80); Nnq = round(Int64,factorToBenchmark*40); Nnomega = round(Int64,factorToBenchmark*100);
 	pa  = init_parameters(ddelta=initialParams[1],rhoz=initialParams[2],ssigmaz=initialParams[3],ttheta=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
 	tau = init_taxes();
-
+	pr,eq= SolveSteadyState(tau,pa);
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_inv_rate,moments.mean_leverage,
