@@ -13,10 +13,10 @@ function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.
   w=free_entry!(eq, pr, tau, pa, VFIfunction, maxroutine, VFItol ; verbose = verbose)
 
   #Extract policies and other idiosyncratic results of interest
-  getpolicies!(pr,eq,tau,pa);  #r is updated exctracts policies
+  getpolicies!(pr,eq,tau,pa);  #pr is updated exctracts policies
 
   # Compute mass of entrants and stationary distribution
-  # both are updated in p.
+  # both are updated in eq.
   mass_of_entrantsGHH!( pr, eq, tau, pa, distr_routine ; verbose = false);
 
   # Compute aggregate results of interest and moments

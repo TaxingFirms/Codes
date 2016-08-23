@@ -32,17 +32,6 @@ pcterror_params(pr,eq,tau,pa)
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-#taxesb=[0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01];
-taxesb=[0.3 0.25 0.2 0.15 0.1 0.05 0.0];
-taxesa=[0.4 0.45 0.5];
-
-ref=Reform2Vector("BenchmarkReforms2.jld", taxesb, pr, eq, tau, pa)
-
-
-
-
-
-
 
 
 

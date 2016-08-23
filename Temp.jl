@@ -24,22 +24,25 @@ include("Reforms.jl")
 
 pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.006, llambda1= 0.04, ddelta = 0.1,
-                      allowance=1.00, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.09, e=0.0, A=1.0);
-                      tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.29, ttaug= 0.15, ttaul=0.28);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.54, VFItol=10.0^-3.0, verbose=false);
-pcterror_params(pr,eq,tau,pa)
-
-initialguess=copy(pr.firmvaluegrid);
-pr1, eq1, taunew =taxreform2(0.0, eq, tau, pa; momentsprint=true, verbose=true, firmvalueguess=initialguess);
-moments1=computeMomentsCutoff(eq1.E,pr1,eq1,taunew,pa,cutoffCapital=0.0);
-
-
+#taxesb=[0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01];
 taxesb=[0.3 0.25 0.2 0.15 0.1 0.05 0.0];
-
-Reform2Vector("BenchmarkReforms2Below.jld", taxesb, pr, eq, tau, pa)
-
 taxesa=[0.4 0.45 0.5];
 
-Reform2Vector("BenchmarkReforms2Above.jld", taxesa, pr, eq, tau, pa)
-ref,pa= load("BenchmarkReforms2Below.jld","ref","pa");
+
+rpr,req,rtau = taxreform6(0.0, eq, tau, pa; tol=10.0^-3.0,update=0.5,momentsprint=true);
+  save("Reforms6","rpr",rpr,"req",req,"rtau",rtau,"pa",pa);
+
+#On TEsla
+rpr,req,rtau = taxreform5(0.0, eq, tau, pa; tol=10.0^-3.0,update=0.7,momentsprint=true);
+save("Reforms5","rpr",rpr,"req",req,"rtau",rtau,"pa",pa);
+
+
+#ref=Reform5Vector("BenchmarkReforms5b.jld", taxesb, pr, eq, tau, pa)
+
+#ref=Reform2Vector("BenchmarkReforms2b.jld", taxesb, pr, eq, tau, pa)
+#ref=Reform3Vector("BenchmarkReforms3b.jld", taxesb, pr, eq, tau, pa)
+#ref=Reform1Vector("BenchmarkReforms1b.jld", taxesb, pr, eq, tau, pa)
+
+#ref=Reform2Vector("BenchmarkReforms2a.jld", taxesa, pr, eq, tau, pa)
+#ref=Reform3Vector("Benchmark1Reforms3a.jld", taxesa, pr, eq, tau, pa)
+#ref=Reform1Vector("Benchmark1Reforms1a.jld", taxesa, pr, eq, tau, pa)
