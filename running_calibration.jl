@@ -27,21 +27,19 @@ LB  = [     .01,      .5,    .01,    .01 ,   .01,       .0001,   .0001,  .01  ]
 #         delta     rhoz    sigmaz   theta
 UB  = [     .15,     .95,   .50 ,     .8,    .15,         .09,   .5,    .9    ]
 
-initialGuess = [0.14,0.76,0.0352,.45,.08,.028, 0.0145, .84]
+initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176]
 count        = 0
-
-
 
 using NLopt
 using Calculus
 
 function f(x::Vector,grad::Vector)
-    g(y) =  try   
+    g(y) =  try
                 computeDistance(y)
             catch eexception
                 if isa(eexception,ErrorException)
                     println(eexception)
-                    100000000000.0               
+                    100000000000.0
                 else
                     println(eexception)
                     throw(eexception)
