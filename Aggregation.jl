@@ -225,9 +225,13 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
 
   ######## Save values #########
-  welfare = pa.sigma==1 ?
-    (log(consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi) ) ) /(1-pa.beta):
-    (1/(1-pa.sigma)*(consumption - (pa.H/1+pa.psi)* labor_s^(1+pa.psi) )^(1-pa.sigma) ) /(1-pa.beta);
+  logarg = consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi) < 0.0 ?
+    eps(): consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi);
+  logarg<0 && error("Negative Argument for log utility")
+
+  welfare = pa.sigma==1.0 ?
+    log( logarg ) /(1-pa.beta):
+    (1/(1-pa.sigma)*( logarg )^(1-pa.sigma) ) /(1-pa.beta);
   collections = Taxes(divtax,corptax,inctax,0.0,labtax);
 
   eq.a=Aggregates(netdistributions, (1-tau.i)*eq.r*debt, consumption, gdp, labor, welfare, collections, debt, capital, investment, grossdividends, financialcosts, G);
