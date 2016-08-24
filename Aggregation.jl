@@ -462,7 +462,7 @@ function aggregatesold!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;
     error("labor market didn't clear")
   end
 
-  if abs((gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)>10.0^-4.0
+  if abs((gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)>10.0^-2.0
         println("goods market didn't clear by: ", (gdp - G - financialcosts - investment -liquidationcosts  ) - consumption)
   end
 
