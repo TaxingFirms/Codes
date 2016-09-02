@@ -53,8 +53,11 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param;
   wguess= eq.w;
 
   x= (tauc - tau.c)*C/D;
-  if (tauc)*(1-tau.g-x)>(1-tau.i)
+  if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
     println("No equilibrium under current taxes")
+    eq = init_equilibirium(eq.w,tau,pa);
+    pr  = init_firmproblem(pa);
+    return pr, eq, tau
   else
     taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
@@ -74,14 +77,19 @@ function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param;
       D= eq1.a.collections.d / tau.d;
       ntau= update*tau.d + (1-update)*(tau.d + (originalG -newG)/D);
 
-      if (tau.c)*(1-ntau-x)>(1-tau.i)
-        println("No equilibrium under current taxes")
-        break
-      end
       taunew = Taxes(ntau,tau.c,tau.i,ntau,tau.l);
       println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+      if (1-tau.c)*(1-ntau)>(1-tau.i)
+        println("No equilibrium under current taxes")
+        eq1 = init_equilibirium(eq.w,tau,pa);
+        pr1  = init_firmproblem(pa);
+        return pr1, eq1, taunew
+      end
 
       pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess,maxroutine=maxroutine, verbose=false);
+      if momentsprint
+        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
+      end
       newG=eq1.a.G;
     end
     println("(originalG - newG)/originalG",(originalG - newG)/originalG)

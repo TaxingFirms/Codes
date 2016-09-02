@@ -21,17 +21,12 @@ using StatsFuns
 include("Simulations.jl")
 include("Magnitudes.jl")
 include("PlotFunctions.jl")
+include("Reforms.jl")
 
-#See August13jl for parameter selection
-pa =init_parameters( H=1.176, bbeta=0.972, ff= 0.5, aalphak=0.23, aalphal=0.64, llambda0=0.004, llambda1= 0.04, ddelta = 0.13,
-                      allowance=0.86, ttheta = 0.25,rhoz= 0.75, ssigmaz= 0.08, e=0.0, A=1.0);
-tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.29, ttaug= 0.15, ttaul=0.28);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.54, VFItol=10.0^-3.0, verbose=false);
-moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
-save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-#pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-include("runReforms.jl")
+runreforms("Reform2Benchmark.jld",pr,eq,tau,pa);
+
 
 rpr,req,rtau = taxreform3(0.3, eq, tau, pa; tol=10.0^-2.0,update=0.7, maxroutine=maximizationfast);
 moments=computeMomentsCutoff(req.E,rpr,req,rtau,pa,cutoffCapital=0.0);
