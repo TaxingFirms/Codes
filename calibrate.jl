@@ -1,12 +1,9 @@
 
 
-
-
-
 function computeDistance(initialParams)
 
 	# Freq Iss, AutoCovProfits
-	dataMoments = [.063,0.105,0.211,0.091,0.256,0.509,0.13,0.33]
+	dataMoments = [.046,0.11,0.175,0.088,0.19,0.386,0.09,0.33,0.023,0.048]
 
 	# Parameters to be calibrated are, in order
 	# Delta  - depreciation
@@ -30,23 +27,23 @@ function computeDistance(initialParams)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
-	moments.turnover, moments.labor]
+	moments.turnover, moments.labor, moments.mean_dividends2k, moments.mean_profits2k]
 
 	sum((currentMomentsMatch-dataMoments).^2.0)
 end
 
 
 function pcterror_params(pr::FirmProblem,eq::Equilibrium, tau::Taxes, pa::Param)
-  dataMoments = [.063,0.105,0.211,0.091,0.256,0.509,0.13,0.33];
+  dataMoments = [.046,0.11,0.175,0.088,0.19,0.386,0.09,0.33,0.023,0.048];
   namesMoments = ["Mean Investment","SD Profits","Mean Leverage",
   "Mean Equity Issuance","Frequency of Equity Issuance","Autocovariance Profits",
-  "Turnover","Time At Work"];
+  "Turnover","Time At Work","Mean Dividends","Mean Profits"];
   ################################################################################
   #Copy after changing params
   moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0);
   currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
    moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
-  moments.turnover, moments.labor,(eq.a.collections.c/tau.c)/(eq.a.collections.d/tau.d)];
+  moments.turnover, moments.labor,moments.mean_dividends2k, moments.mean_profits2k];
   relErrors=(currentMomentsMatch - dataMoments)./dataMoments;
   println(DataFrame(names=namesMoments,moments= currentMomentsMatch, errors=relErrors))
 end

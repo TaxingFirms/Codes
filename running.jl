@@ -4,7 +4,6 @@
 
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero
-using QuantEcon:tauchen
 using JLD
 using DataFrames
 using StatsFuns
