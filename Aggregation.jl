@@ -191,9 +191,13 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   grossdividends=sum(distr.*pr.grossdividends);
   financialcosts= - sum(distr.*pr.financialcosts);
 
+  labor_s = ((1-tau.l)*eq.w/pa.H)^pa.psi;
+  deduction = 0.35*(tau.l*eq.w*labor_s + tau.i*eq.r*debt);
+  consumption = (1-tau.l)*eq.w*labor_s +  (1-tau.i)*eq.r*debt+ netdistributions +liquidations - eq.E*(pa.k0+pa.e) + deduction;
+
   divtax= tau.d*grossdividends;
   inctax = tau.i*eq.r*debt;
-  labtax = tau.l*eq.w*labor;
+  labtax = tau.l*eq.w*labor - deduction;
 
   G = divtax + corptax + inctax +labtax + liquidationtax;
   ######################################
@@ -204,8 +208,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   netdistributionscheck = sum(distr.*pr.distributions);
   debtcheck = sum(distr.*pr.qpolicy)
   capitalcheck= sum(distr.*pr.kpolicy)
-  labor_s = ((1-tau.l)*eq.w/pa.H)^pa.psi;
-  consumption = (1-tau.l)*eq.w*labor_s +  (1-tau.i)*eq.r*debt+ netdistributions +liquidations - eq.E*(pa.k0+pa.e);
   if consistencychecks
     if abs(capital - capitalcheck) >10.0^-4.0 ||
         abs(debt - debtcheck) >10.0^-4.0 ||

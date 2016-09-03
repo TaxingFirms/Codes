@@ -2,7 +2,7 @@ function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.
   VFIfunction::Function = firmVFIParallelOmega!, distr_routine::Function = stationarydist,
      maxroutine::Function=maximizationfast ,verbose::Bool=true, firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 
-# wguess=0.72; VFItol =10.0^-3.0; VFIfunction=firmVFIParallelOmega!; distr_routine = stationarydist; maxroutine=maximizationstep; verbose=true;
+# wguess=0.54; VFItol =10.0^-3.0; VFIfunction=firmVFIParallelOmega!; distr_routine = stationarydist; maxroutine=maximizationstep; verbose=true; firmvalueguess = repmat(pa.omega.grid,1,pa.Nz);
   eq = init_equilibirium(wguess,tau,pa);
   pr  = init_firmproblem(pa, firmvalueguess= firmvalueguess);
 
