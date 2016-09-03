@@ -21,14 +21,15 @@ include("mc_tools.jl")
 # Calibration
 #################
 
+
 # Optimization
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H
-LB  = [    0.03,    0.05,   0.55,     0.01,       0.0,      0.0,   0.0,   0.0]
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H
-UB  = [    0.23,    0.45,   0.95,     0.15,       0.5,     0.08,   1.0,   2.4]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
+LB  = [    0.03,    0.05,   0.35,     0.01,       0.0,      0.0,   0.0,   0.0,  0.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
+UB  = [    0.23,    0.45,   0.95,     0.20,       0.5,      1.0,   1.0,   2.4,  1.0 ]
 
 
-initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176]
+#initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176]
 count        = 0
 
 using NLopt
@@ -54,7 +55,8 @@ function f(x::Vector,grad::Vector)
 	answer = g(x)
 	global count
     count::Int += 1
-    println("f",count,"  [",x, "] = ",answer)
+    println(calout, "it ",count,"  [",x, "] = ",answer)
+    mod1(count,50)==50 && flush(calout)
     answer
 end
 
@@ -68,7 +70,15 @@ upper_bounds!(opt,UB)
 min_objective!(opt,f)
 xtol_rel!(opt,.1)
 
+calout=open("sobolcalout.txt","a")
+println(calout, "-------------------------------------------------------------------------------------------------------")
+flush(calout)
+
 (minf,minx,ret) = optimize(opt,initialGuess)
+
+
+println(calout, "=======================================================================================================")
+close(calout)
 println("got $minf at $minx after $count iterations (returned $ret)")
 
 
