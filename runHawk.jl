@@ -23,13 +23,13 @@ include("mc_tools.jl")
 
 
 # Optimization
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
-LB  = [    0.03,    0.05,   0.35,     0.01,       0.0,      0.0,   0.0,   0.0,  0.0 ]
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
-UB  = [    0.23,    0.45,   0.95,     0.20,       0.5,      1.0,   1.0,   2.4,  1.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e    k0
+LB  = [    0.03,    0.05,   0.35,     0.01,       0.0,      0.0,   0.0,   0.0,  0.0 , 0.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e     k0
+UB  = [    0.23,    0.45,   0.95,     0.20,       0.5,      1.0,   1.0,   2.4,  1.0,  1.0 ]
 
 
-#initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176]
+initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176,0.0, 0.0]
 count        = 0
 
 using NLopt
