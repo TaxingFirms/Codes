@@ -214,10 +214,12 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
   massCorrection  = 0.0
   mass2           =0.0
   masslosses      =0.0
+  massIssuers     =0.0
   for i_omega in indexCutoff:pa.Nomega, i_z in 1:pa.Nz
     firstKPrime = pr.kpolicy[i_omega,i_z]; # since we drop obs with k= 0, adjust for that as well.
     massCorrection += firstKPrime > 0.0 ? eq.distr[i_omega,i_z]:0.0;
     mass2 += eq.distr[i_omega,i_z];
+    massIssuers += pr.positivedistributions[i_omega,i_z] ? 0.0 : eq.distr[i_omega,i_z];
     for i_zprime in 1:pa.Nz
       masslosses += profits(pa.zgrid[i_zprime],firstKPrime,eq,pa) < 0.0 && firstKPrime > 0.0 ? eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]:0.0;
     end
@@ -251,7 +253,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     # assuming leverage is debt/capital, make sure previous capital was not zero
     mean_leverage += firstKPrime > 0.0 ? (firstQPrime/firstKPrime)*eq.distr[i_omega,i_z]/massCorrection : 0.0
     # if dividends below zero actually they are distributions
-    mean_eqis      += !pr.positivedistributions[i_omega,i_z] ? -pr.grossequityis[i_omega,i_z]*eq.distr[i_omega,i_z]/mass2 : 0.0
+    mean_eqis      += !pr.positivedistributions[i_omega,i_z] ? -pr.grossequityis[i_omega,i_z]*eq.distr[i_omega,i_z]/massIssuers: 0.0
     freq_equis     += !pr.positivedistributions[i_omega,i_z] ? eq.distr[i_omega,i_z]/mass2  : 0.0
 
     for i_zprime in 1:pa.Nz
