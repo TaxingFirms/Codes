@@ -219,7 +219,7 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     firstKPrime = pr.kpolicy[i_omega,i_z]; # since we drop obs with k= 0, adjust for that as well.
     massCorrection += firstKPrime > 0.0 ? eq.distr[i_omega,i_z]:0.0;
     mass2 += eq.distr[i_omega,i_z];
-    massIssuers += pr.positivedistributions ? 0.0 : eq.distr[i_omega,i_z];
+    massIssuers += pr.positivedistributions[i_omega,i_z] ? 0.0 : eq.distr[i_omega,i_z];
     for i_zprime in 1:pa.Nz
       masslosses += profits(pa.zgrid[i_zprime],firstKPrime,eq,pa) < 0.0 && firstKPrime > 0.0 ? eq.distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]:0.0;
     end
