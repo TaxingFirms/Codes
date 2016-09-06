@@ -2,7 +2,7 @@
 # It calls the value function iteration until the value function in
 # pr::FirmProblem is zero for entrants. It saves the wage in eq.w
 
-function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function, VFItol::Float64; tol = 10^-7.0, displayw=true, displayit = false)
+function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  VFIfunction::Function, maxroutine::Function, VFItol::Float64; tol::Float64 = 10^-7.0, displayw::Bool=true, displayit::Bool = false, initialradius::Float64 =10.0^-2.0)
   f(x) = expvalentry!(x,pr,eq,tau,pa,VFIfunction,maxroutine,displayit, displayw,VFItol);
 
   expvalentry= compute_expvalentry(pr,pa,eq,tau);
@@ -10,7 +10,7 @@ function free_entry!(eq::Equilibrium, pr::FirmProblem, tau:: Taxes, pa::Param,  
 
   #The folowing block is meant to speed up bisection a little.
   center= eq.w;
-  radius=10.0^-2.0;
+  radius= initialradius;
   flag = false;
   while !flag
     radius*=1.5;

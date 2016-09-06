@@ -6,6 +6,7 @@
 using JLD
 using DataFrames
 using StatsFuns
+
 include("markov_approx.jl")
 include("mc_tools.jl")
 
@@ -34,7 +35,7 @@ tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28)
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=false);
 pcterror_params(pr,eq,tau,pa)
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-#pr1,eq1,tau1,pa1=load("ModelResults.jld", "pr","eq","tau","pa");
+#pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
 
 #################

@@ -234,8 +234,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   welfare = pa.sigma==1.0 ?
     log( logarg ) /(1-pa.beta):
     (1/(1-pa.sigma)*( logarg )^(1-pa.sigma) ) /(1-pa.beta);
-  collections = Taxes(divtax,corptax,inctax,0.0,labtax);
-
+  collections = Taxes(divtax+ liquidationtax,corptax,inctax,0.0,labtax);
   eq.a=Aggregates(netdistributions, (1-tau.i)*eq.r*debt, consumption, gdp, labor, welfare, collections, debt, capital, investment, grossdividends, financialcosts, G);
 
 
