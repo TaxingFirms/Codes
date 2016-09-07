@@ -53,7 +53,7 @@ function f(x::Vector,grad::Vector)
 	answer = g(x)
 	global count
     count::Int += 1
-    println(calout, "it ",count,"  [",x, "] = ",answer)
+    println( "it ",count,"  [",x, "] = ",answer)
     mod1(count,50)==50 && flush(calout)
     answer
 end
