@@ -1,20 +1,33 @@
-
+include("running.jl")
 pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
 include("TaxMaximization.jl")
-include("TaxMaximizationAlpha.jl")
-
-#maximize_welfare()
 
 
 
 
-tauhat = deepcopy(tau)
-tauhat.c=0.3;
+
 govexp=eq.a.G;
 
-#update =0.5; verbose = true; tol =10.0^-3.0; returnall = false; updateVFIguess= true;
-####################
-include("ComparativeStatics.jl")
-pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
-@time comparativestatics( eq, pr, tau, pa; tauvec=[0.15, 0.20, 0.25, 0.30, 0.35, 0.40])
+
+Ntau=3;
+dimtau=2;
+
+#1.1 Create tax vectors: first component is taui, second is tauc
+s=SobolSeq(dimtau); skip(s,Ntau);
+sobolspace = Array(Float64,(Ntau,dimtau));
+for j=1:Ntau
+  sobolspace[j,:]= next(s);
+end
+#1.2 Create algorithm to move through the space continuously
+taxvec = Array(Taxes,(Ntau,));
+for i=1:Ntau
+  taxvec[i]= Taxes(sobolspace[1],0.0,sobolspace[2],tau.g,tau.l)
+end
+#2. Initialize vector of objects (tau, eq, pr, pa) where eq,pr,pa are initialized but empty
+welfarevec = Array(Float64,(Ntau,));
+
+
+for i=1:Ntau
+  welfarevec[i] =close_gov_tauc!(govexp,taxvec[i], pa; update= 0.5, verbose = true, tol =10.0^-3.0,  wguess = eq.w)
+end
