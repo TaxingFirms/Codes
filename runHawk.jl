@@ -22,8 +22,6 @@ include("mc_tools.jl")
 #################
 # Calibration
 #################
-(H=1.07, ddelta=0.125,ttheta=0.2, llambda1 = 0.2, rhoz = 0.75, ssigmaz = 0.072  ,ff= 0.5, e= 0.16);
-
 
 # Optimization
 #         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
