@@ -18,7 +18,7 @@ function computeDistance(initialParams)
 
 	factorToBenchmark = 1.0
 	Nnz = round(Int64,factorToBenchmark*9); Nnk = round(Int64,factorToBenchmark*80); Nnq = round(Int64,factorToBenchmark*40); Nnomega = round(Int64,factorToBenchmark*100);
-	pa  = init_parameters(ddelta=initialParams[1],ttheta=initialParams[2],rhoz=initialParams[3], ssigmaz=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],  ff =initialParams[7], H =0.55*(1-tau.l)/0.33,  e =initialParams[9], Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
+	pa  = init_parameters(ddelta=initialParams[1],ttheta=initialParams[2],rhoz=initialParams[3], ssigmaz=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],  ff =initialParams[7], H =0.55*(1-0.28)/0.33,  e =initialParams[9], Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
 	tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 
 	pr,eq= SolveSteadyState(tau,pa, VFItol=10.0^-3.0;wguess =0.54, displayit0=false, displayw=false);
