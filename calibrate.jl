@@ -13,7 +13,7 @@ function computeDistance(initialParams)
 	# llambda0 - fixed cost of issuance
 	# llambda1 - variable cost of issuance
 
-	println( "Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
+	println(calout, "Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
 		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7], " H ", initialParams[8], " e ", initialParams[9])
 
 	factorToBenchmark = 1.0
