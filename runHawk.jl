@@ -22,13 +22,14 @@ include("mc_tools.jl")
 #################
 # Calibration
 #################
+(H=1.07, ddelta=0.125,ttheta=0.2, llambda1 = 0.2, rhoz = 0.75, ssigmaz = 0.072  ,ff= 0.5, e= 0.16);
 
 
 # Optimization
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e    k0
-LB  = [    0.03,    0.05,   0.35,     0.01,       0.0,      0.0,   0.0,   0.0,  0.0 , 0.0 ]
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e     k0
-UB  = [    0.23,    0.45,   0.95,     0.20,       0.5,      1.0,   1.0,   2.4,  1.0,  1.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
+LB  = [    0.075,    0.1,   0.55,     0.052,   0.001,      0.05,   0.0,   0.57,  0.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f     H    e
+UB  = [    0.175,    0.3,   0.95,     0.092,   0.007,      0.45,   1.0,   1.57,  0.3]
 
 
 initialGuess = [0.13,0.25,0.75,0.08,0.004, 0.04, 0.5,1.176,0.0, 0.0]
