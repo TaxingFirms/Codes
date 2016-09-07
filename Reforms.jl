@@ -1,11 +1,4 @@
 
-type Economy
-  pr::FirmProblem
-  eq::Equilibrium
-  tau::Taxes
-  cev::Float64
-end
-
 
 
 function Reform2Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)

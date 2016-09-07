@@ -132,6 +132,13 @@ type PeriodSolution
 end
 
 
+type Economy
+  pr::FirmProblem
+  eq::Equilibrium
+  tau::Taxes
+  cev::Float64
+end
+
 ###########################################################################
 # 0.PARAMETER DEFINITION
 

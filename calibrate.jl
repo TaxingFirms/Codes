@@ -13,7 +13,7 @@ function computeDistance(initialParams)
 	# llambda0 - fixed cost of issuance
 	# llambda1 - variable cost of issuance
 
-	println(calout, "Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
+	println( "Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
 		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7], " H ", initialParams[8], " e ", initialParams[9])
 
 	factorToBenchmark = .5
@@ -21,14 +21,14 @@ function computeDistance(initialParams)
 	pa  = init_parameters(ddelta=initialParams[1],ttheta=initialParams[2],rhoz=initialParams[3], ssigmaz=initialParams[4],llambda0=initialParams[5],llambda1=initialParams[6],  ff =initialParams[7], H= initialParams[8], e =initialParams[9], Nz=Nnz,Nk=Nnk,Nomega=Nnomega, Nq=Nnq);
 	tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 
-	pr,eq= SolveSteadyState(tau,pa, VFItol=10.0^-3.0, verbose=false);
+	pr,eq= SolveSteadyState(tau,pa, VFItol=10.0^-3.0);
 	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
 	moments.turnover, moments.labor, moments.mean_dividends2k, moments.mean_profits2k]
 
-	sum((currentMomentsMatch-dataMoments).^2.0)
+	sum(((currentMomentsMatch-dataMoments)./dataMoments).^2.0)
 end
 
 
