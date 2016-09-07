@@ -68,15 +68,8 @@ upper_bounds!(opt,UB)
 min_objective!(opt,f)
 xtol_rel!(opt,.1)
 
-calout=open("sobolcalout.txt","a")
-println(calout, "-------------------------------------------------------------------------------------------------------")
-flush(calout)
-
 (minf,minx,ret) = optimize(opt,initialGuess)
 
-
-println(calout, "=======================================================================================================")
-close(calout)
 println("got $minf at $minx after $count iterations (returned $ret)")
 
 
