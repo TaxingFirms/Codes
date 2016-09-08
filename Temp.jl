@@ -29,5 +29,5 @@ welfarevec = Array(Float64,(Ntau,));
 
 
 for i=1:Ntau
-  welfarevec[i] =close_gov_tauc!(govexp,taxvec[i], pa; update= 0.5, verbose = true, tol =10.0^-3.0,  wguess = eq.w)
+  @time welfarevec[i] =close_gov_tauc!(govexp,taxvec[i], pa; update= 0.9, verbose = true, tol =10.0^-3.0,  wguess = eq.w, outsideparallel=false)
 end

@@ -1,17 +1,25 @@
 using Sobol
 
 
-function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64 =0.9, verbose = true, tol::Float64 =10.0^-3.0, returnall::Bool = false, wguess::Float64 = 0.55, updateVFIguess::Bool =true)
+function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64 =0.9, verbose = true, tol::Float64 =10.0^-3.0, returnall::Bool = false, wguess::Float64 = 0.55, updateVFIguess::Bool =true, outsideparallel::Bool =true)
   # INPUT: Taxes on dividends and interests + economy constants including government expenditure target, and tau.l, tau.g in tauhat.
   # It MODIFIES tauc in placesuch that the government budget constraint is satisfied
   # OUTPUT steady state welfare
+
+  #0. Set level of parallelization
+  if outsideparallel
+    VFIfunc = firmVFI!
+  else
+    VFIfunc = firmVFIParallelOmega!
+  end
+
 
   #1. Start at the lower bound for tauc
   tau0.c = max(1 - (1-tau0.i)/(1-tau0.g) , 0)
 
   #2. Compute Equilibirum under current taxes
   verbose && println("it=0"," New rates: d = ", tau0.d, " c = ", tau0.c, " i = ", tau0.i, " g = ", tau0.g);
-  pr0, eq0 = SolveSteadyState(tau0, pa; wguess = wguess, VFItol =10.0^-3.0,  VFIfunction = firmVFIParallelOmega!, displayit0 = true, displayw = true);
+  pr0, eq0 = SolveSteadyState(tau0, pa; wguess = wguess, VFItol =10.0^-3.0,  VFIfunction = VFIfunc, displayit0 = false, displayw = false);
 
   #3. If goverment contraint is satisfied we are done
   verbose && println("revenue = ", eq0.a.G, " expenditure = ", govexp);
@@ -27,7 +35,7 @@ function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
     intbase = eq0.a.collections.i / tau0.i
     #4.2 Update tauc
     tau0.c =  update*tau0.c + (1-update)*(govexp - tau0.d*divbase - tau0.i*intbase - eq0.a.collections.g - eq0.a.collections.l)/corpbase;
-    verbose && println("it=0"," New rates: d = ", tau0.d, " c = ", tau0.c, " i = ", tau0.i, " g = ", tau0.g);
+    verbose && println("it= ",itcount," New rates: d = ", tau0.d, " c = ", tau0.c, " i = ", tau0.i, " g = ", tau0.g);
 
     #4.3 Solve equilibrium for candidate taxes
     if updateVFIguess
@@ -37,7 +45,7 @@ function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
     end
     initialradius = min(abs(eq0.w-wguess),10.0^-2.0); #How far to look for wages
     wguess=eq0.w
-    pr0, eq0 = SolveSteadyState(tau0, pa; wguess = wguess, VFItol =10.0^-3.0,  VFIfunction = firmVFIParallelOmega!, displayit0 = false, displayw = false, firmvalueguess = guessVFI, initialradius = initialradius);
+    pr0, eq0 = SolveSteadyState(tau0, pa; wguess = wguess, VFItol =10.0^-3.0,  VFIfunction = VFIfunc, displayit0 = false, displayw = false, firmvalueguess = guessVFI, initialradius = initialradius);
 
     #4.4 Update bugdet deficit
     relgap = (eq0.a.G - govexp)/govexp;
@@ -163,5 +171,10 @@ function maximize_welfare_parallel(tau_g::Float64, tau_l::Float64, pa::Param)
     govexp=eq.a.G;
 
     #4. Pmap cadidate taxes @tau close_gov_bc(tau,eq,pr,pa)
+    map(objectivefun, input)
 
 end
+
+#objectivefun(arg)
+#  close_gov_tauc!(arg.govexp,arg.tau, arg.pa; update=0.9, verbose = false, tol =10.0^-3.0, wguess = 0.55)
+#end
