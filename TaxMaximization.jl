@@ -13,7 +13,6 @@ function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
     VFIfunc = firmVFIParallelOmega!
   end
 
-
   #1. Start at the lower bound for tauc
   tau0.c = max(1 - (1-tau0.i)/(1-tau0.g) , 0)
 
@@ -25,19 +24,22 @@ function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
   verbose && println("revenue = ", eq0.a.G, " expenditure = ", govexp);
   eq0.a.G >= govexp && return eq0.a.welfare
 
-  #4 While the government constraint is not satisfied,
+  #4. Keep track of how the revenue is changing
+    flag=0; previousrevenue=eq0.a.G;
+
+  #5. While the government constraint is not satisfied,
   itcount=1; maxit = 500; relgap = (eq0.a.G- govexp)/govexp;
   verbose && println("Relative budget deficit = ", relgap);
   while abs(relgap)>tol && itcount < maxit;
-    #4.1 Compute tax bases for taxes that will change
+    #5.1 Compute tax bases for taxes that will change
     corpbase = eq0.a.collections.c / tau0.c;
     divbase = eq0.a.collections.d / tau0.d;
     intbase = eq0.a.collections.i / tau0.i
-    #4.2 Update tauc
+    #5.2 Update tauc
     tau0.c =  update*tau0.c + (1-update)*(govexp - tau0.d*divbase - tau0.i*intbase - eq0.a.collections.g - eq0.a.collections.l)/corpbase;
     verbose && println("it= ",itcount," New rates: d = ", tau0.d, " c = ", tau0.c, " i = ", tau0.i, " g = ", tau0.g);
 
-    #4.3 Solve equilibrium for candidate taxes
+    #5.3 Solve equilibrium for candidate taxes
     if updateVFIguess
       guessVFI = deepcopy(pr0.firmvaluegrid);
     else
@@ -47,16 +49,18 @@ function close_gov_tauc!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
     wguess=eq0.w
     pr0, eq0 = SolveSteadyState(tau0, pa; wguess = wguess, VFItol =10.0^-3.0,  VFIfunction = VFIfunc, displayit0 = false, displayw = false, firmvalueguess = guessVFI, initialradius = initialradius);
 
-    #4.4 Update bugdet deficit
+    #5.4 Update bugdet deficit
     relgap = (eq0.a.G - govexp)/govexp;
     verbose && println("it= ", itcount, " Relative budget deficit = ", relgap);
-    #4.5 Update iteration counter
+    #5.5 Update iteration counter
     itcount +=1;
+    eq0.a.G< previousrevenue && flag+=1;
+    flag == 3 && return -Inf
   end
 
-  #5.1 The function allows to return the entire equilibrium
+  #6.1 The function allows to return the entire equilibrium
   returnall && return eq0.a.welfare, pr0, eq0
-  #5.2 Default is to just return welafare
+  #6.2 Default is to just return welafare
   eq0.a.welfare
 end
 
