@@ -1,7 +1,6 @@
-#Variables of interest are GDP, Welfare, TFP, Consumption and Labor.
-
 
 function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz))
+# Gets a new level of tauc. CLoses using the dividend tax
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c
@@ -10,7 +9,6 @@ function taxreform1(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
 
   originalG=eq.a.G;
   wguess= eq.w;
-
 
   x= (tauc - tau.c)*C/D;
   taunew = Taxes(tau.d-x,tauc,tau.i,tau.g,tau.l);
@@ -45,9 +43,8 @@ end
 
 
 
-
-
 function taxreform2(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+# Gets a new level of tauc. CLoses using the dividend and capital gains taxes at the same time.
 
 #tauc= 0.0; update=0.7; tol= 10.0^-2.0; momentsprint=false; verbose=false; firmvalueguess=copy(pr.firmvaluegrid);
 
@@ -102,6 +99,8 @@ end
 
 
 function taxreform3(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+# Gets a new level of tauc. Closes using dividend = capital gains = interest.
+
 
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base

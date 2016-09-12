@@ -3,7 +3,7 @@
 function computeDistance(initialParams)
 
 	# Freq Iss, AutoCovProfits
-	dataMoments = [.046,0.11,0.175,0.088,0.19,0.386,0.09,0.33,3.13]
+	dataMoments = [.046,0.11,0.175,0.088,0.19,0.386,0.09,3.13]
 
 	# Parameters to be calibrated are, in order
 	# Delta  - depreciation
@@ -26,7 +26,7 @@ function computeDistance(initialParams)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
-	moments.turnover, moments.labor, (eq.a.collections.c/tau.c)/(eq.a.collections.d/tau.d)]
+	moments.turnover, (eq.a.collections.c/tau.c)/(eq.a.collections.d/tau.d)]
 
 	sum(((currentMomentsMatch-dataMoments)./dataMoments).^2.0)
 end
