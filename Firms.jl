@@ -114,6 +114,32 @@ function maximizationfast(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProble
     mmax
 end
 
+function maximizationconstraint(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
+  mmax = -Inf;
+  kprimestar::Real = NaN;
+  qprimestar::Real = NaN;
+
+  betatilde = (1.0 + (1-tau.i)/(1-tau.g)*eq.r )^(-1);
+  discounted_interest = betatilde*(1+(1-tau.c)*eq.r);
+
+  if discounted_interest > 1
+    error("Maximization fast is only suited for impatient firms")
+  end
+
+  for kprime in pa.kprime.grid
+    qprime = pa.collateral_factor*kprime;
+    objective = objectivefun(kprime, qprime, omega, i_z,pr, eq, tau, pa);
+    if objective > mmax
+      mmax = objective;
+      kprimestar = kprime;
+      qprimestar = qprime;
+    end
+  end
+  extractpolicies?
+  (mmax, kprimestar, qprimestar):
+  mmax
+end
+
 
 # Maximization step
 function maximizationstep(omega::Real, i_z::Int, eq::Equilibrium, pr::FirmProblem, tau::Taxes, pa::Param, extractpolicies::Bool)
