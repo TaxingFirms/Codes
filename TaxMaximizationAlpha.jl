@@ -102,3 +102,71 @@ function maximize_welfare()
   println(outmaximization, "=======================================================================================================")
   close(outmaximization)
 end
+
+
+
+
+
+function maximize_welfare_alltaxes(initialpoint::Array{Float64})
+  # INPUT: economy parameters. Labor and capital gains taxes, wich won't be changed.
+  # OUTPUT: welfare maximizing tax vector (taud, tauc, taui) given
+
+  #1. Construct vector of candidate taxes
+        ## Note. I think parallelizing at this point is a bad idea as prices should move smoothly
+  Ntau=4500;
+  dimtau=3;
+  #1.1 Create tax vectors: first component is taud, second is taui, third is taug
+  s=SobolSeq(dimtau, [0.0 0.0 0.0], [0.6 0.6 0.6]); skip(s,Ntau);
+  sobolspace = Array(Float64,(Ntau,dimtau));
+  for j=1:Ntau
+    sobolspace[j,:]= next(s);
+  end
+  #1.3 Create algorithm to move through the space continuously
+  taxspace =sortsobol(initialpoint, sobolspace);
+
+  #2. Initialize vector of objects (tau, eq, pr, pa) where eq,pr,pa are initialized but empty
+  welfarevec = Array(Float64,(Ntau,));
+
+  #3. Initial equilibirium: under current taxes. This fixes the value of G
+
+  #4. Loop over taxes moving them slowly to neighboring combinations
+end
+
+
+
+
+
+function maximize_welfare_parallel(tau_g::Float64, tau_l::Float64, pa::Param)
+    # INPUT: economy parameters. Labor and capital gains taxes, wich won't be changed.
+    # OUTPUT: welfare maximizing tax vector (taud, tauc, taui) given
+
+    #1. Construct vector of candidate taxes (perhaps using Sobol)
+    Ntau=500;
+    dimtau=2;
+    #1.1 Create tax vectors: first component is taui, second is tauc
+    s=SobolSeq(dimtau, [0.0 0.0], [0.5 0.5]); skip(s,Ntau);
+    sobolspace = Array(Float64,(Ntau,dimtau));
+    for j=1:Ntau
+      sobolspace[j,:]= next(s);
+    end
+
+    #2. Initialize vector of objects (tau, eq, pr, pa) where eq,pr,pa are initialized but empty
+    taxvec = Array(Taxes,(Ntau,));
+    for i=1:Ntau
+      taxvec[i]= Taxes(sobolspace[1],0.0,sobolspace[2],tau.g,tau.l)
+    end
+    welfarevec = Array(Float64,(Ntau,));
+
+    #3. Initial equilibirium: under current taxes. This fixes the value of G
+        #This will be the COMMON initial guess for all iterations
+    pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+    govexp=eq.a.G;
+
+    #4. Pmap cadidate taxes @tau close_gov_bc(tau,eq,pr,pa)
+    map(objectivefun, input)
+
+end
+
+#objectivefun(arg)
+#  close_gov_tauc!(arg.govexp,arg.tau, arg.pa; update=0.9, verbose = false, tol =10.0^-3.0, wguess = 0.55)
+#end
