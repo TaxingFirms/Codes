@@ -218,7 +218,7 @@ end
 
 
 function taxequilibrium(arg::Argument)
-  close_gov_taud(arg.govexp,arg.tau0, arg.pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
+  close_gov_tauc!(arg.govexp,arg.tau0, arg.pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
 end
 
 
