@@ -25,7 +25,7 @@ include("Temp.jl")
 # 1. Create tax sequence from initial point
   #First component is tauc, second is taui
 initialpoint = [0.0,0.28]
-create_taxspace(initialpoint, 1500; jldfile=false)
+taxspace = create_taxspace(initialpoint, 1500; jldfile=false)
 
 npzwrite("taxspace.npy",taxspace)
 
