@@ -4,7 +4,7 @@
 
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 using JLD
-#using DataFrames
+using DataFrames
 
 include("markov_approx.jl")
 include("mc_tools.jl")
