@@ -3,7 +3,7 @@
 # Use Intel Compiler
 source /usr/global/intel/bin/compilervars.sh intel64
 
-#$ -pe threaded 60
+#$ -pe threaded 36
 
 # Exports environment variables
 #$ -V
@@ -15,4 +15,4 @@ cd /home/dwills/Codes
 . /etc/profile.d/modules.sh
 module load julia
 
-julia -p60 runWelfareMaximizeHawk.jl >outJulia.txt
+julia -p35 runWelfareMaximizeHawk.jl >outJulia.txt
