@@ -230,7 +230,7 @@ function maximize_welfare_tesla(taxspace::Array{Float64,2},govexp::Float64, taul
   #4. Loop over taxes moving them slowly to neighboring combinations
   for j=1:Ntau
     tau0 = Taxes(0.0,taxspace[j,1],taxspace[j,2],0.0,taul)
-    welfarevec[j],wguess = close_gov_taue!(govexp,tau0, pa; update=0.75, verbose = true, wguess= wguess, updateVFIguess = true, outsideparallel= false)
+    welfarevec[j],wguess = close_gov_taue!(govexp,tau0, pa; update=0.75, verbose = true, wguess= wguess0, updateVFIguess = true, outsideparallel= false)
     taxvec[j]= deepcopy(tau0)
     #close_gov_vec! updates tau0, eq0, pr0, in place to the new equilibrium under taxes tauhat
     if mod1(j,50)==1
