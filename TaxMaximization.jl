@@ -1,5 +1,3 @@
-using Sobol
-
 
 
 function close_gov_bc(govexp::Float64,tauhat::Taxes,tau::Taxes, eq::Equilibrium, pr:: FirmProblem, pa::Param; update::Float64 =0.9, verbose = true, tol::Float64 =10.0^-3.0, returnall::Bool = false, updateVFIguess::Bool = true)
@@ -89,7 +87,7 @@ function sortsobol(initialpoint::Array{Float64,1}, space = Array{Float64,2})
 end
 
 
-function create_taxspace_jld(initialpoint::Array{Float64,1}, Ntau::Int64)
+function create_taxspace(initialpoint::Array{Float64,1}, Ntau::Int64; jldfile::Bool=true)
   # INPUT: Initial point.
   # OUTPUT: JLD file with a sequence o
 
@@ -100,5 +98,9 @@ function create_taxspace_jld(initialpoint::Array{Float64,1}, Ntau::Int64)
     sobolspace[j,:]= next(s);
   end
   taxspace =sortsobol(initialpoint, sobolspace);
-  save("taxspace.jld","taxspace",taxspace)
+  if jldfile
+    save("taxspace.jld","taxspace",taxspace)
+  end
+
+  return taxspace
 end

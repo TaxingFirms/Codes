@@ -229,6 +229,7 @@ function maximize_welfare_tesla(taxspace::Array{Float64,2},govexp::Float64, taul
   taxvec = Array(Taxes,(Ntau,));
   #4. Loop over taxes moving them slowly to neighboring combinations
   for j=1:Ntau
+    println(j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j)
     tau0 = Taxes(0.0,taxspace[j,1],taxspace[j,2],0.0,taul)
     welfarevec[j],wguess = close_gov_taue!(govexp,tau0, pa; update=0.75, verbose = true, wguess= wguess0, updateVFIguess = true, outsideparallel= false)
     taxvec[j]= deepcopy(tau0)

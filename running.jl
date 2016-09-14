@@ -18,9 +18,10 @@ include("mc_tools.jl")
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
 
+#Tesla
+pa =init_parameters(H = 1.094, ddelta=0.07557, ttheta = 0.2290 , rhoz =0.7451, ssigmaz = 0.1067, llambda0 = 0.02605, llambda1 = 0.2467, ff = 1.3856, e=0.01820);
 
-
-pa =init_parameters(H = 1.094, ddelta=0.0768, ttheta = 0.14067 , rhoz =0.75, ssigmaz = 0.086, llambda0 = 0.01074, llambda1 = 0.1581, ff = 1.3267, e=0.073289);
+#pa =init_parameters(H = 1.094, ddelta=0.0768, ttheta = 0.14067 , rhoz =0.75, ssigmaz = 0.086, llambda0 = 0.01074, llambda1 = 0.1581, ff = 1.3267, e=0.073289);
 tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=false);
