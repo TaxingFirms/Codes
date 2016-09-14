@@ -225,15 +225,15 @@ end
 function maximize_welfare_hawk(taxspace::Array{Float64,2},govexp::Float64, taul::Float64, wguess0::Float64, pa::Param)
   # INPUT:
   # OUTPUT: welfare maximizing tax vector (taud, tauc, taui) given
-  initialpoint = [0.28, 0.283];
-  taxspace=create_half_taxspace(initialpoint, 10)
+  initialpoint = [0.0, 0.28];
+  taxspace=create_taxspace(initialpoint, 10; jldfile = false)
 
   Nexp,dimtau=size(taxspace)
 
   #Allocate memory for vector of arguments
   args = Array(Argument,(Nexp,))
   for j=1:Nexp
-    tau0 = Taxes(0.0,0.0,taxspace[j,1], taxspace[j,2], taul)
+    tau0 = Taxes(0.0,taxspace[j,1],taxspace[j,2],0.0,taul)
     args[j] = Argument(govexp,tau0,pa)
   end
 
