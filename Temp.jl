@@ -222,7 +222,7 @@ end
 function maximize_welfare_tesla(taxspace::Array{Float64,2},govexp::Float64, taul::Float64, wguess0::Float64, pa::Param)
   # INPUT:
   # OUTPUT: welfare maximizing tax vector (taud, tauc, taui) given
-
+  Ntau,dimtau=size(taxspace)
 
   #1. Allocate memory
   welfarevec = Array(Float64,(Ntau,));
