@@ -32,8 +32,8 @@ taxspace = create_taxspace(initialpoint, 10; jldfile=false)
 govexp = 0.046970754282188165;
 taul = 0.28 ; wguess0=0.532;
 pa =init_parameters(H = 1.094, ddelta=0.07557, ttheta = 0.2290 , rhoz =0.7451, ssigmaz = 0.1067, llambda0 = 0.02605, llambda1 = 0.2467, ff = 1.3856, e=0.01820);
-tau0=Taxes(0.0,0.0,0.28,0.0,0.28)
-close_gov_tauc!(govexp,tau0, pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
+tau0=Taxes(0.0,0.0,0.28,0.0,taul)
+close_gov_taue!(govexp,tau0, pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
 
 Nexp=3
 args = Array(Argument,(Nexp,))
