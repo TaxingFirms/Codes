@@ -334,13 +334,16 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     namesMoments = ["Mean Investment","SD Profits","Mean Leverage","Mean Profits",
     "Mean Equity Issuance","Frequency of Equity Issuance","Autocovariance Profits",
     "Turnover","Time At Work","SD Leverage","SD Investment","Mean Dividends","SD Dividends",
-    "Means Tobins Q","Tax Base Ratio"]
+    "Means Tobins Q","Corptax/GDP","Indtax/GDP"]
+
+    dataMoments = [.046,0.11,0.175,0.048,0.088,0.19,0.386,0.09,0.33,0.089,0.04,0.023,0.051,2.2,0.02,0.07];
+
 
     valueMoments = [mean_inv_rate,sqrt(var_profits2k),mean_leverage,mean_profits2k,
     mean_eqis/capital,freq_equis,autocov_profits2k,turnover,labor,sqrt(var_leverage),
     sqrt(var_inv_rate),mean_dividends2k,sqrt(var_dividends2k),mean_tobinsq,
-    (eq.a.collections.c/tau.c)/(eq.a.collections.d/tau.d)]
-    println(DataFrame(names=namesMoments,aggVals=valueMoments))
+    eq.a.collections.c/eq.a.output, (eq.a.collections.d + eq.a.collections.i + eq.a.collections.l)/eq.a.output]
+    println(DataFrame(names=namesMoments,aggVals=valueMoments,data=dataMoments))
   end
 
   resultingMoments
