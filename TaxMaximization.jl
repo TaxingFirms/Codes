@@ -87,8 +87,8 @@ function close_gov_taue!(govexp::Float64,tau0::Taxes, pa::Param; update::Float64
   end
 
   #1. Start at the lower bound for taue
-  tau0.d = max(1 - (1-tau0.i)/(1-tau0.g) , 0)
-  tau0.g = max(1 - (1-tau0.i)/(1-tau0.g) , 0)
+  tau0.d = max(1 - (1-tau0.i)/(1-tau0.c) , 0)
+  tau0.g = max(1 - (1-tau0.i)/(1-tau0.c) , 0)
 
 
   #2. Compute Equilibirum under current taxes

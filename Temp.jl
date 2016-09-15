@@ -217,8 +217,8 @@ immutable Argument
 end
 
 
-function taxequilibrium(arg::Argument)
-  close_gov_tauc!(arg.govexp,arg.tau0, arg.pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
+function taxequilibrium_taue(arg::Argument)
+  close_gov_taue!(arg.govexp,arg.tau0, arg.pa; update=0.75, verbose = true, wguess= 0.53, updateVFIguess = true, outsideparallel= true)
 end
 
 
@@ -239,7 +239,7 @@ function maximize_welfare_hawk(taxspace::Array{Float64,2},govexp::Float64, taul:
 
 
   #Call map function
-  welf_and_taxes = map(taxequilibrium,args);
+  welf_and_taxes = pmap(taxequilibrium,args);
 
 
 end
