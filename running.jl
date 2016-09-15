@@ -34,9 +34,9 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 include("TaxReforms.jl")
 include("Reforms.jl")
 
-taucvec = [0.33 0.30 0.27 0.24 0.21 0.18 0.15 0.12 0.09 0.06 0.03 0.00];
+taucvec = [0.30 0.27 0.24 0.21 0.18 0.15 0.12 0.09 0.06 0.03 0.00];
 reform2 = Reform2Vector("reform2.jld", taucvec, pr, eq, tau, pa)
 reform3 = Reform3Vector("reform3.jld", taucvec, pr, eq, tau, pa)
 
-taucvec1 = [0.33 0.30 0.27 0.24 0.21 0.18 0.17 0.16 0.155 ];
+taucvec1 = [0.30 0.27 0.24 0.21 0.18 0.17 0.16 0.155 ];
 reform1 = Reform1Vector("reform1.jld", taucvec1, pr, eq, tau, pa)
