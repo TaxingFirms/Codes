@@ -1,3 +1,4 @@
+
 function decompostion(pr0::FirmProblem, eq0::Equilibrium, tau0::Taxes, pr1::FirmProblem, eq1::Equilibrium, tau1::Taxes, pa::Param)
   #Decompose the effects of a policy change
 
@@ -42,4 +43,5 @@ function decompostion(pr0::FirmProblem, eq0::Equilibrium, tau0::Taxes, pr1::Firm
 
 
   println(DataFrame(Var=labels, initial=initialVec ,taxes =taxesVec , distribution1 = dist1Vec,final=finalVec))
+
 end

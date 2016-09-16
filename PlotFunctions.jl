@@ -1,3 +1,15 @@
+
+function plotsimulations(pr::FirmProblem, pa::Param)
+  capital, debt, networth, dividends, investment, z_history_ind = simulation(50,50,pr,pa);
+  figure()
+  plot(capital)
+  figure()
+  plot(debt)
+  figure()
+  plot(dividends)
+end
+
+
 function plotpolicies(pr::FirmProblem,pa::Param)
   for j=1:pa.Nz
     figure()

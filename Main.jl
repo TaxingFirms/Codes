@@ -132,17 +132,24 @@ type PeriodSolution
 end
 
 
+type Economy
+  pr::FirmProblem
+  eq::Equilibrium
+  tau::Taxes
+  cev::Float64
+end
+
 ###########################################################################
 # 0.PARAMETER DEFINITION
 
 # Initialize parameters
-function init_parameters(;bbeta::Float64=0.972,ssigma::Float64=0.1,psi::Float64=1.0,
+function init_parameters(;bbeta::Float64=0.972,ssigma::Float64=1.0,psi::Float64=1.0,
     H::Float64=1.76,aalphak::Float64=0.23, aalphal::Float64 = 0.64, ff::Float64=0.5,
     llambda0::Float64= 0.004, llambda1::Float64= 0.04, ddelta::Float64= 0.13, allowance::Float64 = 1.0, ttheta::Float64=0.25,
-    kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.0 ,rhoz::Float64= 0.76, ssigmaz::Float64= 0.08,
+    kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.0, rhoz::Float64= 0.76, ssigmaz::Float64= 0.08,
     Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=1.0)
 
-    mc = tauchen(Nz,rhoz,ssigmaz,0.0,2); # Process of firm productivity z
+    mc = tauchen(Nz,rhoz,ssigmaz,0.0,3); # Process of firm productivity z
     logshocks = mc.state_values;
     shocks=exp(logshocks);
     trans = mc.p;
@@ -151,7 +158,7 @@ function init_parameters(;bbeta::Float64=0.972,ssigma::Float64=0.1,psi::Float64=
     zgrid = A/exp(0.5*ssigmaz^2.0/(1-rhoz^2.0))*shocks;
 
     meanshocks=invariant_dist'*zgrid;
-    abs(meanshocks[1] - A) > 10^-2.0 && error("average shock is not A but ",meanshocks[1] )
+    #abs(meanshocks[1] - A) > 10^-2.0 && error("average shock is not A but ",meanshocks[1] )
     ztrans=trans';
 
     #construct grid for capital
