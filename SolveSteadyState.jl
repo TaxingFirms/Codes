@@ -3,7 +3,7 @@ function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.
      maxroutine::Function=maximizationconstraint, displayit0::Bool=true, displayw::Bool=true,
      displayitt::Bool=false, firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz), initialradius = 10.0^-2.0 )
 
-# wguess=0.5; VFItol =10.0^-3.0; VFIfunction=firmVFIParallelOmega!; distr_routine = stationarydist; maxroutine=maximizationstep; displayit0=true; displayw=true; displayitt=false; firmvalueguess = repmat(pa.omega.grid,1,pa.Nz); initialradius=10^-2.0;
+# wguess=0.5; VFItol =10.0^-3.0; VFIfunction=firmVFIParallelOmega!; distr_routine = stationarydist; maxroutine=maximizationconstraint; displayit0=true; displayw=true; displayitt=false; firmvalueguess = repmat(pa.omega.grid,1,pa.Nz); initialradius=10^-2.0;
   eq = init_equilibirium(wguess,tau,pa);
   pr  = init_firmproblem(pa, firmvalueguess= firmvalueguess);
 
