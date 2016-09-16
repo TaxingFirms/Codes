@@ -21,7 +21,7 @@ pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
 taucvec = 0.0:0.05:0.5
 
-~,Ntau=size(taucvec)
+Ntau,~=size(taucvec)
 collections = Array(Float64,(Ntau,));
 collections2gdp = Array(Float64,(Ntau,));
 
