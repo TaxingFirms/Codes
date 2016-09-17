@@ -27,13 +27,15 @@ function computeDistance(initialParams::Array{Float64,1})
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
 	moments.turnover, eq.a.collections.c/(eq.a.collections.d + eq.a.collections.i + eq.a.collections.l)]
-
+	println(currentMomentsMatch)
+	println(dataMoments)
 	weight = eye(size(dataMoments)[1])
 	weight[3,3]=2;
 	weight[4,4]=2;
 	weight[5,5]=2;
 
 	diff = (currentMomentsMatch-dataMoments)./dataMoments;
+	println(diff'*weight*diff)
 	diff'*weight*diff;
 end
 
