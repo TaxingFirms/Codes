@@ -23,12 +23,13 @@ include("mc_tools.jl")
 
 # Optimization
 #         delta    theta    rhoz    sigmaz    lambda0    lambda1     f       e
-LB  = [    0.0268,    0.074,   0.55,   0.056,   0.01,     0.0507,   0.0,     0.0 ]
-#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f       e
-UB  = [    0.1268,    0.474,   0.95,   0.116,   0.05,     0.2507,  1.592,   0.0776]
+LB  = [    0.0268,    0.074,   0.55,   0.056,    0.01,    0.0507,    0.0,     0.0 ]
+#         delta    theta    rhoz    sigmaz    lambda0    lambda1     f      e
+UB  = [    0.1268,    0.474,   0.95,   0.116,   0.05,     0.2507,      1.592,     0.0776]
 
-initialGuess = [0.0768,0.274,0.75, 0.086, 0.1507,0.03, 0.796,0.038]
+initialGuess = [0.0768,0.274,0.75, 0.086,0.03, 0.1507, 0.796,0.038]
 count        = 0
+
 
 using NLopt
 using Calculus
@@ -45,8 +46,6 @@ function f(x::Vector,grad::Vector)
                     throw(eexception)
                 end
             end
-
-
 	if length(grad) > 0
 		grad[:] = Calculus.gradient(g,x)
 	end
