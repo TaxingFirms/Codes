@@ -26,7 +26,8 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 
-pa =init_parameters(H = 1.094, ddelta=0.07557, ttheta = 0.2290 , rhoz =0.7451, ssigmaz = 0.1067, llambda0 = 0.02605, llambda1 = 0.1667, ff = 1.3856, e=0.0);
+
+pa =init_parameters(H = 1.094, ddelta=0.0768, ttheta = 0.274 , rhoz =0.75, ssigmaz =0.086, llambda0 = 0.03, llambda1 = 0.1507, ff = 0.796, e=0.038);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResultsOld.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);

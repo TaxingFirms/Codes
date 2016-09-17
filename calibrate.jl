@@ -1,6 +1,6 @@
 
 
-function computeDistance(initialParams)
+function computeDistance(initialParams::Array{Float64,1})
 
 	# Freq Iss, AutoCovProfits
 	dataMoments = [.046,0.11,0.175,0.088,0.19,0.386,0.09,0.25];
@@ -22,7 +22,7 @@ function computeDistance(initialParams)
 	tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 
 	pr,eq= SolveSteadyState(tau,pa, VFItol=10.0^-3.0;wguess =0.54, displayit0=false, displayw=false);
-	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
+	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=true)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,

@@ -38,6 +38,8 @@ using Calculus
 
 function f(x::Vector,grad::Vector)
     g(y) =  try
+                println(y)
+                println(typeof(y))
                 computeDistance(y)
             catch eexception
                 if isa(eexception,ErrorException)
@@ -48,8 +50,6 @@ function f(x::Vector,grad::Vector)
                     throw(eexception)
                 end
             end
-
-
 	if length(grad) > 0
 		grad[:] = Calculus.gradient(g,x)
 	end
@@ -80,7 +80,7 @@ flush(calout)
 
 println(calout, "=======================================================================================================")
 close(calout)
-println("got $minf at $minx after $count iterations (returned $ret)")
+println(calout,"got $minf at $minx after $count iterations (returned $ret)")
 
 
 # Nelder-Mead Locally to improve
