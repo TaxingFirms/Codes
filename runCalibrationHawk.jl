@@ -38,8 +38,6 @@ using Calculus
 
 function f(x::Vector,grad::Vector)
     g(y) =  try
-                println(y)
-                println(typeof(y))
                 computeDistance(y)
             catch eexception
                 if isa(eexception,ErrorException)
