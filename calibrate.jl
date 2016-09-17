@@ -13,7 +13,7 @@ function computeDistance(initialParams::Array{Float64,1})
 	# llambda0 - fixed cost of issuance
 	# llambda1 - variable cost of issuance
 
-	println("Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
+	println(calout,"Parameters: delta ",initialParams[1], " ttheta ",initialParams[2], " rhoz ", initialParams[3], " ssigmaz ", initialParams[4],
 		" llambda0 ",initialParams[5], " llambda1 ",initialParams[6] , " f ",initialParams[7], " e ", initialParams[8])
 
 	factorToBenchmark = 1.0
@@ -22,20 +22,18 @@ function computeDistance(initialParams::Array{Float64,1})
 	tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 
 	pr,eq= SolveSteadyState(tau,pa, VFItol=10.0^-3.0;wguess =0.54, displayit0=false, displayw=false);
-	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=true)
+	moments = computeMomentsCutoff(eq.E,pr, eq, tau, pa, cutoffCapital=0.0, toPrint=false)
 
 	currentMomentsMatch = [moments.mean_inv_rate,moments.sd_profits2k, moments.mean_leverage,
 	moments.mean_eqis2k, moments.freq_equis2k, moments.autocov_profits2k,
 	moments.turnover, eq.a.collections.c/(eq.a.collections.d + eq.a.collections.i + eq.a.collections.l)]
-	println(currentMomentsMatch)
-	println(dataMoments)
+	println(calout,currentMomentsMatch)
 	weight = eye(size(dataMoments)[1])
 	weight[3,3]=2;
 	weight[4,4]=2;
 	weight[5,5]=2;
 
 	diff = (currentMomentsMatch-dataMoments)./dataMoments;
-	println(diff'*weight*diff)
 	diff'*weight*diff;
 end
 

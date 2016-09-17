@@ -58,7 +58,7 @@ function f(x::Vector,grad::Vector)
     count::Int += 1
     println(calout, "it ",count,"  [",x, "] = ",answer)
     mod1(count,50)==1 && flush(calout)
-    answer
+    answer[1]
 end
 
 
