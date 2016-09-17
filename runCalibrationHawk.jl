@@ -1,6 +1,6 @@
 
 using ClusterManagers
-ClusterManagers.addprocs_sge(59,queue="openmp.q",qsub_env="LD_LIBRARY_PATH");
+ClusterManagers.addprocs_sge(59,queue="all.q",qsub_env="LD_LIBRARY_PATH");
 
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 @everywhere using Roots:fzero

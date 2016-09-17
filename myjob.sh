@@ -15,4 +15,4 @@ cd /home/dwills/Codes
 . /etc/profile.d/modules.sh
 module load julia
 
-julia -p35 runWelfareMaximizeHawk.jl >outJulia.txt
+julia -p35 runCalibrationHawk.jl >outJulia.txt
