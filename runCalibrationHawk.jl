@@ -55,6 +55,7 @@ function f(x::Vector,grad::Vector)
 	global count
     count::Int += 1
     println(calout, "it ",count,"  [",x, "] = ",answer)
+    println("it ",count)
     mod1(count,50)==1 && flush(calout)
     answer[1]
 end
