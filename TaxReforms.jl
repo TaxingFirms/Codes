@@ -243,3 +243,61 @@ function taxreform5(tauc::Float64, eq::Equilibrium, tau::Taxes, pa::Param; updat
   println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
   return pr1, eq1, taunew
 end
+
+
+
+
+function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.0, tol::Float64 =10.0^-3.0, momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+# Gets a new level of tauc. CLoses using the dividend and capital gains taxes at the same time.
+
+#tauc= 0.0; update=0.7; tol= 10.0^-2.0; momentsprint=false; verbose=false; firmvalueguess=copy(pr.firmvaluegrid);
+
+
+    #Compute tax base for "revenue neutral" reforms
+    C = eq.a.collections.c / tau.c #corporate base
+    D = eq.a.collections.d / tau.d #divideend base
+    I = eq.a.collections.i / tau.i #interest base
+
+    originalG=govexp;
+    wguess= eq.w;
+
+    x= (taui - tau.i)*I/D;
+
+    if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
+         error("No equilibrium under current taxes")
+    end
+
+    taunew = Taxes(tau.d-x,tau.c,taui,tau.g-x,tau.l);
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+    #Initiate prices and firm problem, and ultimately, the counterfactual object.
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
+    if momentsprint
+        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+    end
+
+    newG=eq1.a.G;
+    while abs((originalG - newG)/originalG)>tol
+        println("(originalG - newG)/originalG ", (originalG - newG)/originalG)
+        tauprime=deepcopy(taunew);
+
+        D= eq1.a.collections.d / tauprime.d;
+        ntau= tauprime.d + (1-update)*(originalG -newG)/D;
+
+        if (1-tauprime.c)*(1-ntau)>(1-tau.i)
+            error("No equilibrium under current taxes")
+        end
+        taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tau.l);
+        println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+        initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
+        wguess=eq1.w;
+        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
+        if momentsprint
+            moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+        end
+        newG=eq1.a.G;
+    end
+  println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
+  return pr1, eq1, taunew
+end

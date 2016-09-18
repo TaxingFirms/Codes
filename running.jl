@@ -19,27 +19,10 @@ include("mc_tools.jl")
 @everywhere include("Transitions.jl")
 
 #Tesla
-pa =init_parameters(H = 1.094, ddelta=0.07557, ttheta = 0.2290 , rhoz =0.7451, ssigmaz = 0.1067, llambda0 = 0.02605, llambda1 = 0.2467, ff = 1.3856, e=0.01820);
+pa =init_parameters(H = 1.094, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.0255, llambda1 = 0.23958, ff = 1.44459, e=0.041674);
+
 tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-#pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
-
-
-pa =init_parameters(H = 1.094, ddelta=0.0768, ttheta = 0.274 , rhoz =0.75, ssigmaz =0.086, llambda0 = 0.03, llambda1 = 0.1507, ff = 0.796, e=0.038);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
-moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
-save("ModelResultsOld.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-
-
-#####################################################################
-include("TaxReforms.jl")
-include("Reforms.jl")
-
-taucvec = [0.34 0.33 0.32 0.31 0.30 0.29 0.28 0.27 0.26 0.25 0.24 0.23 0.22 0.21 0.20 0.19 0.18 0.17 0.16 0.15 0.14 0.13 0.12 0.11 0.10 0.09 0.08 0.07 0.06 0.05 0.04 0.03 0.02 0.01 0.00];
-reform2 = Reform2Vector("reform2.jld", taucvec, pr, eq, tau, pa)
-reform3 = Reform3Vector("reform3.jld", taucvec, pr, eq, tau, pa)
-
-taucvec = [0.34 0.33 0.32 0.31 0.30 0.29 0.28 0.27 0.26 0.25 0.24 0.23 0.22 0.21 0.20 0.19 0.18 0.17 0.16 0.15 ];
-reform1 = Reform1Vector("reform1.jld", taucvec1, pr, eq, tau, pa)
+#
