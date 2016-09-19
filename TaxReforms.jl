@@ -248,9 +248,6 @@ end
 
 
 function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.0, tol::Float64 =10.0^-3.0, momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
-# Gets a new level of tauc. CLoses using the dividend and capital gains taxes at the same time.
-
-#tauc= 0.0; update=0.7; tol= 10.0^-2.0; momentsprint=false; verbose=false; firmvalueguess=copy(pr.firmvaluegrid);
 
 
     #Compute tax base for "revenue neutral" reforms
