@@ -38,6 +38,7 @@ function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
     newG=eq1.a.G;
     deficit = (newG - originalG)/originalG;
     newDeficit = deficit;
+    tau0 = taunew.d; taxdif=Inf;
     while abs(newDeficit)>tol && taxdif > taxtol
       println("pct deficit",newDeficit)
       tauprime=deepcopy(taunew);
@@ -66,6 +67,7 @@ function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
       newG=eq1.a.G;
       deficit= newDeficit;
       newDeficit= (newG - originalG)/originalG;
+      taxdif=abs(tau0 - taunew.d); tau0=taunew.d;
     end
   println("pct deficit",newDeficit)
   return pr1, eq1, taunew
@@ -98,6 +100,7 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
   newG=eq1.a.G;
   deficit = (newG - originalG)/originalG;
   newDeficit = deficit;
+  tau0 = taunew.d; taxdif= Inf;
   while abs(newDeficit)>tol && taxdif > taxtol
     println("pct deficit",newDeficit)
     tauprime=deepcopy(taunew);
@@ -122,6 +125,7 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
     newG=eq1.a.G;
     deficit= newDeficit;
     newDeficit= (newG - originalG)/originalG;
+    taxdif=abs(tau0 - taunew.d); tau0=taunew.d;
   end
   println("pct deficit",newDeficit)
   return pr1, eq1, taunew
@@ -157,6 +161,7 @@ function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::T
     newG=eq1.a.G;
     deficit = (newG - originalG)/originalG;
     newDeficit = deficit;
+    tau0 = taunew.d; taxdif= Inf;
     while abs(newDeficit)>tol && taxdif > taxtol
       println("pct deficit",newDeficit)
       tauprime=deepcopy(taunew);
@@ -183,6 +188,7 @@ function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::T
       newG=eq1.a.G;
       deficit= newDeficit;
       newDeficit= (newG - originalG)/originalG;
+      taxdif=abs(tau0 - taunew.d); tau0=taunew.d;
     end
   println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
   return pr1, eq1, taunew
