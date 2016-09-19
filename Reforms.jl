@@ -1,5 +1,5 @@
 
-function Reform1Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform1Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(taxvector);
@@ -9,7 +9,7 @@ function Reform1Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform1(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=5.0*10.0^-3.0,update=0.98,momentsprint=false);
+        rpr,req,rtau = taxreform1(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -19,7 +19,7 @@ end
 
 
 
-function Reform2Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform2Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(taxvector);
@@ -29,7 +29,7 @@ function Reform2Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform2(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=5.0*10.0^-3.0,update=0.98,momentsprint=false);
+        rpr,req,rtau = taxreform2(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -38,7 +38,7 @@ function Reform2Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 end
 
 
-function Reform2TauIVector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform2TauIVector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(taxvector);
@@ -48,7 +48,7 @@ function Reform2TauIVector(filename::ASCIIString, taxvector::Array, pr::FirmProb
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform2_taui(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=5.0*10.0^-3.0,update=0.98,momentsprint=false);
+        rpr,req,rtau = taxreform2_taui(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -57,7 +57,7 @@ function Reform2TauIVector(filename::ASCIIString, taxvector::Array, pr::FirmProb
 end
 
 
-function Reform3Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform3Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(taxvector);
@@ -67,7 +67,7 @@ function Reform3Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform3(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=5.0*10.0^-3.0,update=0.98,momentsprint=false);
+        rpr,req,rtau = taxreform3(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -77,7 +77,7 @@ end
 
 
 
-function Reform4Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform4Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(vector);
@@ -87,7 +87,7 @@ function Reform4Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform4(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-3.0,update=0.9,momentsprint=true);
+        rpr,req,rtau = taxreform4(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-3.0,update=update,momentsprint=true);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -96,7 +96,7 @@ function Reform4Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq
 end
 
 
-function Reform5Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
+function Reform5Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; bctol::Float64=5.0*10.0^-3.0, update::Float64=0.9)
     #Loops through several taxes and saves a file named "filename" with the results
     #It is recommended that first tax starts close to benchmark and moves monotonically
     ~,Nv=size(vector);
@@ -106,7 +106,7 @@ function Reform5Vector(filename::ASCIIString, vector::Array, pr::FirmProblem, eq
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform5(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-3.0,update=0.7,momentsprint=true);
+        rpr,req,rtau = taxreform5(taxesb[j], ref[j].eq, ref[j].tau, pa; tol=10.0^-3.0,update=update,momentsprint=true);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
