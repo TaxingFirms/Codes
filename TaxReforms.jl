@@ -80,7 +80,7 @@ function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
         tauprime=deepcopy(taunew);
 
         D= eq1.a.collections.d / tauprime.d;
-        ntau= update*tauprime.d + (1-update)*(tauprime.d + (originalG -newG)/D);
+        ntau= tauprime.d + (1-update)*(originalG -newG)/D;
 
         if (1-tauprime.c)*(1-ntau)>(1-tau.i)
             error("No equilibrium under current taxes")
@@ -132,10 +132,10 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
 
     D= eq1.a.collections.d / tauprime.d;
     I= eq1.a.collections.i / tauprime.i;
-    tauind= (originalG - tauc*C - eq1.a.collections.l)/(D + I);
-    ntauind= update*tauprime.d + (1-update)*tauind;
 
-    taunew = Taxes(ntauind,tauc,ntauind,ntauind,tau.l);
+    ntau= tauprime.d + (1-update)*(originalG -newG)/(D+I);
+
+    taunew = Taxes(ntau,tauc,ntau,ntau,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
@@ -263,7 +263,7 @@ function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::T
 
     x= (taui - tau.i)*I/D;
 
-    if (1-tauc)*(1-(tau.g-x))>(1-tau.i)
+    if (1-tau.c)*(1-(tau.g-x))>(1-taui)
          error("No equilibrium under current taxes")
     end
 
