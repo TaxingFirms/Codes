@@ -61,7 +61,7 @@ function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
       wguess=eq1.w;
       pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
       if momentsprint
-          moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true;
+          moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
       end
       newG=eq1.a.G;
       deficit= newDeficit;
