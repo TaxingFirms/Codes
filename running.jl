@@ -26,3 +26,11 @@ tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28)
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 #
+
+
+# NO TAU G
+
+tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.0, ttaul=0.28);
+@time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
+moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
+save("ModelResultsNoTaxG.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);

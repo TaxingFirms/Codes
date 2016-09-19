@@ -15,7 +15,6 @@ include("mc_tools.jl")
 @everywhere include("Distribution.jl")
 @everywhere include("Aggregation.jl")
 @everywhere include("SolveSteadyState.jl")
-@everywhere include("TaxReforms.jl")
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
 
@@ -70,7 +69,7 @@ upper_bounds!(opt,UB)
 min_objective!(opt,f)
 xtol_rel!(opt,.1)
 
-calout=open("sobolcalout.txt","a")
+calout=open("sobolcaloutNoTauG.txt","a")
 println(calout, "-------------------------------------------------------------------------------------------------------")
 flush(calout)
 
