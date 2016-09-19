@@ -1,12 +1,12 @@
 
-function taxreform1(tauc::Float64,  govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0 momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz))
+function taxreform1(tauc::Float64,  govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz))
 # Gets a new level of tauc. CLoses using the dividend tax
 
 end
 
 
 
-function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0 momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0, momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 # Gets a new level of tauc. CLoses using the dividend and capital gains taxes at the same time.
 
 #tauc= 0.0; update=0.7; tol= 10.0^-2.0; momentsprint=false; verbose=false; firmvalueguess=copy(pr.firmvaluegrid);
@@ -38,34 +38,42 @@ function taxreform2(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
     newG=eq1.a.G;
     deficit = (newG - originalG)/originalG;
     newDeficit = deficit;
-    while abs(newDeficit)>tol
-        println("(originalG - newG)/originalG ", (originalG - newG)/originalG)
-        tauprime=deepcopy(taunew);
+    while abs(newDeficit)>tol && taxdif > taxtol
+      println("pct deficit",newDeficit)
+      tauprime=deepcopy(taunew);
 
-        D= eq1.a.collections.d / tauprime.d;
-        ntau= tauprime.d + (1-update)*(originalG -newG)/D;
+      D= eq1.a.collections.d / tauprime.d;
 
-        if (1-tauprime.c)*(1-ntau)>(1-tau.i)
-            error("No equilibrium under current taxes")
-        end
-        taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tau.l);
-        println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+      if newDeficit*deficit<0 #if deficit changes sign, decrease updating speed
+        update+=(1-update)/2;
+      end
 
-        initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
-        wguess=eq1.w;
-        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
-        if momentsprint
-            moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
-        end
-        newG=eq1.a.G;
+      ntau= tauprime.d + (1-update)*(originalG -newG)/D;
+
+      if (1-tauprime.c)*(1-ntau)>(1-tau.i)
+          error("No equilibrium under current taxes")
+      end
+
+      taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tauprime.l);
+      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+
+      initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
+      wguess=eq1.w;
+      pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
+      if momentsprint
+          moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true;
+      end
+      newG=eq1.a.G;
+      deficit= newDeficit;
+      newDeficit= (newG - originalG)/originalG;
     end
-  println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
+  println("pct deficit",newDeficit)
   return pr1, eq1, taunew
 end
 
 
 
-function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.7, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0, momentsprint::Bool=false, verbose::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 # Gets a new level of tauc. Closes using dividend = capital gains = interest.
 
 
@@ -85,7 +93,7 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
   pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
   if momentsprint
-      moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+      moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
   end
   newG=eq1.a.G;
   deficit = (newG - originalG)/originalG;
@@ -97,8 +105,7 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
     D= eq1.a.collections.d / tauprime.d;
     I= eq1.a.collections.i / tauprime.i;
 
-    if newDeficit*deficit<0
-      #if deficit changes sign, decrease updating speed
+    if newDeficit*deficit<0 #if deficit changes sign, decrease updating speed
       update+=(1-update)/2;
     end
     ntau= tauprime.d + (1-update)*(originalG -newG)/(D+I);
@@ -110,19 +117,18 @@ function taxreform3(tauc::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes,
     wguess=eq1.w;
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
     if momentsprint
-        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
     end
     newG=eq1.a.G;
     deficit= newDeficit;
     newDeficit= (newG - originalG)/originalG;
-
   end
-  println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
+  println("pct deficit",newDeficit)
   return pr1, eq1, taunew
 end
 
 
-function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.0, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0 momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
+function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::Taxes, pa::Param; update::Float64 =0.0, tol::Float64 =10.0^-3.0,taxtol::Float64 =10.0^-6.0, momentsprint::Bool=false,firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz) )
 
 
     #Compute tax base for "revenue neutral" reforms
@@ -145,39 +151,38 @@ function taxreform2_taui(taui::Float64, govexp::Float64, eq::Equilibrium, tau::T
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
     if momentsprint
-        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+        moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
     end
 
     newG=eq1.a.G;
     deficit = (newG - originalG)/originalG;
     newDeficit = deficit;
     while abs(newDeficit)>tol && taxdif > taxtol
-        println("(originalG - newG)/originalG ", (originalG - newG)/originalG)
-        tauprime=deepcopy(taunew);
+      println("pct deficit",newDeficit)
+      tauprime=deepcopy(taunew);
 
-        D= eq1.a.collections.d / tauprime.d;
-        if newDeficit*deficit<0.0
-          #if deficit changes sign, decrease updating speed
-          update+=(1-update)/2;
-        end
+      D= eq1.a.collections.d / tauprime.d;
+      if newDeficit*deficit<0.0  #if deficit changes sign, decrease updating speed
+        update+=(1-update)/2;
+      end
 
-        ntau= tauprime.d + (1-update)*(originalG -newG)/D;
+      ntau= tauprime.d + (1-update)*(originalG -newG)/D;
 
-        if (1-tauprime.c)*(1-ntau)>(1-tau.i)
-            error("No equilibrium under current taxes")
-        end
-        taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tau.l);
-        println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+      if (1-tauprime.c)*(1-ntau)>(1-tau.i)
+          error("No equilibrium under current taxes")
+      end
+      taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tau.l);
+      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
-        initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
-        wguess=eq1.w;
-        pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
-        if momentsprint
-            moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
-        end
-        newG=eq1.a.G;
-        deficit= newDeficit;
-        newDeficit= (newG - originalG)/originalG;
+      initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
+      wguess=eq1.w;
+      pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
+      if momentsprint
+          moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=momentsprint);
+      end
+      newG=eq1.a.G;
+      deficit= newDeficit;
+      newDeficit= (newG - originalG)/originalG;
     end
   println("(originalG - newG)/originalG ",(originalG - newG)/originalG)
   return pr1, eq1, taunew
