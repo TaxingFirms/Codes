@@ -163,3 +163,17 @@ function laffer_taud_parallel(taudvec::FloatRange{Float64},filename::ASCIIString
 
   save(filename,"collections",collections,"collections2gdp", collections2gdp,"allinfo",allinfo)
 end
+
+
+
+function laffer_tauc(tauc::Float64,filename::ASCIIString)
+  pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
+  benchmarkG=eq.a.G;
+
+  tauc
+  while abs((eq.a.G - benchmarkG) /benchmarkG )> 10.0^-3.0
+    pr,eq= SolveSteadyState(Taxes(tau.d,tauc,tau.i,tau.g,tau.l),pa;wguess=eq.w, VFItol=10.0^-3.0, displayit0=false, displayw = false);
+  end
+
+  pr,eq,tau
+end
