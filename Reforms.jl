@@ -9,7 +9,7 @@ function Reform1Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform1(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
+        rpr,req,rtau = taxreform1(taxvector[j], ref[1].eq.a.G, ref[j].pr, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -29,7 +29,7 @@ function Reform2Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform2(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
+        rpr,req,rtau = taxreform2(taxvector[j],ref[1].eq.a.G, ref[j].pr, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -48,7 +48,7 @@ function Reform2TauIVector(filename::ASCIIString, taxvector::Array, pr::FirmProb
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform2_taui(taxvector[j],ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
+        rpr,req,rtau = taxreform2_taui(taxvector[j],ref[1].eq.a.G, ref[j].pr, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -67,7 +67,7 @@ function Reform3Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform3(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
+        rpr,req,rtau = taxreform3(taxvector[j], ref[1].eq.a.G, ref[j].pr, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
@@ -86,7 +86,7 @@ function Reform4Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     for j=1:Nv
         #initialguess = copy(ref[j].pr.firmvaluegrid)
-        rpr,req,rtau = taxreform4(taxvector[j], ref[1].eq.a.G, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
+        rpr,req,rtau = taxreform4(taxvector[j], ref[1].eq.a.G, ref[j].pr, ref[j].eq, ref[j].tau, pa; tol=bctol,update=update,momentsprint=false);
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
