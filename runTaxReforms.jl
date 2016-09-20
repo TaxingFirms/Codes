@@ -33,7 +33,7 @@ re2taui = Reform2TauIVector("Reform2TauIVector.jld", tauivec, pr, eq, tau, pa; b
 prg,eqg,taug,pag=load("ModelResultsNoTaxG.jld", "pr","eq","tau","pa");
 
 taucvec = [0.30 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
-ref4 = Reform4Vector("reform4.jld", taucvec, pr, eq, tau, pa; bctol= 5.0*10.0^-3.0, update=0.75);
+ref4 = Reform4Vector("reform4.jld", taucvec, prg, eqg, taug, pag; bctol= 5.0*10.0^-3.0, update=0.75);
 
 taucvec =  [0.30 0.27 0.25 0.23 0.21 0.19 0.17 0.15 ];
 ref1 = Reform1Vector("reform1.jld", taucvec, prg, eqg, taug, pag; bctol= 5.0*10.0^-3.0, update=0.75);
