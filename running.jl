@@ -30,7 +30,7 @@ save("ModelResults.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 # NO TAU G
 
-pa =init_parameters(H = 1.1233, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.106, llambda0 = 0.0477, llambda1 = 0.084033, ff = 1.3267, e=0.0388);
+pa =init_parameters(H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.106, llambda0 = 0.0477, llambda1 = 0.084033, ff = 1.3267, e=0.0388);
 
 tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.0, ttaul=0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
