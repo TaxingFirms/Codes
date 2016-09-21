@@ -15,7 +15,8 @@ if (1-tauc)*(1-(tau.g))>(1-tau.i)
      error("No equilibrium under current taxes")
 end
 
-taunew = Taxes(tau.d-x,tauc,tau.i,tau.g,tau.l);
+taud=tau.d+(1-update)*x
+taunew = Taxes(taud,tauc,tau.i,tau.g,tau.l);
 println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
 #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -80,7 +81,8 @@ function taxreform2(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
          error("No equilibrium under current taxes")
     end
 
-    taunew = Taxes(tau.d-x,tauc,tau.i,tau.g-x,tau.l);
+    taue= tau.d - (1-update)*x;
+    taunew = Taxes(taue,tauc,tau.i,taue,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -141,7 +143,7 @@ function taxreform3(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind= (originalG - tauc*C - eq.a.collections.l)/(D + I);
+  tauind= update*(tau.d*D +tau.i*I)/(D+I)+(1-update)*(originalG - tauc*C - eq.a.collections.l)/(D + I);
   taunew = Taxes(tauind,tauc,tauind,tauind,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
@@ -203,7 +205,8 @@ function taxreform2_taui(taui::Float64, govexp::Float64, pr::FirmProblem, eq::Eq
          error("No equilibrium under current taxes")
     end
 
-    taunew = Taxes(tau.d-x,tau.c,taui,tau.g-x,tau.l);
+    taue= tau.d - (1-update)*x;
+    taunew = Taxes(taue,tau.c,taui,taue,tau.l);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -262,7 +265,7 @@ function taxreform4(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind= (originalG - tauc*C - eq.a.collections.l)/(D + I);
+  tauind= update*(tau.d*D+tau.i*I)/(D+I) +(1-update)*(originalG - tauc*C - eq.a.collections.l)/(D + I);
   taunew = Taxes(tauind,tauc,tauind,tau.g,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
@@ -318,7 +321,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind= tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
+  tauind= update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
   taunew = Taxes(tauind,tauc,0.0,tau.g,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
@@ -374,7 +377,7 @@ function taxreform6(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind= tau.d + (1-update)*(originalG - tauc*(C+I) - eq.a.collections.l)/D;
+  tauind= update*tau.d + (1-update)*(originalG - tauc*(C+I) - eq.a.collections.l)/D;
   taunew = Taxes(tauind,tauc,tauc-eps(),tau.g,tau.l);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
