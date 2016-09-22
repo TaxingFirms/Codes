@@ -15,7 +15,7 @@ if (1-tauc)*(1-(tau.g))>(1-tau.i)
      error("No equilibrium under current taxes")
 end
 
-taud=tau.d+(1-update)*x
+taud=tau.d - (1-update)*x
 taunew = Taxes(taud,tauc,tau.i,tau.g,tau.l);
 println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
