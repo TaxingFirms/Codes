@@ -147,7 +147,7 @@ function init_parameters(;bbeta::Float64=0.972,ssigma::Float64=1.0,psi::Float64=
     H::Float64=1.76,aalphak::Float64=0.23, aalphal::Float64 = 0.64, ff::Float64=0.5,
     llambda0::Float64= 0.004, llambda1::Float64= 0.04, ddelta::Float64= 0.13, allowance::Float64 = 1.0, ttheta::Float64=0.25,
     kappa::Float64=1.0, e::Float64=0.00, k0::Float64=0.0, rhoz::Float64= 0.76, ssigmaz::Float64= 0.08,
-    Nz::Int64=9, Nk::Int64=80, Nq::Int64=40, Nomega::Int64=100, A::Float64=1.0)
+    Nz::Int64=15, Nk::Int64=100, Nq::Int64=40, Nomega::Int64=100, A::Float64=1.0)
 
     mc = tauchen(Nz,rhoz,ssigmaz,0.0,3); # Process of firm productivity z
     logshocks = mc.state_values;

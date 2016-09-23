@@ -20,25 +20,34 @@ include("Magnitudes.jl")
 include("Reforms.jl")
 
 
-#ref,pa=load("BenchmarkReforms3b.jld", "ref","pa");
-#pr0,eq0,tau0,cev0 = ref[1].pr,ref[1].eq,ref[1].tau, ref[1].cev;
-#pr1,eq1,tau1,cev1 = ref[end].pr,ref[end].eq,ref[end].tau, ref[end].cev;
-cd("/Users/danielwillsr/Dropbox/TeslaResults")
-rpr,req,rtau,pa=load("Reforms5.jld", "rpr","req","rtau","pa");
-cd("/Users/danielwillsr/Dropbox/Codes")
+ref3,pa=load("reform3.jld", "ref","pa");
+ref1g,pa=load("reform1g_a.jld", "ref","pa");
 pr,eq,tau,pa=load("ModelResults.jld", "pr","eq","tau","pa");
 pr0,eq0,tau0= pr,eq,tau;
 cev0=0.0;
-pr1,eq1,tau1 = rpr,req,rtau;
-cev1=(req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
-labels = ["Output","Labor Demand","Consumption","Turnover", "TFP", "CEV"];
+pr1,eq1,tau1 = ref3[end].pr,ref3[end].eq,ref3[end].tau;
+pr2,eq2,tau2 = ref1g[5].pr,ref1g[5].eq,ref1g[5].tau;
+
+cev1=(eq1.a.consumption - eq0.a.consumption)/eq0.a.consumption - pa.H/(eq0.a.consumption*(1+pa.psi))*( (eq1.w*(1-tau1.l)/pa.H)^(1+pa.psi) - (eq0.w*(1-tau0.l)/pa.H)^(1+pa.psi) );
+cev2=(eq2.a.consumption - eq0.a.consumption)/eq0.a.consumption - pa.H/(eq0.a.consumption*(1+pa.psi))*( (eq2.w*(1-tau2.l)/pa.H)^(1+pa.psi) - (eq0.w*(1-tau0.l)/pa.H)^(1+pa.psi) );
+
+labels = ["Output","Labor Demand","Consumption","Turnover", "TFP","wage" , "CEV"];
 ################################################################################
 #Counterfactual results
-initialVec=[eq0.a.output, eq0.a.laborsupply, eq0.a.consumption, eq0.E/sum(eq0.distr), eq0.a.output/(eq0.a.capital^pa.alphak*eq0.a.laborsupply^pa.alphal), cev0 ];
-finalVec=[eq1.a.output, eq1.a.laborsupply, eq1.a.consumption, eq1.E/sum(eq1.distr), eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), cev1 ];
+# 1. Capital gains
+initialVec=[eq0.a.output, eq0.a.laborsupply, eq0.a.consumption, eq0.E/sum(eq0.distr), eq0.a.output/(eq0.a.capital^pa.alphak*eq0.a.laborsupply^pa.alphal), eq0.w, cev0 ];
+finalVec=[eq1.a.output, eq1.a.laborsupply, eq1.a.consumption, eq1.E/sum(eq1.distr), eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), eq1.w, cev1 ];
 changeVec = finalVec./initialVec-1;
 
 println(DataFrame(Var=labels, initial=initialVec ,final=finalVec, change=changeVec ))
+
+# 1. NO Capital gains
+initialVec=[eq0.a.output, eq0.a.laborsupply, eq0.a.consumption, eq0.E/sum(eq0.distr), eq0.a.output/(eq0.a.capital^pa.alphak*eq0.a.laborsupply^pa.alphal), eq0.w, cev0 ];
+finalVec2=[eq2.a.output, eq2.a.laborsupply, eq2.a.consumption, eq2.E/sum(eq2.distr), eq2.a.output/(eq2.a.capital^pa.alphak*eq2.a.laborsupply^pa.alphal), eq2.w, cev2 ];
+changeVec2 = finalVec./initialVec-1;
+
+println(DataFrame(Var=labels, initial=initialVec ,final=finalVec2, change=changeVec2 ))
+
 ################################################################################
 #productivity histograms
 hist0=sum(eq0.distr/sum(eq0.distr),1)
