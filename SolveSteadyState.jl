@@ -1,4 +1,4 @@
-function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.0^-3.0,
+function SolveSteadyState(tau::Taxes,pa::Param;wguess::Float64=0.65, VFItol =10.0^-5.0,
   VFIfunction::Function = firmVFIParallelOmega!, distr_routine::Function = stationarydist,
      maxroutine::Function=maximizationconstraint, displayit0::Bool=true, displayw::Bool=true,
      displayitt::Bool=false, firmvalueguess::Matrix = repmat(pa.omega.grid,1,pa.Nz), initialradius = 10.0^-2.0 )
