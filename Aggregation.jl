@@ -227,8 +227,8 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
 
   ######## Save values #########
-  logarg = consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi) < 0.0 ?
-    eps(): consumption - (pa.H/(1+pa.psi))* labor_s^(1+pa.psi);
+  logarg = consumption - (pa.H/(1+1/pa.psi))* labor_s^(1+1/pa.psi) < 0.0 ?
+    eps(): consumption - (pa.H/(1+1/pa.psi))* labor_s^(1+1/pa.psi);
   logarg<0 && error("Negative Argument for log utility")
 
   welfare = pa.sigma==1.0 ?
