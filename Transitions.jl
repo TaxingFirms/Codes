@@ -3,19 +3,22 @@
 
 
 function updateprices!(T::Int64, tr:: Array{PeriodSolution,1},  ss0::PeriodSolution; verbose=true, update=0.9 , maxroutine=maximizationstep, tol = 10^-5.0, maxit = 10.0^5.0)
+  #INPUT: T, length of transition period.
+  #       tr, vector of solutions with a guess of w,r for each t. It also has the final steady state as the last element.
+  #       ss0: inital steady state
+  #OUTPUT: tr is updated in place with the transition dynamics
 
+  #1. Initialize arrays for wage, interest rate and consumption
   what=Array(Float64,(T,));
   rhat=Array(Float64,(T,));
   rdisplay=Array(Float64,(T,));
   cons=Array(Float64,(T,));
   consprime = Array(Float64,(T,));
 
-
-  distance=+Inf;
-  it=1;
+  #2. Iterate value function backwards,
+  distance=+Inf; it=1;
   while distance>tol  && it<maxit
-
-    #Solve value function backwards
+    #2.1 Solve value function backwards, given the guess prices. (This needs to be updated to correct prices)
     maxnorm=0.0;
 
     for dummy=1:(T-1)
@@ -30,12 +33,18 @@ function updateprices!(T::Int64, tr:: Array{PeriodSolution,1},  ss0::PeriodSolut
       ## householdProblem!(tr[t-1].hpr, aprime::tr[t].hpr.a,aprime::tr[t].hpr.mu, tr[t].eq.r, tr[t].eq.w, tausec[t], pa);
     end
 
-    #Compute cross-sectional distribution forward (this can be made faster if needed)
-    # and aggregate firm problem
+    #2.2 Compute cross-sectional distribution forward (this can be made faster if needed)
+    # and aggregate firm problem (I think I want to first check the free entry condition)
 
+
+    # Check if value at 1 is zero. Then set E to zero or 1.
+
+    # Compute distribution.
     aux = transitionrule(ss0.eq.distr,tr[1].eq.E, ss0.fpr, tr[1].eq , tausec[1], pa);
     tr[1].eq.distr = deepcopy(aux);
     tr[1].eq.a.laborsupply, tr[1].eq.a.consumption = firm_aggregates_transitions(tr[1].fpr, ss0.fpr, tr[1].eq, ss0.eq, tausec[1], pa);
+
+    # Wage consistent with household problem
     what[1] = pa.H*(tr[1].eq.a.laborsupply)^1/pa.psi;
     # Compute contribution to price discrepancy
     maxnorm = max(abs(what[1] - tr[1].eq.w),maxnorm);
@@ -45,6 +54,8 @@ function updateprices!(T::Int64, tr:: Array{PeriodSolution,1},  ss0::PeriodSolut
     rhat[1] = ss0.eq.r; #since interest rate at time t is r_{t+1} we dont care/use rhat[1]
 
     for t=2:T
+      #Compute firm value, set E to zero or 1
+
       aux = transitionrule(tr[t-1].eq.distr,tr[t].eq.E, tr[t-1].fpr, tr[t].eq , tausec[t], pa);
       tr[t].eq.distr = deepcopy(aux);
       tr[t].eq.a.laborsupply, tr[t].eq.a.consumption = firm_aggregates_transitions(tr[t].fpr, tr[t-1].fpr, tr[t].eq, tr[t-1].eq, tausec[t], pa);
@@ -88,22 +99,22 @@ end
 function firm_aggregates_transitions(crt_fpr::FirmProblem, prev_fpr::FirmProblem, crt_eq::Equilibrium, prev_eq::Equilibrium, crt_tau::Taxes, pa::Param)
 # Computes labor demand and net supply of goods at time t. Where time t is crt/prime variables.
 
-  prev_distr=prev_eq.distr;
-  crt_distr= crt_eq.distr;
-  wage=crt_eq.w;
-  irate= crt_eq.r;
+  prev_distr = prev_eq.distr;
+  crt_distr  = crt_eq.distr;
+  wage  = crt_eq.w;
+  irate = crt_eq.r;
 
   # Compute aggregates depending on current K
-  lprime_d=0.0;
-  gdp=0.0;
-  corptax=0.0;
-  investment_check=0.0;
+  lprime_d = 0.0;
+  gdp = 0.0;
+  corptax = 0.0;
+  investment_check = 0.0;
 
   for i_zprime in 1:pa.Nz
     zprime= pa.zgrid[i_zprime];
     # Entrants into current period
-    kprime=0.0;
-    qprime=0.0;
+    kprime = 0.0;
+    qprime = 0.0;
     mass = crt_eq.E*pa.invariant_distr[i_zprime];
 
     lprime    = (zprime*pa.alphal*kprime^pa.alphak / wage)^(1/(1-pa.alphal));

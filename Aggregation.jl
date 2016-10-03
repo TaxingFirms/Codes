@@ -173,8 +173,6 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
           liquidationcosts += (1-pa.kappa)*(1-pa.delta)*kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
           liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           liquidationtax+= taudtilde*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
-          capital += kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
       end
 
@@ -192,12 +190,14 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   financialcosts= - sum(distr.*pr.financialcosts);
 
   labor_s = ((1-tau.l)*eq.w/pa.H)^pa.psi;
-  deduction = 0.7*(tau.l*eq.w*labor_s + tau.i*eq.r*debt);
-  consumption = (1-tau.l)*eq.w*labor_s +  (1-tau.i)*eq.r*debt+ netdistributions +liquidations - eq.E*(pa.k0+pa.e) + deduction;
+  deductionfactor=0.7;
+  deduction_l = deductionfactor*tau.l*eq.w*labor_s;
+  deduction_i = deductionfactor*tau.i*eq.r*debt;
+  consumption = (1-tau.l)*eq.w*labor_s + (1-tau.i)*eq.r*debt + netdistributions + liquidations - eq.E*(pa.k0+pa.e) + deduction_l+ deduction_i;
 
   divtax= tau.d*grossdividends;
-  inctax = tau.i*eq.r*debt;
-  labtax = tau.l*eq.w*labor - deduction;
+  inctax = tau.i*eq.r*debt - deduction_l;
+  labtax = tau.l*eq.w*labor - deduction_l;
 
   G = divtax + corptax + inctax +labtax + liquidationtax;
   ######################################
@@ -227,8 +227,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
 
   ######## Save values #########
-  logarg = consumption - (pa.H/(1+1/pa.psi))* labor_s^(1+1/pa.psi) < 0.0 ?
-    eps(): consumption - (pa.H/(1+1/pa.psi))* labor_s^(1+1/pa.psi);
+  logarg = consumption - (pa.H/(1+1/pa.psi))* labor_s^(1+1/pa.psi) < 0.0;
   logarg<0 && error("Negative Argument for log utility")
 
   welfare = pa.sigma==1.0 ?

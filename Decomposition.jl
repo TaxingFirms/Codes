@@ -13,22 +13,18 @@ function decompostion(pr0::FirmProblem, eq0::Equilibrium, tau0::Taxes, pr1::Firm
   aggregates!(pr100, eq100, tau1, pa; consistencychecks=false);
 
   #2 Distribution
-  #eq110 = init_equilibirium(eq0.w,tau1,pa);
-  #pr110=deepcopy(pr100);
-  #mass_of_entrantsGHH!( pr110, eq110, tau1, pa , stationarydist; verbose = false);
-  #aggregates!(pr110, eq110, tau1, pa, ; consistencychecks=false);
+  eq010 = init_equilibirium(eq0.w,tau0,pa);
+  pr010 = deepcopy(pr0);
+  eq010.distr= copy(eq1.distr);
+  eq010.E= eq1.E;
+  aggregates!(pr010, eq010, tau0, pa; consistencychecks=false);
 
   #3 Prices
-  #eq101 = init_equilibirium(eq1.w,tau1,pa);
-  #pr101 = deepcopy(pr1);
-  #eq101.distr= copy(eq0.distr);
-  #eq101.E= eq0.E;
-  #aggregates!(pr101, eq101, tau1, pa; consistencychecks=false);
-  eq101 = init_equilibirium(eq0.w,tau0,pa);
-  pr101 = deepcopy(pr0);
-  eq101.distr= copy(eq1.distr);
-  eq101.E= eq1.E;
-  aggregates!(pr101, eq101, tau1, pa; consistencychecks=false);
+  eq001 = init_equilibirium(eq1.w,tau1,pa);
+  pr001 = deepcopy(pr0);
+  eq001.distr= copy(eq0.distr);
+  eq001.E= eq0.E;
+  aggregates!(pr001, eq001, tau0, pa; consistencychecks=false);
 
 
 
@@ -36,12 +32,12 @@ function decompostion(pr0::FirmProblem, eq0::Equilibrium, tau0::Taxes, pr1::Firm
   ################################################################################
   #Copy after changing params
   initialVec=[eq0.a.output, eq0.a.laborsupply, eq0.a.consumption, eq0.E/sum(eq0.distr), eq0.a.output/(eq0.a.capital^pa.alphak*eq0.a.laborsupply^pa.alphal) ];
-  taxesVec=[eq100.a.output, eq100.a.laborsupply, eq100.a.consumption, eq100.E/sum(eq100.distr), eq100.a.output/(eq100.a.capital^pa.alphak*eq100.a.laborsupply^pa.alphal) ]
-#  dist0Vec=[eq110.a.output, eq110.a.laborsupply, eq110.a.consumption, eq110.E/sum(eq110.distr), eq110.a.output/(eq110.a.capital^pa.alphak*eq110.a.laborsupply^pa.alphal) ]
-  dist1Vec=[eq101.a.output, eq101.a.laborsupply, eq101.a.consumption, eq101.E/sum(eq101.distr), eq101.a.output/(eq101.a.capital^pa.alphak*eq101.a.laborsupply^pa.alphal) ]
+  policiesVec=[eq100.a.output, eq100.a.laborsupply, eq100.a.consumption, eq100.E/sum(eq100.distr), eq100.a.output/(eq100.a.capital^pa.alphak*eq100.a.laborsupply^pa.alphal) ]
+  distributionVec=[eq010.a.output, eq010.a.laborsupply, eq010.a.consumption, eq010.E/sum(eq010.distr), eq010.a.output/(eq010.a.capital^pa.alphak*eq010.a.laborsupply^pa.alphal) ]
+  pricesVec=[eq001.a.output, eq001.a.laborsupply, eq001.a.consumption, eq001.E/sum(eq001.distr), eq001.a.output/(eq001.a.capital^pa.alphak*eq001.a.laborsupply^pa.alphal) ]
   finalVec=[eq1.a.output, eq1.a.laborsupply, eq1.a.consumption, eq1.E/sum(eq1.distr), eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal) ]
 
 
-  println(DataFrame(Var=labels, initial=initialVec ,taxes =taxesVec , distribution1 = dist1Vec,final=finalVec))
+  println(DataFrame(Var=labels, initial=initialVec ,policies =policiesVec , distribution = distributionVec, prices= pricesVec, final=finalVec))
 
 end
