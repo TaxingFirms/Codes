@@ -15,6 +15,13 @@ function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
   pr.InterpolationGrid[i_z][omegaprime]
 end
 
+#Value of exit
+function exitval(kprime::Float64, qprime::Float64, tau::Taxes, pa::Param)
+  taudtilde = 1-(1-tau.d)/(1-tau.g);
+
+  (1-taudtilde)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
+end
+
 # compute continuation value, given controls and z
 function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   taudtilde = 1-(1-tau.d)/(1-tau.g);
@@ -25,12 +32,6 @@ function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq:
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
     end
   return cont
-end
-
-function exitval(kprime::Float64, qprime::Float64, tau::Taxes, pa::Param)
-  taudtilde = 1-(1-tau.d)/(1-tau.g);
-
-  (1-taudtilde)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
 end
 
 #Objective functions for maximization step
