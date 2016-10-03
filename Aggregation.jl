@@ -174,7 +174,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
           liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           liquidationtax+= taudtilde*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
           capital += kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];          
+          debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
       end
 
@@ -198,7 +198,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   consumption = (1-tau.l)*eq.w*labor_s + (1-tau.i)*eq.r*debt + netdistributions + liquidations - eq.E*(pa.k0+pa.e) + deduction_l+ deduction_i;
 
   divtax= tau.d*grossdividends;
-  inctax = tau.i*eq.r*debt - deduction_l;
+  inctax = tau.i*eq.r*debt - deduction_i;
   labtax = tau.l*eq.w*labor - deduction_l;
 
   G = divtax + corptax + inctax +labtax + liquidationtax;
