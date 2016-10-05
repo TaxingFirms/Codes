@@ -21,7 +21,7 @@ tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28)
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResults500.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-
+# pr,eq,tau,pa =load("ModelResults500.jld","pr","eq","tau","pa");
 
 # 2. Initialize equilibrium object: just to have prices
 # Important to set r at the initial level
@@ -33,18 +33,19 @@ pr1  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
 tau1=Taxes(tau.d, 0.3, tau.i, tau.g, tau.l)
 firmVFIParallelOmega!(pr1, eqaux, tau1, pa; tol = 10^-5.0 );
 getpolicies!(pr1,eqaux,tau1,pa);
+expvalentry= compute_expvalentry(pr1,pa,eq1,tau1);
 #Fix entry and change distributions
-dist1 = stationarydist(eq.E, pr1, eqaux, tau1, pa)
+dist1 = stationarydist(eq.E, pr1, eqaux, tau1, pa);
 #Fix wage consistent with free entry
 eq1 = init_equilibirium(eq.w,tau1,pa);
 pr11 = deepcopy(pr1);
-w1 = free_entry!(eq1, pr11, tau1, pa, firmVFIParallelOmega, maximizationconstraint, 10.0^-5.0);
+w1 = free_entry!(eq1, pr11, tau1, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
 getpolicies!(pr11,eq1,tau1,pa);
 mass_of_entrantsGHH!( pr11, eq1, tau1, pa, stationarydist ; verbose = false);
 aggregates!(pr11, eq1, tau1, pa);
 ##OUTPUT: pr1, dist1, pr1.firmvaluegrid[0], pr11, w1, eq1.E, eq1.distr
 
-save("ShiftTauC.jld","pr1", pr1," dist1", dist1, "valentry" ,pr1.firmvaluegrid[0], "pr11",pr11, "w1", w1, "E", eq1.E, "distr11" ,eq1.distr,"pa",pa);
+save("ShiftTauC.jld","pr1", pr1," dist1", dist1, "valentry" ,expvalentry, "pr11",pr11, "w1", w1, "E", eq1.E, "distr11" ,eq1.distr,"pa",pa);
 
 
 #  ## 3.2 Shift taud to 0.2
