@@ -28,7 +28,7 @@ pr,eq,tau,pa = load("ModelResults.jld","pr","eq","tau","pa");
 #taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
 #ref2 = Reform2Vector("reform2.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-4.0, update=0.75);
 
-#taucvec = [0.35 0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
+taucvec = [0.35 0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
 
 #tau.i=0.3;
 #ref2 = Reform2Vector("reform2_03.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-4.0, update=0.75);
