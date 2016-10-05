@@ -17,18 +17,19 @@ include("mc_tools.jl")
 @everywhere include("Transitions.jl")
 
 # 1. Run benchmark model in a finer grid for graphs
-pa =init_parameters(Nk =500, Nomega =500, H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.0255, llambda1 = 0.23958, ff = 1.44459, e=0.041674 );
-tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
-@time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
-moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
-save("ModelResults500.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-# pr,eq,tau,pa =load("ModelResults500.jld","pr","eq","tau","pa");
+#  pa =init_parameters(Nk =500, Nomega =500, H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.0255, llambda1 = 0.23958, ff = 1.44459, e=0.041674 );
+#  tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.15, ttaul=0.28);
+#  @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
+#  moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
+#  save("ModelResults500.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
+pr,eq,tau,pa =load("ModelResults500.jld","pr","eq","tau","pa");
 
 # Generate histogram for the initial distribution
+indomegamax = 360;
 Nbins =20;
-hstep = pa.Nomega/Nbins;
+hstep = indomegamax/Nbins;
 hist = Array(Float64,(Nbins,));
-hdist0= eq.distr[:,7];
+hdist0= sum(eq.distr,2);#eq.distr[:,7];
 
 for j=1:Nbins
   ind0 = convert(Int64,(j-1)*hstep +1);
@@ -44,11 +45,10 @@ eqaux = init_equilibirium(eq.w,tau,pa);
 
 # 3. Shift policies
 ## 3.1 Shift tauc to 0.3
-pr1  = init_firmproblem(pa);
+pr1  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
 tau1=Taxes(tau.d, 0.3, tau.i, tau.g, tau.l)
 firmVFIParallelOmega!(pr1, eqaux, tau1, pa; tol = 10^-5.0 );
-plot(pr1.kpolicy[:,5])
-getpolicies!(pr1,eqaux,tau1,pa);
+getpolicies!(pr1,eqaux,tau1,pa); #save("Temp.jld","pr1",pr1)
 expvalentry1= compute_expvalentry(pr1,pa,eq1,tau1);
 #Fix entry and change distributions
 dist1 = stationarydist(eq.E, pr1, eqaux, tau1, pa);
@@ -65,13 +65,13 @@ dist111 = stationarydist(eq1.E, pr1, eqaux, tau1, pa);
 ##OUTPUT: pr1, dist1, pr1.firmvaluegrid[0], pr11, w1, eq1.E, eq1.distr
 
 save("ShiftTauC.jld","pr1", pr1,"dist1", dist1, "valentry" ,expvalentry, "pr11",pr11, "w1", w1, "E", eq1.E, "distr11" ,eq1.distr,"pa",pa);
-#pr1,dist1,valentry,pr11,w1,E,distr11,pa=load("ShiftTauC.jld","pr1", " dist1", "valentry", "pr11", "w1", "E", "distr11" ,"pa")
+#pr1,dist1,valentry,pr11,w1,E,distr11,pa=load("ShiftTauC.jld","pr1", " dist1", "valentry", "pr11", "w1", "E", "distr11" ,"pa");
 
 # Generate histograms fr counterfactuals
 hist1 = Array(Float64,(Nbins,));
 hist11 = Array(Float64,(Nbins,));
-hdist1= dist1[:,7];
-hdist11 = distr11[:,7]
+hdist1= sum(dist1,2); #dist1[:,7];
+hdist11 = sum(distr11,2); #distr11[:,7];
 
 for j=1:Nbins
   ind0 = convert(Int64,(j-1)*hstep +1);
@@ -83,21 +83,21 @@ hist1 = hist1/sum(hist1);
 hist11 = hist11/sum(hist11);
 
 
-hstep2 = convert(Int64,round(pa.omega.ub/Nbins));
-hend = convert(Int64,round(pa.omega.ub))
-ind=1:hstep2:hend+1;
+hstep2 = pa.omega.grid[indomegamax]/Nbins;
+hend = pa.omega.grid[indomegamax] - 0.5*hstep2;
+ind=0.5*hstep2:hstep2:hend;
 width= hstep2*0.4;
 
 
 figure()
 title("Change in Corporate Income Tax \n Partial equilibrium effect", fontsize=16)
 xlabel("Net worth", fontsize=14)
-k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
-k1= plot(pa.omega.grid, pr1.kpolicy[:,7], color="y", linewidth = 2.0, label=L"$\tau_c = 0.3$")
+k= plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,5] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
+k1= plot(pa.omega.grid[1:indomegamax], pr1.kpolicy[1:indomegamax,5], color="y", linewidth = 2.0, label=L"$\tau_c = 0.30$")
 ylabel("""k' """, fontsize=14)
-ylim(-10,90)
+ylim(0,35)
 tick_params(labelsize=13)
-legend(loc="best")
+legend(loc="center right")
 twinx()
 rects = bar(ind -width, hist, width, color="r", label =L"$\tau_c = 0.35$")
 rects1 = bar(ind, hist1, width, color="y", label=L"$\tau_c = 0.30$")
@@ -111,13 +111,13 @@ width= hstep2*0.25;
 figure()
 title("Change in Corporate Income Tax \n General equilibrium effect", fontsize=16)
 xlabel("Net worth", fontsize=14)
-k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
-k1= plot(pa.omega.grid, pr1.kpolicy[:,7], color="y", linewidth = 2.0, label=L"$\tau_c = 0.3$")
-k11= plot(pa.omega.grid, pr11.kpolicy[:,7], color="g", linewidth = 2.0, label=L"$\tau_c = 0.3$, GE")
+k= plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,5] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
+k1= plot(pa.omega.grid[1:indomegamax], pr1.kpolicy[1:indomegamax,5], color="y", linewidth = 2.0, label=L"$\tau_c = 0.3$")
+k11= plot(pa.omega.grid[1:indomegamax], pr11.kpolicy[1:indomegamax,5], color="g", linewidth = 2.0, label=L"$\tau_c = 0.3$, GE")
 ylabel("""k' """, fontsize=14)
-ylim(-10,90)
+ylim(0,35)
 tick_params(labelsize=13)
-legend(loc="best")
+legend(loc="center right")
 twinx()
 rects = bar(ind -width, hist, width, color="r", label =L"$\tau_c = 0.35$")
 rects1 = bar(ind, hist1, width, color="y", label=L"$\tau_c = 0.30$")
@@ -156,9 +156,9 @@ save("ShiftTauD.jld","pr2", pr2,"dist2", dist2, "eq2" ,eq2, "pr22",pr22, "w2", w
 hist2 = Array(Float64,(Nbins,));
 hist22 = Array(Float64,(Nbins,));
 hist222 = Array(Float64,(Nbins,));
-hdist2 = dist2[:,7];
-hdist22 = eq2.distr[:,7];
-hdist222 = dist222[:,7];
+hdist2 = sum(dist2,2); #dist2[:,7];
+hdist22 = sum(eq2.distr,2); #eq2.distr[:,7];
+hdist222 = sum(dist222,2); #dist222[:,7];
 
 
 for j=1:Nbins
@@ -172,20 +172,16 @@ hist2 = hist2/sum(hist2);
 hist22 = hist22/sum(hist22);
 hist222 = hist222/sum(hist222);
 
-
-hstep2 = convert(Int64,round(pa.omega.ub/Nbins));
-hend = convert(Int64,round(pa.omega.ub))
-ind=1:hstep2:hend+1;
 width= hstep2*0.4;
 
 
 figure()
 title("Change in Dividend Tax \n Partial equilibrium effect", fontsize=16)
 xlabel("Net worth", fontsize=14)
-k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_d = 0.15$")
-k1= plot(pa.omega.grid, pr2.kpolicy[:,7], color="b", linewidth = 2.0, label=L"$\tau_d = 0.20$")
+k= plot(pa.omega.grid, pr.kpolicy[:,5] , color="r", linewidth = 2.0, label=L"$\tau_d = 0.15$")
+k1= plot(pa.omega.grid, pr2.kpolicy[:,5], color="b", linewidth = 2.0, label=L"$\tau_d = 0.20$")
 ylabel("""k' """, fontsize=14)
-ylim(-20,90)
+#ylim(-20,90)
 tick_params(labelsize=13)
 legend(loc="best")
 twinx()
