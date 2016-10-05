@@ -20,9 +20,9 @@ pr,tau,fp,res,p=load("/Users/danielwillsr/Dropbox/1FirmTaxation/SimpleDiscreteTi
 
 omegagrid=pa.omega.grid;
 
-regions=zeros(size(res.distributions));
+regions=zeros(size(pr.distributions));
 
-for i_omega in 1:fp.Nomega, i_z in 1:fp.Nz
+for i_omega in 1:pa.Nomega, i_z in 1:pr.Nz
   nd = (pr.omega.grid[i_omega] - res.kprime[i_omega,i_z] + res.qprime[i_omega,i_z])
   if nd > pr.omega.step #Positive dividends
     regions[i_omega,i_z]=1;
@@ -34,13 +34,13 @@ end
 
 figure()
 subplot(121)
-imshow(res.exitprobability,aspect="auto",extent=(fp.zgrid[1],fp.zgrid[end],pr.omega.ub,0))
+imshow(pr.exitprobability,aspect="auto",extent=(pa.zgrid[1],pa.zgrid[end],pa.omega.ub,0))
     title("Exit Probability")
     xlabel("Productivity")
     ylabel("Net worth")
 
 subplot(122)
-imshow(regions,aspect="auto",extent=(fp.zgrid[1],fp.zgrid[end],pr.omega.ub,0))
+imshow(pr.positivedistributions,aspect="auto",extent=(pa.zgrid[1],pa.zgrid[end],pa.omega.ub,0))
     title("Distribution Regions")
     xlabel("Productivity")
     ylabel("Net worth")

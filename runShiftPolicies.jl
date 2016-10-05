@@ -2,6 +2,7 @@
 @everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
 using JLD
 using DataFrames
+using PyPlot
 
 include("markov_approx.jl")
 include("mc_tools.jl")
@@ -23,17 +24,32 @@ moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResults500.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 # pr,eq,tau,pa =load("ModelResults500.jld","pr","eq","tau","pa");
 
+# Generate histogram for the initial distribution
+Nbins =20;
+hstep = pa.Nomega/Nbins;
+hist = Array(Float64,(Nbins,));
+hdist0= eq.distr[:,7];
+
+for j=1:Nbins
+  ind0 = convert(Int64,(j-1)*hstep +1);
+  indend = convert(Int64,(j)*hstep);
+  hist[j] = sum(hdist0[ind0:indend]);
+end
+hist = hist/sum(hist);
+
+
 # 2. Initialize equilibrium object: just to have prices
 # Important to set r at the initial level
 eqaux = init_equilibirium(eq.w,tau,pa);
 
 # 3. Shift policies
 ## 3.1 Shift tauc to 0.3
-pr1  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
+pr1  = init_firmproblem(pa);
 tau1=Taxes(tau.d, 0.3, tau.i, tau.g, tau.l)
 firmVFIParallelOmega!(pr1, eqaux, tau1, pa; tol = 10^-5.0 );
+plot(pr1.kpolicy[:,5])
 getpolicies!(pr1,eqaux,tau1,pa);
-expvalentry= compute_expvalentry(pr1,pa,eq1,tau1);
+expvalentry1= compute_expvalentry(pr1,pa,eq1,tau1);
 #Fix entry and change distributions
 dist1 = stationarydist(eq.E, pr1, eqaux, tau1, pa);
 #Fix wage consistent with free entry
@@ -49,25 +65,20 @@ dist111 = stationarydist(eq1.E, pr1, eqaux, tau1, pa);
 ##OUTPUT: pr1, dist1, pr1.firmvaluegrid[0], pr11, w1, eq1.E, eq1.distr
 
 save("ShiftTauC.jld","pr1", pr1,"dist1", dist1, "valentry" ,expvalentry, "pr11",pr11, "w1", w1, "E", eq1.E, "distr11" ,eq1.distr,"pa",pa);
+#pr1,dist1,valentry,pr11,w1,E,distr11,pa=load("ShiftTauC.jld","pr1", " dist1", "valentry", "pr11", "w1", "E", "distr11" ,"pa")
 
-# Generate histogram for the distribution
-Nbins =20;
-hstep = pa.Nomega/Nbins;
-hist = Array(Float64,(Nbins,));
+# Generate histograms fr counterfactuals
 hist1 = Array(Float64,(Nbins,));
 hist11 = Array(Float64,(Nbins,));
-hdist0= eq.distr[:,7];
 hdist1= dist1[:,7];
 hdist11 = distr11[:,7]
 
 for j=1:Nbins
   ind0 = convert(Int64,(j-1)*hstep +1);
   indend = convert(Int64,(j)*hstep);
-  hist[j] = sum(hdist0[ind0:indend]);
   hist1[j] = sum(hdist1[ind0:indend]);
   hist11[j] = sum(hdist11[ind0:indend]);
 end
-hist = hist/sum(hist);
 hist1 = hist1/sum(hist1);
 hist11 = hist11/sum(hist11);
 
@@ -84,7 +95,7 @@ xlabel("Net worth", fontsize=14)
 k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
 k1= plot(pa.omega.grid, pr1.kpolicy[:,7], color="y", linewidth = 2.0, label=L"$\tau_c = 0.3$")
 ylabel("""k' """, fontsize=14)
-ylim(0,90)
+ylim(-10,90)
 tick_params(labelsize=13)
 legend(loc="best")
 twinx()
@@ -98,13 +109,13 @@ close()
 
 width= hstep2*0.25;
 figure()
-title("Change in Corporate Income Tax \n Partial equilibrium effect", fontsize=16)
+title("Change in Corporate Income Tax \n General equilibrium effect", fontsize=16)
 xlabel("Net worth", fontsize=14)
 k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_c = 0.35$")
 k1= plot(pa.omega.grid, pr1.kpolicy[:,7], color="y", linewidth = 2.0, label=L"$\tau_c = 0.3$")
 k11= plot(pa.omega.grid, pr11.kpolicy[:,7], color="g", linewidth = 2.0, label=L"$\tau_c = 0.3$, GE")
 ylabel("""k' """, fontsize=14)
-ylim(0,90)
+ylim(-10,90)
 tick_params(labelsize=13)
 legend(loc="best")
 twinx()
@@ -140,10 +151,76 @@ dist222 = stationarydist(eq2.E, pr2, eqaux, tau2, pa);
 
 save("ShiftTauD.jld","pr2", pr2,"dist2", dist2, "eq2" ,eq2, "pr22",pr22, "w2", w2, "dist222" , dist222, "pa",pa);
 
+#pr2, dist2, eq2, pr22, w2, dist222, pa = load("ShiftTauD.jld","pr2", "dist2", "eq2", "pr22","w2", "dist222" , "pa");
+
+hist2 = Array(Float64,(Nbins,));
+hist22 = Array(Float64,(Nbins,));
+hist222 = Array(Float64,(Nbins,));
+hdist2 = dist2[:,7];
+hdist22 = eq2.distr[:,7];
+hdist222 = dist222[:,7];
+
+
+for j=1:Nbins
+  ind0 = convert(Int64,(j-1)*hstep +1);
+  indend = convert(Int64,(j)*hstep);
+  hist2[j] = sum(hdist2[ind0:indend]);
+  hist22[j] = sum(hdist22[ind0:indend]);
+  hist222[j] = sum(hdist222[ind0:indend]);
+end
+hist2 = hist2/sum(hist2);
+hist22 = hist22/sum(hist22);
+hist222 = hist222/sum(hist222);
+
+
+hstep2 = convert(Int64,round(pa.omega.ub/Nbins));
+hend = convert(Int64,round(pa.omega.ub))
+ind=1:hstep2:hend+1;
+width= hstep2*0.4;
+
+
+figure()
+title("Change in Dividend Tax \n Partial equilibrium effect", fontsize=16)
+xlabel("Net worth", fontsize=14)
+k= plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_d = 0.15$")
+k1= plot(pa.omega.grid, pr2.kpolicy[:,7], color="b", linewidth = 2.0, label=L"$\tau_d = 0.20$")
+ylabel("""k' """, fontsize=14)
+ylim(-20,90)
+tick_params(labelsize=13)
+legend(loc="best")
+twinx()
+rects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = 0.15$")
+rects2 = bar(ind, hist2, width, color="b", label=L"$\tau_d = 0.20$")
+ylabel("Mass of firms", fontsize=14)
+ylim(0,1)
+tick_params(labelsize=13)
+savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauD.pdf")
+close()
+
+expvalentry2= compute_expvalentry(pr2,pa,eq2,tau2);
 
 
 
-
+width= hstep2*0.25;
+figure()
+title("Change in Dividend Tax \n General equilibrium effect", fontsize=16)
+xlabel("Net worth", fontsize=14)
+k=plot(pa.omega.grid, pr.kpolicy[:,7] , color="r", linewidth = 2.0, label=L"$\tau_d = 0.15$")
+k2= plot(pa.omega.grid, pr2.kpolicy[:,7], color="b", linewidth = 2.0, label=L"$\tau_d = 0.20$")
+k2= plot(pa.omega.grid, pr22.kpolicy[:, 7], color="c", linewidth = 2.0, label=L"$\tau_d = 0.20, GE$")
+ylabel("""k' """, fontsize=14)
+ylim(-20,90)
+tick_params(labelsize=13)
+legend(loc="best")
+twinx()
+ects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = 0.15$")
+rects2 = bar(ind, hist2, width, color="b", label=L"$\tau_d = 0.20$")
+rects22 = bar(ind + width, hist22, width, color="c", label=L"$\tau_c = 0.30, GE$")
+ylabel("Mass of firms", fontsize=14)
+ylim(0,1)
+tick_params(labelsize=13)
+savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauD_GE.pdf")
+close()
 
 
 
