@@ -21,8 +21,11 @@ include("Reforms.jl")
 
 pr,eq,tau,pa = load("ModelResults.jld","pr","eq","tau","pa");
 
-#taucvec = [0.34 0.33 0.32 0.31];
-#ref1 = Reform1Vector("reform1.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.75);
+taucvec = [0.34 0.33 0.32 0.31];
+ref1 = Reform1Vector("reform1.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.75);
+
+taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
+ref3 = Reform3Vector("reform3.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-4.0, update=0.75);
 
 
 #taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
@@ -44,12 +47,6 @@ prg,eqg,taug,pag=load("ModelResultsNoTaxG.jld", "pr","eq","tau","pa");
 
 taucvec = [0.33 0.35 0.37 0.39 0.41 0.43];
 ref6a = Reform6Vector("reform6_a.jld", taucvec, prg, eqg, taug, pag; bctol= 5.0*10.0^-4.0, update=0.75);
-
-
-taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
-ref3 = Reform3Vector("reform3.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-4.0, update=0.75);
-
-#back to taug
 
 taucvec = [0.33 0.35 0.37 0.39 0.41 0.43];
 ref1ga = Reform1Vector("reform1g_a.jld", taucvec, prg, eqg, taug, pag; bctol= 5.0*10.0^-4.0, update=0.75);
