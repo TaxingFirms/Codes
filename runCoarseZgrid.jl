@@ -16,7 +16,7 @@ include("mc_tools.jl")
 @everywhere include("Transitions.jl")
 
 #Tesla
-pa =init_parameters(H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.0255, llambda1 = 0.23958, ff = 1.44459, e=0.041674);
+pa =init_parameters(Nz= 21, H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.0255, llambda1 = 0.23958, ff = 1.44459, e=0.041674);
 
 tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.28, ttaug = 0.15, ttaul = 0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
