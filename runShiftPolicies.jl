@@ -31,7 +31,7 @@ hstep = indomegamax/Nbins;
 hist = Array(Float64,(Nbins,));
 hdist0= sum(eq.distr,2);#eq.distr[:,7];
 
-proddisplay =5 ;
+proddisplay = 5 ;
 
 for j=1:Nbins
   ind0 = convert(Int64,(j-1)*hstep +1);
