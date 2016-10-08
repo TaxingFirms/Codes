@@ -303,3 +303,24 @@ ylim(0,1)
 tick_params(labelsize=13)
 savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauD_GE.pdf")
 close()
+
+
+## 3.4 Shift taud to 0.2, taug to 0.2
+pr4  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
+tau4=Taxes(0.2, tau.c, 0.2, 0.2, tau.l)
+firmVFIParallelOmega!(pr4, eqaux, tau4, pa; tol = 10^-5.0 );
+getpolicies!(pr4,eqaux,tau4,pa);
+
+getpolicies!(pr4,eqaux,tau4,pa);
+expvalentry= compute_expvalentry(pr4,pa,eqaux,tau4);
+#Fix entry and change distributions
+dist4 = stationarydist(eq.E, pr4, eqaux, tau4, pa);
+#Fix wage consistent with free entry
+eq4 = init_equilibirium(eq.w,tau4,pa);
+pr44 = deepcopy(pr4);
+w4 = free_entry!(eq4, pr44, tau4, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
+getpolicies!(pr44,eq4,tau4,pa);
+mass_of_entrantsGHH!( pr44, eq4, tau4, pa, stationarydist ; verbose = false);
+aggregates!(pr44, eq4, tau4, pa);
+
+save("ShiftTauDGI.jld","pr4", pr4,"dist4", dist4, "eq4" ,eq4, "pr44", pr44, "w4", w,  "pa",pa);
