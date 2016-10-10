@@ -369,6 +369,9 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     taxdif=abs(tau0 - taunew.d); tau0=taunew.d;
   end
   println("pct surplus ",newDeficit)
+  println(@sprintf(" Dividend Base \t LabTax Collts \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t       G     "))
+  println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f  \t %9.4f ", eq1.a.collections.d/taunew.d, eq1.a.collections.l, eq1.a.consumption, eq1.E, eq1.w, eq1.a.welfare , eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal, eq1.a.G)))
+
   return pr1, eq1, taunew
 end
 
