@@ -444,7 +444,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
       prexit=0.0;
        #This just avoids computing this constant again and again while computing omegaprime
-      exitvalue = exitval(kprime, qprime, eq, tau, pa);
+      exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
