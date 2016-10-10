@@ -104,7 +104,7 @@ function Reform5Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
     ref=Array(Economy,(Nv+1,));
     ref[1]=Economy(pr,eq,tau,0.0);
     println(@sprintf(" Dividend Base \t LabTax Collts \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   "))
-    println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f ", eq.a.collections.d/rtau.d, eq.a.collections.l, eq.a.consumption, eq.E, eq.w, eq.a.welfare , eq.a.output/(eq.a.capital^pa.alphak*eq.a.laborsupply^pa.alphal)))
+    println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f ", eq.a.collections.d/tau.d, eq.a.collections.l, eq.a.consumption, eq.E, eq.w, eq.a.welfare , eq.a.output/(eq.a.capital^pa.alphak*eq.a.laborsupply^pa.alphal)))
 
 
     for j=1:Nv
