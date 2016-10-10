@@ -16,15 +16,9 @@ function firmvaluefunction(omegaprime::Real,i_z::Int,pr::FirmProblem)
 end
 
 #Value of exit
-function exitval(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
-  taudtilde = 1-(1-tau.d)/(1-tau.g);
+function exitvalfun(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
 
-  (1-taudtilde)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
-end
-
-function exitvalnotax(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
-
-  (1-0.0)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
+  (1-tau.exit)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
 end
 
 
@@ -32,7 +26,7 @@ end
 function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   taudtilde = 1-(1-tau.d)/(1-tau.g);
   cont =0.0;
-  exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
+  exitvalue = exitvalfun(kprime, qprime, eq, tau, pa);
   for (i_zprime, zprime) in enumerate(pa.zgrid)
     omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
@@ -444,7 +438,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
       prexit=0.0;
        #This just avoids computing this constant again and again while computing omegaprime
-      exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
+      exitvalue = exitvalfun(kprime, qprime, eq, tau, pa);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);

@@ -59,6 +59,7 @@ type Taxes
     i::Float64
     g::Float64
     l::Float64
+    exit::Float64
 end
 
 
@@ -199,8 +200,8 @@ function init_parameters(;bbeta::Float64=0.972,ssigma::Float64=1.0,psi::Float64=
 end
 
 #Initialize taxes
-function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15, ttaul::Float64 = 0.28)
-    Taxes(ttaud, ttauc, ttaui, ttaug,ttaul);
+function init_taxes(;ttaud::Float64 =0.15, ttauc::Float64 = 0.35, ttaui::Float64 = 0.3, ttaug::Float64 = 0.15, ttaul::Float64 = 0.28, ttauexit::Float64 = 0.0)
+    Taxes(ttaud, ttauc, ttaui, ttaug,ttaul,ttauexit);
 end
 
 #Guess Prices
@@ -216,7 +217,7 @@ function init_equilibirium(wguess::Float64,tau::Taxes,pa::Param)
     output = convert(Float64,NaN);
     laborsupply= convert(Float64,NaN);
     welfare = convert(Float64,NaN);
-    collections=Taxes(NaN,NaN,NaN,NaN,NaN);
+    collections=Taxes(NaN,NaN,NaN,NaN,NaN,NaN);
 
     aggregates= Aggregates(NaN,NaN,NaN,NaN,NaN,NaN,collections,NaN,NaN,NaN,NaN,NaN,NaN)
     moments= Moments(NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN)
@@ -274,9 +275,9 @@ function predict_state(i_zprime::Int64, i_omega::Int64, i_z::Int64, pr::FirmProb
     i_omegaprime = closestindex(omegaprime, pa.omega.step);
     #The block below checks that the index is within reasonable bounds
     if i_omegaprime<1 || i_omegaprime>pa.Nomega
-        if i_omega==pa.Nomega || i_omegaprime < (pa.Nomega + 3)
+        if i_omega==pa.Nomega || i_omegaprime < (pa.Nomega + 1)
             i_omegaprime =pa.Nomega
-            elseif i_omega==1 || i_omegaprime > -3
+          elseif i_omega==1 || i_omegaprime > -1
             i_omegaprime =1;
         else
             error("omega' out of the grid ", "i_z = ", i_z, "i_omega = ", i_omega, "i_z' = ",i_zprime, "i_omega' = ",i_omegaprime)

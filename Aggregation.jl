@@ -45,7 +45,7 @@ function unit_entry(distr1::Matrix, pr::FirmProblem, eq::Equilibrium, tau::Taxes
 
         #Exiting incumbents
         else
-          liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          liquidations += (1-tau.exit)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           debt += qprime*distr1[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
       end
@@ -171,8 +171,8 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
         #Exiting incumbents
         else
           liquidationcosts += (1-pa.kappa)*(1-pa.delta)*kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
-          liquidations += (1-taudtilde)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          liquidationtax+= taudtilde*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
+          liquidations += (1-tau.exit)*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          liquidationtax+= tau.exit*(pa.kappa*(1-pa.delta)*kprime - (1+eq.r)*qprime)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z]
           capital += kprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           debt += qprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
         end
@@ -235,7 +235,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   welfare = pa.sigma==1.0 ?
     log( logarg ) /(1-pa.beta):
     (1/(1-pa.sigma)*( logarg )^(1-pa.sigma) ) /(1-pa.beta);
-  collections = Taxes(divtax+ liquidationtax,corptax,inctax,0.0,labtax);
+  collections = Taxes(divtax,corptax,inctax,0.0,labtax,liquidationtax);
   eq.a=Aggregates(netdistributions, (1-tau.i)*eq.r*debt, consumption, gdp, labor, welfare, collections, debt, capital, investment, grossdividends, financialcosts, G);
 
 
