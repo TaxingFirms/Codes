@@ -22,11 +22,17 @@ function exitval(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, 
   (1-taudtilde)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
 end
 
+function exitvalnotax(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
+
+  pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime
+end
+
+
 # compute continuation value, given controls and z
 function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   taudtilde = 1-(1-tau.d)/(1-tau.g);
   cont =0.0;
-  exitvalue = exitval(kprime, qprime, eq, tau, pa);
+  exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
   for (i_zprime, zprime) in enumerate(pa.zgrid)
     omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
