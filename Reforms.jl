@@ -110,6 +110,9 @@ function Reform5Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
         cev= (req.a.consumption - eq.a.consumption)/eq.a.consumption - pa.H/(eq.a.consumption*(1+pa.psi))*( (req.w*(1-rtau.l)/pa.H)^(1+pa.psi) - (eq.w*(1-tau.l)/pa.H)^(1+pa.psi) );
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
+
+        println(@sprintf(" Dividend Base \t LabTax Collts \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   "))
+        println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.7f \t %9.4f \t %9.5f \t %9.4f ", req.a.collections.d/rtau.d, req.a.collections.l, req.a.consumption, req.E, req.w, req.a.welfare , req.a.output/(req.a.capital^pa.alphak*req.a.laborsupply^pa.alphal)))
     end
     ref
 end

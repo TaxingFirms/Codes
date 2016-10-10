@@ -335,7 +335,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
 
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
-  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
+  pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = true);
   if momentsprint
       moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
   end
@@ -359,7 +359,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
 
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
     wguess=eq1.w;
-    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
+    pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = true , initialradius = initialradius);
     if momentsprint
         moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
     end
