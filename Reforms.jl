@@ -103,7 +103,7 @@ function Reform5Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
 
     ref=Array(Economy,(Nv+1,));
     ref[1]=Economy(pr,eq,tau,0.0);
-    println(@sprintf(" Dividend Base \t Divs Prev Distr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t      G     "))
+    println(@sprintf(" Dividend Base \t DivsPrevDistr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t      G     "))
     println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f \t %9.4f ", eq.a.collections.d/tau.d, sum(eq.distr.*pr.grossdividends), eq.a.consumption, eq.E, eq.w, eq.a.welfare , eq.a.output/(eq.a.capital^pa.alphak*eq.a.laborsupply^pa.alphal), eq.a.G))
 
 
@@ -114,7 +114,7 @@ function Reform5Vector(filename::ASCIIString, taxvector::Array, pr::FirmProblem,
         ref[j+1]=Economy(rpr,req,rtau,cev);
         save(filename,"ref",ref,"pa",pa);
 
-        println(@sprintf(" Dividend Base \t Divs Prev Distr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t      G     "))
+        println(@sprintf(" Dividend Base \t DivsPrevDistr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t      G     "))
         println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f \t %9.4f", req.a.collections.d/rtau.d, sum(eq.distr.*rpr.grossdividends), req.a.consumption, req.E, req.w, req.a.welfare , req.a.output/(req.a.capital^pa.alphak*req.a.laborsupply^pa.alphal), eq.a.G))
     end
     ref
