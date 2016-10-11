@@ -392,7 +392,7 @@ function taxreform6(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   wguess= eq.w;
 
   tauind= update*tau.d + (1-update)*(originalG - tauc*(C+I) - eq.a.collections.l)/D;
-  taunew = Taxes(tauind,tauc,tauc-eps(),tau.g,tau.l);
+  taunew = Taxes(tauind,tauc,tauc-eps(),tau.g,tau.l,tau.exit);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
 
@@ -416,7 +416,7 @@ function taxreform6(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     end
     ntau= tauprime.d + (1-update)*(originalG -newG)/D;
 
-    taunew = Taxes(ntau,tauc,tauc-eps(),tau.g,tau.l);
+    taunew = Taxes(ntau,tauc,tauc-eps(),tau.g,tau.l,tau.exit);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
