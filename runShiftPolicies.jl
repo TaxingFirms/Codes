@@ -22,7 +22,7 @@ include("mc_tools.jl")
 #  @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
 #  moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 #  save("ModelResults500.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
-pr,eq,tau,pa =load("ModelResults500.jld","pr","eq","tau","pa");
+pr,eq,tau,pa =load("ModelResultsNoTaxG600.jld","pr","eq","tau","pa");
 
 # Generate histogram for the initial distribution
 indomegamax = 360;
@@ -48,7 +48,7 @@ eqaux = init_equilibirium(eq.w,tau,pa);
 # 3. Shift policies
 ## 3.1 Shift tauc to 0.3
 pr1  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
-tau1=Taxes(tau.d, 0.3, tau.i, tau.g, tau.l)
+tau1=Taxes(tau.d, 0.3, tau.i, tau.g, tau.l,tau.exit)
 firmVFIParallelOmega!(pr1, eqaux, tau1, pa; tol = 10^-5.0 );
 getpolicies!(pr1,eqaux,tau1,pa); #save("Temp.jld","pr1",pr1)
 expvalentry1= compute_expvalentry(pr1,pa,eq1,tau1);
@@ -134,7 +134,7 @@ close()
 
 ## 3.2 Shift taud to 0.2
 pr2  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
-tau2=Taxes(0.2, tau.c, tau.i, tau.g, tau.l)
+tau2=Taxes(0.2, tau.c, tau.i, tau.g, tau.l,tau.exit)
 firmVFIParallelOmega!(pr2, eqaux, tau2, pa; tol = 10^-5.0 );
 getpolicies!(pr2,eqaux,tau2,pa);
 
@@ -222,105 +222,105 @@ close()
 
 
 
-## 3.3 Shift taud to 0.2, taug to 0.2
-pr3  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
-tau3=Taxes(0.2, tau.c, tau.i, 0.2, tau.l)
-firmVFIParallelOmega!(pr3, eqaux, tau3, pa; tol = 10^-5.0 );
-getpolicies!(pr3,eqaux,tau3,pa);
+### 3.3 Shift taud to 0.2, taug to 0.2
+#pr3  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
+#tau3=Taxes(0.2, tau.c, tau.i, 0.2, tau.l,tau.exit)
+#firmVFIParallelOmega!(pr3, eqaux, tau3, pa; tol = 10^-5.0 );
+#getpolicies!(pr3,eqaux,tau3,pa);
 
-getpolicies!(pr3,eqaux,tau3,pa);
-expvalentry= compute_expvalentry(pr3,pa,eq3,tau3);
-#Fix entry and change distributions
-dist3 = stationarydist(eq.E, pr3, eqaux, tau3, pa);
-#Fix wage consistent with free entry
-eq3 = init_equilibirium(eq.w,tau3,pa);
-pr33 = deepcopy(pr3);
-w3 = free_entry!(eq3, pr33, tau3, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
-getpolicies!(pr33,eq3,tau3,pa);
-mass_of_entrantsGHH!( pr33, eq3, tau3, pa, stationarydist ; verbose = false);
-aggregates!(pr33, eq3, tau3, pa);
+#getpolicies!(pr3,eqaux,tau3,pa);
+#expvalentry= compute_expvalentry(pr3,pa,eq3,tau3);
+##Fix entry and change distributions
+#dist3 = stationarydist(eq.E, pr3, eqaux, tau3, pa);
+##Fix wage consistent with free entry
+#eq3 = init_equilibirium(eq.w,tau3,pa);
+#pr33 = deepcopy(pr3);
+#w3 = free_entry!(eq3, pr33, tau3, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
+#getpolicies!(pr33,eq3,tau3,pa);
+#mass_of_entrantsGHH!( pr33, eq3, tau3, pa, stationarydist ; verbose = false);
+#aggregates!(pr33, eq3, tau3, pa);
 
-save("ShiftTauDG.jld","pr3", pr3,"dist3", dist3, "eq3" ,eq3, "pr33", pr33, "w3", w3,  "pa",pa);
-pr3, dist3, eq3, pr33, w3, pa = load("ShiftTauDG.jld","pr3","dist3","eq3", "pr33", "w3", "pa");
+#save("ShiftTauDG.jld","pr3", pr3,"dist3", dist3, "eq3" ,eq3, "pr33", pr33, "w3", w3,  "pa",pa);
+#pr3, dist3, eq3, pr33, w3, pa = load("ShiftTauDG.jld","pr3","dist3","eq3", "pr33", "w3", "pa");
 
-hist3 = Array(Float64,(Nbins,));
-hist33 = Array(Float64,(Nbins,));
-hist333 = Array(Float64,(Nbins,));
-hdist3 = sum(dist2,2); #dist2[:,7];
-hdist33 = sum(eq2.distr,2); #eq2.distr[:,7];
+#hist3 = Array(Float64,(Nbins,));
+#hist33 = Array(Float64,(Nbins,));
+#hist333 = Array(Float64,(Nbins,));
+#hdist3 = sum(dist2,2); #dist2[:,7];
+#hdist33 = sum(eq2.distr,2); #eq2.distr[:,7];
 
-for j=1:Nbins
-  ind0 = convert(Int64,(j-1)*hstep +1);
-  indend = convert(Int64,(j)*hstep);
-  hist3[j] = sum(hdist3[ind0:indend]);
-  hist33[j] = sum(hdist33[ind0:indend]);
-end
-hist3 = hist3/sum(hist3);
-hist33 = hist33/sum(hist33);
+#for j=1:Nbins
+#  ind0 = convert(Int64,(j-1)*hstep +1);
+#  indend = convert(Int64,(j)*hstep);
+#  hist3[j] = sum(hdist3[ind0:indend]);
+#  hist33[j] = sum(hdist33[ind0:indend]);
+#end
+#hist3 = hist3/sum(hist3);
+#hist33 = hist33/sum(hist33);
 
-width= hstep2*0.4;
-
-
-figure()
-title("Change in Dividend Tax and Capital Gains\n Partial equilibrium effect", fontsize=16)
-xlabel("Net worth", fontsize=14)
-k= plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,proddisplay] , color="r", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.15$")
-k1= plot(pa.omega.grid[1:indomegamax], pr3.kpolicy[1:indomegamax,proddisplay], color="m", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.20$")
-ylabel("""k' """, fontsize=14)
-#ylim(-20,90)
-tick_params(labelsize=13)
-legend(loc="best")
-twinx()
-rects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = \tau_g = 0.15$")
-rects2 = bar(ind, hist3, width, color="m", label=L"$\tau_d = \tau_g = 0.15$")
-ylabel("Mass of firms", fontsize=14)
-ylim(0,1)
-tick_params(labelsize=13)
-savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauDG.pdf")
-close()
-
-expvalentry3= compute_expvalentry(pr3,pa,eq3,tau3);
+#width= hstep2*0.4;
 
 
+#figure()
+#title("Change in Dividend Tax and Capital Gains\n Partial equilibrium effect", fontsize=16)
+#xlabel("Net worth", fontsize=14)
+#k= plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,proddisplay] , color="r", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.15$")
+#k1= plot(pa.omega.grid[1:indomegamax], pr3.kpolicy[1:indomegamax,proddisplay], color="m", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.20$")
+#ylabel("""k' """, fontsize=14)
+##ylim(-20,90)
+#tick_params(labelsize=13)
+#legend(loc="best")
+#twinx()
+#rects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = \tau_g = 0.15$")
+#rects2 = bar(ind, hist3, width, color="m", label=L"$\tau_d = \tau_g = 0.15$")
+#ylabel("Mass of firms", fontsize=14)
+#ylim(0,1)
+#tick_params(labelsize=13)
+#savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauDG.pdf")
+#close()
 
-width= hstep2*0.25;
-figure()
-title("Change in Dividend Tax \n General equilibrium effect", fontsize=16)
-xlabel("Net worth", fontsize=14)
-k=plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,proddisplay] , color="r", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.15$")
-k3= plot(pa.omega.grid[1:indomegamax], pr3.kpolicy[1:indomegamax,proddisplay], color="m", linewidth = 2.0, label=L"$\tau_d = 0.20$")
-k33= plot(pa.omega.grid[1:indomegamax], pr33.kpolicy[1:indomegamax,proddisplay], color="y", linewidth = 2.0, label=L"$\tau_d = 0.20, GE$")
-ylabel("""k' """, fontsize=14)
-#ylim(-20,90)
-tick_params(labelsize=13)
-legend(loc="best")
-twinx()
-rects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = 0.15$")
-rects3 = bar(ind, hist3, width, color="m", label=L"$\tau_d = 0.20$")
-rects33 = bar(ind + width, hist33, width, color="y", label=L"$\tau_c = 0.30, GE$")
-ylabel("Mass of firms", fontsize=14)
-ylim(0,1)
-tick_params(labelsize=13)
-savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauD_GE.pdf")
-close()
+#expvalentry3= compute_expvalentry(pr3,pa,eq3,tau3);
+
+
+
+#width= hstep2*0.25;
+#figure()
+#title("Change in Dividend Tax \n General equilibrium effect", fontsize=16)
+#xlabel("Net worth", fontsize=14)
+#k=plot(pa.omega.grid[1:indomegamax], pr.kpolicy[1:indomegamax,proddisplay] , color="r", linewidth = 2.0, label=L"$\tau_d = \tau_g = 0.15$")
+#k3= plot(pa.omega.grid[1:indomegamax], pr3.kpolicy[1:indomegamax,proddisplay], color="m", linewidth = 2.0, label=L"$\tau_d = 0.20$")
+#k33= plot(pa.omega.grid[1:indomegamax], pr33.kpolicy[1:indomegamax,proddisplay], color="y", linewidth = 2.0, label=L"$\tau_d = 0.20, GE$")
+#ylabel("""k' """, fontsize=14)
+##ylim(-20,90)
+#tick_params(labelsize=13)
+#legend(loc="best")
+#twinx()
+#rects = bar(ind -width, hist, width, color="r", label =L"$\tau_d = 0.15$")
+#rects3 = bar(ind, hist3, width, color="m", label=L"$\tau_d = 0.20$")
+#rects33 = bar(ind + width, hist33, width, color="y", label=L"$\tau_c = 0.30, GE$")
+#ylabel("Mass of firms", fontsize=14)
+#ylim(0,1)
+#tick_params(labelsize=13)
+#savefig("../1_Firmtaxation/1FirmTaxation/Figures/ShiftTauD_GE.pdf")
+#close()
 
 
 ## 3.4 Shift taud to 0.2, taug to 0.2
-pr4  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
-tau4=Taxes(0.2, tau.c, 0.2, 0.2, tau.l)
-firmVFIParallelOmega!(pr4, eqaux, tau4, pa; tol = 10^-5.0 );
-getpolicies!(pr4,eqaux,tau4,pa);
+#pr4  = init_firmproblem(pa, firmvalueguess = pr.firmvaluegrid);
+#tau4=Taxes(0.2, tau.c, 0.2, 0.2, tau.l, tau.exit)
+#firmVFIParallelOmega!(pr4, eqaux, tau4, pa; tol = 10^-5.0 );
+#getpolicies!(pr4,eqaux,tau4,pa);
 
-getpolicies!(pr4,eqaux,tau4,pa);
-expvalentry= compute_expvalentry(pr4,pa,eqaux,tau4);
-#Fix entry and change distributions
-dist4 = stationarydist(eq.E, pr4, eqaux, tau4, pa);
-#Fix wage consistent with free entry
-eq4 = init_equilibirium(eq.w,tau4,pa);
-pr44 = deepcopy(pr4);
-w4 = free_entry!(eq4, pr44, tau4, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
-getpolicies!(pr44,eq4,tau4,pa);
-mass_of_entrantsGHH!( pr44, eq4, tau4, pa, stationarydist ; verbose = false);
-aggregates!(pr44, eq4, tau4, pa);
+#getpolicies!(pr4,eqaux,tau4,pa);
+#expvalentry= compute_expvalentry(pr4,pa,eqaux,tau4);
+##Fix entry and change distributions
+#dist4 = stationarydist(eq.E, pr4, eqaux, tau4, pa);
+##Fix wage consistent with free entry
+#eq4 = init_equilibirium(eq.w,tau4,pa);
+#pr44 = deepcopy(pr4);
+#w4 = free_entry!(eq4, pr44, tau4, pa, firmVFIParallelOmega!, maximizationconstraint, 10.0^-5.0);
+#getpolicies!(pr44,eq4,tau4,pa);
+#mass_of_entrantsGHH!( pr44, eq4, tau4, pa, stationarydist ; verbose = false);
+#aggregates!(pr44, eq4, tau4, pa);
 
-save("ShiftTauDGI.jld","pr4", pr4,"dist4", dist4, "eq4" ,eq4, "pr44", pr44, "w4", w,  "pa",pa);
+#save("ShiftTauDGI.jld","pr4", pr4,"dist4", dist4, "eq4" ,eq4, "pr44", pr44, "w4", w,  "pa",pa);

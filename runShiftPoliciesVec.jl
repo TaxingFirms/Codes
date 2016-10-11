@@ -14,7 +14,7 @@ include("mc_tools.jl")
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
 
-pr,eq,tau,pa =load("ModelResults.jld","pr","eq","tau","pa");
+pr,eq,tau,pa =load("ModelResultsNoTaxG600.jld","pr","eq","tau","pa");
 
 #1. Initialize vector of type pr, tau,
 taudvec= [0.15 0.20 0.25 0.30 0.35 0.40 0.45]
