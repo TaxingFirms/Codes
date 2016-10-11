@@ -22,7 +22,7 @@ include("mc_tools.jl")
 # NO TAU G
 pa =init_parameters(H = 3.4, psi=0.5, ddelta = 0.0769, ttheta = 0.22956 , rhoz = 0.75, ssigmaz = 0.10608, llambda0 = 0.0456, llambda1 = 0.08897, ff = 1.3267, e=0.0260);
 
-tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.0, ttaug= 0.0, ttaul=0.28, ttauexit=0.0);
+tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.0, ttaug= 0.0, ttaul=0.28, ttauexit=0.15);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-3.0, displayit0=false, displayw = false);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
 save("ModelResultsNoTaxG.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
