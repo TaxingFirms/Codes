@@ -25,11 +25,11 @@ include("mc_tools.jl")
 
 pr,eq,tau,pa =load("ModelResultsNoTaxG.jld","pr","eq","tau","pa");
 
-tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.0, ttaug = 0.0, ttaul = 0.28, ttauexit=0.0);
+tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.0, ttaug = 0.0, ttaul = 0.28, ttauexit=0.15);
 include("TaxReforms.jl")
 include("Reforms.jl")
 
 #
 taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
-ref5 = Reform5Vector("ref5ZeroTauI.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.9);
+ref5 = Reform5Vector("ref5ZeroTauI.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.0);
 #ref5,pa=load("ref5ZeroTauI.jld","ref","pa");
