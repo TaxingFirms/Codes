@@ -329,15 +329,15 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind=  update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
+  tauind=  tau.d; #update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
   taunew = Taxes(tauind,tauc,0.0,tau.g,tau.l,tau.exit);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
   pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
-  println(@sprintf(" Dividend Base \t LabTax Collts \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t       G     "))
-  println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f  \t %9.4f ", eq1.a.collections.d/taunew.d, eq1.a.collections.l, eq1.a.consumption, eq1.E, eq1.w, eq1.a.welfare , eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), eq1.a.G))
+  println(@sprintf(" Dividend Base \t Divs Prev Distr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t       G     "))
+  println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f  \t %9.4f ", eq1.a.collections.d/taunew.d, sum(eq.distr.*pr1.grossdividends), eq1.a.consumption, eq1.E, eq1.w, eq1.a.welfare , eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), eq1.a.G))
   if momentsprint
       moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
   end
@@ -362,8 +362,8 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
     wguess=eq1.w;
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess , firmvalueguess = pr1.firmvaluegrid, displayit0=false, displayw = false , initialradius = initialradius);
-    println(@sprintf(" Dividend Base \t LabTax Collts \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t       G     "))
-    println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f  \t %9.4f ", eq1.a.collections.d/taunew.d, eq1.a.collections.l, eq1.a.consumption, eq1.E, eq1.w, eq1.a.welfare , eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), eq1.a.G))
+    println(@sprintf(" Dividend Base \t Divs Prev Distr \t  Consumption \t Mass Entrants \t     Wage    \t    Welfare  \t    TFP   \t       G     "))
+    println(@sprintf("%9.4f \t %9.4f \t %9.4f \t %9.4f \t %9.4f  \t %9.4f \t %9.4f  \t %9.4f ", eq1.a.collections.d/taunew.d,  sum(eq.distr.*pr1.grossdividends), eq1.a.consumption, eq1.E, eq1.w, eq1.a.welfare , eq1.a.output/(eq1.a.capital^pa.alphak*eq1.a.laborsupply^pa.alphal), eq1.a.G))
 
     if momentsprint
         moments=computeMomentsCutoff(eq1.E,pr1,eq1,tau,pa,cutoffCapital=0.0,toPrint=true);
