@@ -329,7 +329,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   originalG=govexp;
   wguess= eq.w;
 
-  tauind=  tau.d;#update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
+  tauind=  update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
   taunew = Taxes(tauind,tauc,0.0,tau.g,tau.l,tau.exit);
   println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 

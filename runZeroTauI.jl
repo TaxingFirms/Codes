@@ -29,7 +29,7 @@ tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.0, ttaug = 0.0, ttaul = 0
 include("TaxReforms.jl")
 include("Reforms.jl")
 
-#0.33 0.31 0.29 0.27 0.25
-taucvec = [0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
-ref5 = Reform5Vector("ref5ZeroTauIb.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.0);
-#ref5,pa=load("ref5CoarseZgrid.jld","ref","pa");
+#
+taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
+ref5 = Reform5Vector("ref5ZeroTauI.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.9);
+#ref5,pa=load("ref5ZeroTauI.jld","ref","pa");
