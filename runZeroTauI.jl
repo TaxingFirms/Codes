@@ -21,7 +21,7 @@ pa =init_parameters(H = 3.4, psi=0.5, ddelta = 0.0769, ttheta = 0.22956 , rhoz =
 tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.0, ttaug = 0.0, ttaul = 0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
-save("ResultsZeroTauI.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
+#save("ResultsZeroTauI.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 #pr,eq,tau,pa =load("ResultsZeroTauI.jld","pr","eq","tau","pa");
 
