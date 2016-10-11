@@ -136,7 +136,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
     l0    = (z0*pa.alphal*k0^pa.alphak / eq.w)^(1/(1-pa.alphal));
     labor    += l0*eq.E*pa.invariant_distr[i_zprime];
     gdp      += (z0*k0^pa.alphak*l0^pa.alphal - pa.f)*eq.E*pa.invariant_distr[i_zprime];
-    corptax  += tau.c*max(z0*k0^pa.alphak*l0^pa.alphal - eq.w*l0 - pa.allowance*pa.delta*k0 - eq.r*q0 - pa.f,0.0)*eq.E*pa.invariant_distr[i_zprime];
+    corptax  += tau.c*(z0*k0^pa.alphak*l0^pa.alphal - eq.w*l0 - pa.allowance*pa.delta*k0 - eq.r*q0 - pa.f)*eq.E*pa.invariant_distr[i_zprime];
 
     #### Next we consider incumbents ###
     for i_z in 1:pa.Nz
@@ -157,11 +157,11 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
           labor     += lprime*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           gdp       += (zprime*kprime^pa.alphak*lprime^pa.alphal - pa.f)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          corptax   += tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
+          corptax   += tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
 
-          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)
+          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f)
 
           divs += max(omegaprimecheck -pa.f - kprimefun[i_zprime][omegaprimecheck] + qprimefun[i_zprime][omegaprimecheck] , 0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           divscheck = omegaprime - pa.f - pr.kpolicy[i_omegaprime,i_zprime] + pr.qpolicy[i_omegaprime,i_zprime] ;
@@ -358,7 +358,7 @@ function aggregatesold!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
 
-          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)
+          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f)
 
           divs += max(omegaprimecheck -pa.f - kprimefun[i_zprime][omegaprimecheck] + qprimefun[i_zprime][omegaprimecheck] , 0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           divscheck = omegaprime - pa.f - pr.kpolicy[i_omegaprime,i_zprime] + pr.qpolicy[i_omegaprime,i_zprime] ;

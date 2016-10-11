@@ -32,9 +32,9 @@ end
 function continuation(kprime::Real, qprime::Real, i_z::Int, pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
   taudtilde = 1-(1-tau.d)/(1-tau.g);
   cont =0.0;
-  exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
+  exitvalue = exitval(kprime, qprime, eq, tau, pa);
   for (i_zprime, zprime) in enumerate(pa.zgrid)
-    omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
+    omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);omegaprimefun
     cont += max(exitvalue, firmvaluefunction(omegaprime,i_zprime,pr))*pa.ztrans[i_zprime,i_z];
     end
   return cont
@@ -444,7 +444,7 @@ function getpolicies!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param)
 
       prexit=0.0;
        #This just avoids computing this constant again and again while computing omegaprime
-      exitvalue = exitvalnotax(kprime, qprime, eq, tau, pa);
+      exitvalue = exitval(kprime, qprime, eq, tau, pa);
       for (i_zprime,zprime) in enumerate(pa.zgrid)
         lprime=(pa.alphal*zprime*(kprime^pa.alphak)/eq.w)^(1/(1-pa.alphal));
         omegaprime = omegaprimefun(kprime,qprime,i_zprime,eq,tau,pa);
