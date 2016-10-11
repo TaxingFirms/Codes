@@ -24,7 +24,7 @@ end
 
 function exitvalnotax(kprime::Float64, qprime::Float64, eq::Equilibrium, tau::Taxes, pa::Param)
 
-  (1-0.15)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
+  (1-0.0)*(pa.kappa*(1-pa.delta*(1-pa.allowance*tau.c))*kprime - (1+eq.r*(1-tau.c))*qprime)
 end
 
 
