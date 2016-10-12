@@ -16,12 +16,12 @@ include("mc_tools.jl")
 @everywhere include("Transitions.jl")
 
 #Tesla
-pa =init_parameters(Nz=9, H = 3.4, psi=0.5, ddelta = 0.0769, ttheta = 0.22956 , rhoz = 0.75, ssigmaz = 0.10608, llambda0 = 0.0456, llambda1 = 0.08897, ff = 1.3267, e=0.0260);
+pa =init_parameters(Nz=21, H = 3.4, psi=0.5, ddelta = 0.0769, ttheta = 0.22956 , rhoz = 0.75, ssigmaz = 0.10608, llambda0 = 0.0456, llambda1 = 0.08897, ff = 1.3267, e=0.0260);
 
 tau = init_taxes(ttaud = 0.15, ttauc = 0.35, ttaui = 0.0, ttaug = 0.0, ttaul = 0.28);
 @time pr,eq= SolveSteadyState(tau,pa;wguess=0.5, VFItol=10.0^-5.0, displayit0=true, displayw = true);
 moments=computeMomentsCutoff(eq.E,pr,eq,tau,pa,cutoffCapital=0.0;toPrint=true);
-save("ResultsZeroTauI9.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
+save("ResultsZeroTauI21.jld","pr",pr,"eq",eq,"tau",tau,"pa",pa);
 
 #pr,eq,tau,pa =load("ResultsZeroTauI.jld","pr","eq","tau","pa");
 
@@ -30,5 +30,5 @@ include("Reforms.jl")
 
 
 taucvec = [0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00];
-ref5 = Reform5Vector("ref5ZeroTauI9.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.0);
-#ref5,pa=load("ref5ZeroTauI13.jld","ref","pa");
+ref5 = Reform5Vector("ref5ZeroTauI21.jld", taucvec, pr, eq, tau, pa; bctol= 5*10.0^-3.0, update=0.0);
+#ref5,pa=load("ref5ZeroTauI9.jld","ref","pa");
