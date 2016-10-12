@@ -331,7 +331,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
 
   tauind=  tau.d; #update*tau.d + (1-update)*(originalG - tauc*C - eq.a.collections.l)/D;
   taunew = Taxes(tauind,tauc,0.0,tau.g,tau.l,tau.exit);
-  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit )
 
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -357,7 +357,7 @@ function taxreform5(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     ntau= tauprime.d + (1-update)*(originalG -newG)/D;
 
     taunew = Taxes(ntau,tauc,0.0,tau.g,tau.l,tau.exit);
-    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit )
 
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
     wguess=eq1.w;
