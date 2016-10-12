@@ -192,7 +192,7 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
   financialcosts= - sum(distr.*pr.financialcosts);
 
   labor_s = ((1-tau.l)*eq.w/pa.H)^pa.psi;
-  deductionfactor=0.7;
+  deductionfactor=0.35;
   deduction_l = deductionfactor*tau.l*eq.w*labor_s;
   deduction_i = deductionfactor*tau.i*eq.r*debt;
   consumption = (1-tau.l)*eq.w*labor_s + (1-tau.i)*eq.r*debt + netdistributions + liquidations - eq.E*(pa.k0+pa.e) + deduction_l+ deduction_i;
