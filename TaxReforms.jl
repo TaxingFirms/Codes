@@ -146,7 +146,7 @@ function taxreform3(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   #Compute tax base for "revenue neutral" reforms
   C = eq.a.collections.c / tau.c; #corporate base
   D = eq.a.collections.d / tau.d; #dividend base
-  I = eq.a.collections.i / tau.i; #interest base
+  I = tau.i>0 ? eq.a.collections.i / tau.i:0.0; #interest base
 
   originalG=govexp;
   wguess= eq.w;
@@ -170,7 +170,7 @@ function taxreform3(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     tauprime=deepcopy(taunew);
 
     D= eq1.a.collections.d / tauprime.d;
-    I= eq1.a.collections.i / tauprime.i;
+    I= tauprime.i >0 ? eq1.a.collections.i / tauprime.i :0.0;
 
     if newDeficit*deficit<0 #if deficit changes sign, decrease updating speed
       update+=(1-update)/2;
