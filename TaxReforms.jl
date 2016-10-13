@@ -19,8 +19,8 @@ function taxreform1(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     end
 
     taud= tau.d - (1-update)*x;
-    taunew = Taxes(taud,tauc,tau.i,tau.g,tau.l);
-    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+    taunew = Taxes(taud,tauc,tau.i,tau.g,tau.l,tau.exit);
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
@@ -48,8 +48,8 @@ function taxreform1(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
           error("No equilibrium under current taxes")
       end
 
-      taunew = Taxes(ntau,tauprime.c,tauprime.i,tauprime.g,tauprime.l);
-      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+      taunew = Taxes(ntau,tauprime.c,tauprime.i,tauprime.g,tauprime.l,tauprime.exit));
+      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
       initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
       wguess=eq1.w;
@@ -90,8 +90,8 @@ function taxreform2(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     end
 
     taue= tau.d - (1-update)*x;
-    taunew = Taxes(taue,tauc,tau.i,taue,tau.l);
-    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+    taunew = Taxes(taue,tauc,tau.i,taue,tau.l,tau.exit);
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
     pr1,eq1=SolveSteadyState(taunew,pa; wguess = wguess, firmvalueguess = pr.firmvaluegrid, displayit0=false, displayw = false);
@@ -119,8 +119,8 @@ function taxreform2(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
           error("No equilibrium under current taxes")
       end
 
-      taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tauprime.l);
-      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+      taunew = Taxes(ntau,tauprime.c,tauprime.i,ntau,tauprime.l,tauprime.exit);
+      println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
       initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
       wguess=eq1.w;
@@ -152,8 +152,8 @@ function taxreform3(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
   wguess= eq.w;
 
   tauind= update*(tau.d*D +tau.i*I)/(D+I)+(1-update)*(originalG - tauc*C - eq.a.collections.l)/(D + I);
-  taunew = Taxes(tauind,tauc,tauind,tauind,tau.l);
-  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+  taunew = Taxes(tauind,tauc,tauind,tauind,tau.l,tau.exit);
+  println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
 
   #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -177,8 +177,8 @@ function taxreform3(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
     end
     ntau= tauprime.d + (1-update)*(originalG -newG)/(D+I);
 
-    taunew = Taxes(ntau,tauc,ntau,ntau,tau.l);
-    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
+    taunew = Taxes(ntau,tauc,ntau,ntau,tau.l,tau.exit);
+    println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
     initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
     wguess=eq1.w;
