@@ -48,7 +48,7 @@ function taxreform1(tauc::Float64, govexp::Float64, pr::FirmProblem, eq::Equilib
           error("No equilibrium under current taxes")
       end
 
-      taunew = Taxes(ntau,tauprime.c,tauprime.i,tauprime.g,tauprime.l,tauprime.exit));
+      taunew = Taxes(ntau,tauprime.c,tauprime.i,tauprime.g,tauprime.l,tauprime.exit);
       println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g, " exit = ", taunew.exit)
 
       initialradius = min(abs(eq1.w-wguess),10.0^-2.0);
