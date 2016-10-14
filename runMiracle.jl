@@ -15,23 +15,6 @@ include("mc_tools.jl")
 @everywhere include("calibrate.jl")
 @everywhere include("Transitions.jl")
 
-
-@everywhere using Grid:CoordInterpGrid, BCnan, BCnearest, InterpLinear
-using JLD
-using DataFrames
-
-include("markov_approx.jl")
-include("mc_tools.jl")
-
-@everywhere include("Main.jl")
-@everywhere include("Firms.jl")
-@everywhere include("FreeEntry.jl")
-@everywhere include("Distribution.jl")
-@everywhere include("Aggregation.jl")
-@everywhere include("SolveSteadyState.jl")
-@everywhere include("calibrate.jl")
-@everywhere include("Transitions.jl")
-
 pa =init_parameters(H = 3.4, psi=0.5, ddelta = 0.0768, ttheta = 0.2295 , rhoz = 0.75, ssigmaz = 0.0993, llambda0 = 0.004, llambda1 = 0.08, ff = 1.44459, e=0.041674);
 
 tau = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.0, ttaug= 0.15, ttaul=0.28, ttauexit=0.0);
