@@ -344,6 +344,13 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     sqrt(var_inv_rate),mean_dividends2k,sqrt(var_dividends2k),mean_tobinsq,
     eq.a.collections.c/eq.a.output, (eq.a.collections.d + eq.a.collections.i + eq.a.collections.l)/eq.a.output]
     println(DataFrame(names=namesMoments,aggVals=valueMoments,data=dataMoments))
+
+    # Also print aggregate values
+    namesAggregates = ["GDP","Consumption/GDP","Investment/GDP","GovExp/GDP", "Dividends/GDP", "tau_corp","tau_div","tau_capgain","Labor","Gross Dividends","Financial Costs","Consumption","Investment","Gov Exp","Dividends"]
+    aggValues = [eq.a.output, eq.a.consumption/eq.a.output, eq.a.investment/eq.a.output, eq.a.G/eq.a.output,(eq.a.collections.d / tau.d)/eq.a.output ,
+     tau.c,tau.d,tau.g,eq.a.laborsupply,eq.a.grossdividends,eq.a.financialcosts,eq.a.consumption,eq.a.investment,eq.a.G,eq.a.collections.d / tau.d]
+    println(DataFrame(names=namesAggregates,aggVals=aggValues))
+
   end
 
   resultingMoments
