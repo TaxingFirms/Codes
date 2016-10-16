@@ -346,9 +346,9 @@ function computeMomentsCutoff(E::Real,pr::FirmProblem, eq::Equilibrium, tau::Tax
     println(DataFrame(names=namesMoments,aggVals=valueMoments,data=dataMoments))
 
     # Also print aggregate values
-    namesAggregates = ["GDP","C","I","G","C/GDP","I/GDP","Dividends", "Dividents/GDP", "tau_corp","tau_div","tau_capgain","Labor","Gross Dividends","Financial Costs"]
-    aggValues = [eq.a.output,eq.a.collections.c / tau.c,eq.a.investment,eq.a.G, (eq.a.collections.c / tau.c)/eq.a.output, eq.a.investment/eq.a.output,
-      eq.a.collections.d / tau.d, (eq.a.collections.d / tau.d)/eq.a.output ,tau.c,tau.d,tau.g,eq.a.laborsupply,eq.a.grossdividends,eq.a.financialcosts]
+    namesAggregates = ["GDP","Consumption/GDP","Investment/GDP", "Dividends/GDP", "tau_corp","tau_div","tau_capgain","Labor","Gross Dividends","Financial Costs","Consumption","Investment","Gov Exp","Dividends"]
+    aggValues = [eq.a.output, eq.a.consumption/eq.a.output, eq.a.investment/eq.a.output,(eq.a.collections.d / tau.d)/eq.a.output ,
+     tau.c,tau.d,tau.g,eq.a.laborsupply,eq.a.grossdividends,eq.a.financialcosts,eq.a.consumption,eq.a.investment,eq.a.G,eq.a.collections.d / tau.d]
     println(DataFrame(names=namesAggregates,aggVals=aggValues))
 
   end
