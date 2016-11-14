@@ -161,12 +161,12 @@ function aggregates!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param; co
 
           omegaprime, i_omegaprime = predict_state(i_zprime, i_omega, i_z, pr, eq, tau, pa);
 
-          omegaprimecheck= zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)
-
+          omegaprimecheck = zprime*kprime^pa.alphak*lprime^pa.alphal - eq.w*lprime+ (1-pa.delta)*kprime - (1+eq.r)*qprime - tau.c*max(zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f,0.0)
+          
           divs += max(omegaprimecheck -pa.f - kprimefun[i_zprime][omegaprimecheck] + qprimefun[i_zprime][omegaprimecheck] , 0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           divscheck = omegaprime - pa.f - pr.kpolicy[i_omegaprime,i_zprime] + pr.qpolicy[i_omegaprime,i_zprime] ;
           netdistributions+=pr.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          corptaxbase =  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f;
+          # corptaxbase =  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f;
 
         #Exiting incumbents
         else
@@ -261,6 +261,7 @@ function aggregatesold!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;
   liquidationtax=0.0;
   netdistributions=0.0;
   divs=0.0;
+  capitalgainstax = 0.0;
 
 
   #Moments
@@ -363,7 +364,7 @@ function aggregatesold!(pr::FirmProblem, eq::Equilibrium, tau::Taxes, pa::Param;
           divs += max(omegaprimecheck -pa.f - kprimefun[i_zprime][omegaprimecheck] + qprimefun[i_zprime][omegaprimecheck] , 0.0)*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
           divscheck = omegaprime - pa.f - pr.kpolicy[i_omegaprime,i_zprime] + pr.qpolicy[i_omegaprime,i_zprime] ;
           netdistributions+=pr.distributions[i_omegaprime,i_zprime]*distr[i_omega,i_z]*pa.ztrans[i_zprime,i_z];
-          corptaxbase =  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f;
+          # corptaxbase =  zprime*kprime^pa.alphak*lprime^pa.alphal -eq.w*lprime - pa.allowance*pa.delta*kprime - eq.r*qprime - pa.f;
 
 
           if compute_moments
