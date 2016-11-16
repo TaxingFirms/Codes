@@ -123,3 +123,22 @@ end
 
 ref,pa = load("reform1ZeroTauI.jld","ref","pa");
 newRev = compareTaxesToBenchmark(closing_with_default_guess=ref)
+
+# Print results
+
+robustness_ref,robustness_pa = load("reform1ZeroTauI.jld","ref","pa");
+nReformsCompleted = length(robustness_ref)
+resultingTaxes = zeros(nReformsCompleted,5)
+
+for i in 1:nReformsCompleted
+    resultingTaxes[i,1] = robustness_ref[i].tau.d
+    resultingTaxes[i,2] = robustness_ref[i].tau.c
+    resultingTaxes[i,3] = robustness_ref[i].tau.i
+    resultingTaxes[i,4] = robustness_ref[i].tau.g
+    resultingTaxes[i,5] = robustness_ref[i].tau.l
+end
+
+
+
+
+
