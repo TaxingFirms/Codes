@@ -37,9 +37,14 @@ function taxreformRobustness(newTaxGuess::Taxes,tauc::Float64, govexp::Float64, 
          error("No equilibrium under current taxes")
     end
 
-    taud= tau.d - (1-update)*x;
+    taud = tau.d - (1-update)*x;
 
-    taunew = Taxes(newTaxGuess.d,tauc,newTaxGuess.i,newTaxGuess.g,newTaxGuess.l);
+    # Reforms keep interest tax = 0, capgains = .15, labor = .28
+    interest_tax  = 0.0;
+    cap_gains_tax = .15
+    labor_tax     = .28;
+
+    taunew = Taxes(taud,tauc,interest_tax,cap_gains_tax,labor_tax);
     println("New rates: d = ", taunew.d, " c = ", taunew.c, " i = ", taunew.i, " g = ", taunew.g)
 
     #Initiate prices and firm problem, and ultimately, the counterfactual object.
@@ -91,7 +96,7 @@ end
 
 
 
-function compareTaxesToBenchmark(;initial_guess::Taxes = init_taxes(ttaud =0.15, ttauc= 0.35, ttaui= 0.28, ttaug= 0.0, ttaul=0.28),
+function compareTaxesToBenchmark(;initial_guess::Taxes = init_taxes(ttaud =0.1, ttauc= 0.1, ttaui= 0.1, ttaug= 0.1, ttaul=0.1),
     
     closing_with_default_guess::Array{Economy,1}=Array(Economy,1),
     tauc_to_try=[0.33 0.31 0.29 0.27 0.25 0.23 0.21 0.19 0.17 0.15 0.13 0.11 0.09 0.07 0.05 0.03 0.01 0.00])
@@ -138,6 +143,7 @@ for i in 1:nReformsCompleted
     resultingTaxes[i,5] = robustness_ref[i].tau.l
 end
 
+DataFrame(dividend = resultingTaxes[:,1],corptax = resultingTaxes[:,2],interest = resultingTaxes[:,3],capgains = resultingTaxes[:,4],labor = resultingTaxes[:,5])
 
 
 
